@@ -33,6 +33,7 @@ test("S01 S02 S03 S04 S05 real OTP, invalid code and resend recovery", async ({
 });
 test("S08 S09 S10 S13 S14 S15 S16 S21 mobile keyboard create refresh edit signout and return", async ({
   page,
+  browser,
 }) => {
   const { email } = await signIn(page);
   await page.setViewportSize({ width: 375, height: 900 });
@@ -106,6 +107,38 @@ test("S08 S09 S10 S13 S14 S15 S16 S21 mobile keyboard create refresh edit signou
       )
     ).rows[0].id,
   ).toBe(id);
+  const savedSession = await page.context().storageState();
+  const reopened = await browser.newContext({ storageState: savedSession });
+  const reopenedPage = await reopened.newPage();
+  await reopenedPage.goto("http://127.0.0.1:3000/practice");
+  await expect(reopenedPage.getByLabel("Practice name")).toHaveValue(
+    "Cedar Medical",
+  );
+  await expect(reopenedPage.getByLabel("Practice timezone")).toHaveValue(
+    "America/New_York",
+  );
+  await reopened.close();
+  const fresh = await browser.newContext();
+  const freshPage = await fresh.newPage();
+  await freshPage.goto("http://127.0.0.1:3000/practice");
+  await expect(freshPage).toHaveURL(/\/login$/);
+  await pool.query(
+    "update auth.users set confirmation_sent_at=now()-interval '61 seconds' where email=$1",
+    [email],
+  );
+  await signIn(freshPage, email);
+  await expect(freshPage.getByLabel("Practice name")).toHaveValue(
+    "Cedar Medical",
+  );
+  expect(
+    (
+      await pool.query(
+        "select id from public.practices where owner_user_id=(select id from auth.users where email=$1)",
+        [email],
+      )
+    ).rows[0].id,
+  ).toBe(id);
+  await fresh.close();
 });
 test("A01 markup names render as text with desktop accessibility", async ({
   page,

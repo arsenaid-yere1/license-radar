@@ -30,11 +30,43 @@ test("S26 expires between open/save requires fresh authentication", async ({
   page,
   context,
 }) => {
-  await setup(page);
+  const { email } = await signIn(page);
+  await page.getByLabel("Practice name").fill("Cedar Clinic");
+  await page.getByRole("button", { name: "Create practice" }).click();
+  await expect(page).toHaveURL("http://127.0.0.1:3000/practice");
+  const before = (
+    await pool.query(
+      "select * from public.practices where owner_user_id=(select id from auth.users where email=$1)",
+      [email],
+    )
+  ).rows[0];
   await context.clearCookies();
   await page.getByLabel("Practice name").fill("Expired edit");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page).toHaveURL(/\/login$/);
+  expect(
+    (
+      await pool.query("select * from public.practices where id=$1", [
+        before.id,
+      ])
+    ).rows[0],
+  ).toEqual(before);
+  await pool.query(
+    "update auth.users set confirmation_sent_at=now()-interval '61 seconds' where email=$1",
+    [email],
+  );
+  await signIn(page, email);
+  await page.getByLabel("Practice name").fill("Recovered edit");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("status")).toHaveText("Practice settings saved.");
+  expect(
+    (
+      await pool.query(
+        "select name,version from public.practices where id=$1",
+        [before.id],
+      )
+    ).rows[0],
+  ).toEqual({ name: "Recovered edit", version: before.version + 1 });
 });
 test("S04 expired and reused OTP never create a session", async ({ page }) => {
   const { email, code } = await signIn(page);
