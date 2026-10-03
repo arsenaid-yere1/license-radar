@@ -212,6 +212,7 @@ export function PracticeForm({
       const result = await action(previous, data);
       return {
         ...result,
+        practice: result.practice ?? previous.practice,
         revision: (previous.revision ?? 0) + 1,
         values: {
           name: String(data.get("name") ?? ""),

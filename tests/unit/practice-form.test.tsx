@@ -93,3 +93,82 @@ it("S15 pending save disables submission", async () => {
     ).toBeTruthy(),
   );
 });
+it.each(["invalid", "unavailable"])(
+  "S21 S24 keeps the latest saved version after a %s response",
+  async (status) => {
+    const practice = {
+      id: "practice-id",
+      owner_user_id: "owner-id",
+      name: "Cedar Clinic",
+      timezone: "UTC",
+      version: 1,
+      created_at: "2026-10-03T00:00:00Z",
+      updated_at: "2026-10-03T00:00:00Z",
+    };
+    const action = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: "success",
+        practice: { ...practice, version: 2 },
+        message: "Practice settings saved.",
+      })
+      .mockResolvedValueOnce({
+        status,
+        message: "Recoverable error",
+        ...(status === "invalid" && {
+          errors: { name: "Enter a practice name." },
+        }),
+      })
+      .mockResolvedValueOnce({
+        status: "success",
+        practice: { ...practice, name: "Recovered", version: 3 },
+        message: "Practice settings saved.",
+      });
+    render(
+      <PracticeForm
+        practice={practice}
+        action={action}
+        timezones={timezones}
+      />,
+    );
+    const form = screen
+      .getByRole("button", { name: "Save changes" })
+      .closest("form")!;
+    fireEvent.submit(form);
+    await waitFor(() =>
+      expect(screen.getByRole("status").textContent).toBe(
+        "Practice settings saved.",
+      ),
+    );
+    expect(
+      form.querySelector<HTMLInputElement>('input[name="expectedVersion"]')!
+        .value,
+    ).toBe("2");
+    fireEvent.change(screen.getByLabelText("Practice name"), {
+      target: { value: "  " },
+    });
+    fireEvent.submit(form);
+    await waitFor(() =>
+      expect(screen.getByRole("status").textContent).toBe("Recoverable error"),
+    );
+    expect(
+      (screen.getByLabelText("Practice name") as HTMLInputElement).value,
+    ).toBe("  ");
+    expect(
+      form.querySelector<HTMLInputElement>('input[name="expectedVersion"]')!
+        .value,
+    ).toBe("2");
+    fireEvent.change(screen.getByLabelText("Practice name"), {
+      target: { value: "Recovered" },
+    });
+    fireEvent.submit(form);
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(3));
+    expect(action.mock.calls[2][1].get("expectedVersion")).toBe("2");
+    await waitFor(() =>
+      expect(
+        form.querySelector<HTMLInputElement>('input[name="expectedVersion"]')!
+          .value,
+      ).toBe("3"),
+    );
+  },
+);
