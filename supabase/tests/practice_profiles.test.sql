@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(18);
+select plan(20);
 select ok((
     select relrowsecurity from pg_class
     where oid = 'public.practices'::regclass
@@ -32,6 +32,20 @@ select
         not has_function_privilege('authenticated', 'private.audit_practice()', 'execute'),
         'S23 trigger not callable'
     );
+select is((
+    select count(*)::integer from pg_constraint
+    where
+        conrelid = 'public.practices'::regclass
+        and contype = 'f' and confrelid = 'auth.users'::regclass
+        and confdeltype = 'r'
+), 1, 'N04 owner foreign key restricts deletion');
+select is((
+    select count(*)::integer from pg_constraint
+    where
+        conrelid = 'private.practice_audit_events'::regclass
+        and contype = 'f' and confdeltype = 'r'
+        and confrelid in ('public.practices'::regclass, 'auth.users'::regclass)
+), 2, 'N04 audit practice and actor foreign keys restrict deletion');
 insert into auth.users (id, email) values (
     '10000000-0000-0000-0000-000000000001', 'sql-fixture@example.test'
 );

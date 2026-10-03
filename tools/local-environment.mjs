@@ -61,9 +61,10 @@ if (
         "--no-seed",
         "--yes",
       ]);
-    else if (mode === "test-db")
+    else if (mode === "test-db") {
       run("node_modules/.bin/supabase", ["test", "db", "--local"]);
-    else throw new Error("Unknown local command");
+      run(process.execPath, ["tools/foreign-key-controls.mjs"]);
+    } else throw new Error("Unknown local command");
     if (mode === "reset") {
       prepare();
       const c = localConfig();
