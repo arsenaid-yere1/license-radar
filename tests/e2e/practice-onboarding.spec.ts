@@ -94,7 +94,7 @@ test("S08 S09 S10 S13 S14 S15 S16 S21 mobile keyboard create refresh edit signou
   await page.goto("/practice");
   await expect(page).toHaveURL(/\/login$/);
   await pool.query(
-    "update auth.users set confirmation_sent_at=now()-interval '61 seconds' where email=$1",
+    "update auth.users set confirmation_sent_at=now()-interval '61 seconds', recovery_sent_at=now()-interval '61 seconds' where email=$1",
     [email],
   );
   await signIn(page, email);
@@ -123,7 +123,7 @@ test("S08 S09 S10 S13 S14 S15 S16 S21 mobile keyboard create refresh edit signou
   await freshPage.goto("http://127.0.0.1:3000/practice");
   await expect(freshPage).toHaveURL(/\/login$/);
   await pool.query(
-    "update auth.users set confirmation_sent_at=now()-interval '61 seconds' where email=$1",
+    "update auth.users set confirmation_sent_at=now()-interval '61 seconds', recovery_sent_at=now()-interval '61 seconds' where email=$1",
     [email],
   );
   await signIn(freshPage, email);
