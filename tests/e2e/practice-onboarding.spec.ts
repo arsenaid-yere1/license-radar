@@ -1,4 +1,5 @@
 import { test, expect } from "../helpers/coverage";
+import { writeFileSync } from "node:fs";
 import { signIn, setup } from "../helpers/browser";
 import { fixtureEmail, pool } from "../helpers/local-fixtures";
 import { deliveredCode, mailCount } from "../helpers/local-mail";
@@ -18,10 +19,31 @@ test("S01 S02 S03 S04 S05 real OTP, invalid code and resend recovery", async ({
   await page.getByLabel("Six-digit code").fill("000000");
   await page.getByRole("button", { name: "Verify code" }).click();
   await expect(page.getByRole("status")).toContainText("invalid or expired");
+  const sendAge = async () => {
+    const r = await pool.query(
+      "select extract(epoch from (clock_timestamp()-confirmation_sent_at))::double precision age from auth.users where email=$1",
+      [email],
+    );
+    if (r.rows.length !== 1 || typeof r.rows[0].age !== "number")
+      throw new Error("Missing fixture send timestamp");
+    return r.rows[0].age as number;
+  };
+  const prematureAge = await sendAge();
+  expect(prematureAge).toBeLessThan(60);
   await page.getByRole("button", { name: "Send a new code" }).click();
   await expect(page.getByRole("status")).toContainText("wait 60 seconds");
   expect(await mailCount(email)).toBe(1);
-  await page.waitForTimeout(61000);
+  await expect
+    .poll(sendAge, { timeout: 70000, intervals: [500] })
+    .toBeGreaterThanOrEqual(61);
+  writeFileSync(
+    "reports/resend-timing.json",
+    JSON.stringify({
+      prematureAge,
+      permittedAge: await sendAge(),
+      cooldownSeconds: 60,
+    }),
+  );
   await page
     .getByRole("button", { name: /Send sign-in code|Send a new code/ })
     .click();
