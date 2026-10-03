@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.tools/
+.venv-gauntlet/
+.supabase/
+supabase/.temp/
+supabase/.branches/
+coverage/
+reports/
+playwright-report/
+test-results/
+.browser-cache/
+.stryker-tmp/
+*.tsbuildinfo
+.DS_Store

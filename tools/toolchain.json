@@ -1,0 +1,154 @@
+{
+  "node": "v24.21.0",
+  "npm": "11.19.0",
+  "nodeArchiveSHA256": "bed7eea5325e1108f32ce5228ddd6a5f0f08a499ee42aa7442aea583702f6057",
+  "gitleaks": "8.30.1",
+  "gitleaksArchiveSHA256": "b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5",
+  "sqlfluff": "4.4.0",
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/typescript-checker": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.1",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitest/coverage-v8": "5.0.3",
+    "c8": "12.0.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.8",
+    "fast-check": "4.10.2",
+    "istanbul-lib-coverage": "3.2.2",
+    "jsdom": "30.1.1",
+    "license-checker-rseidelsohn": "4.4.2",
+    "pg": "8.23.1",
+    "prettier": "3.9.9",
+    "supabase": "2.119.0",
+    "typescript": "6.0.3",
+    "v8-to-istanbul": "9.3.0",
+    "vitest": "5.0.3"
+  },
+  "images": [
+    {
+      "image": "public.ecr.aws/supabase/postgres:17.11.0.002",
+      "digests": [
+        "public.ecr.aws/supabase/postgres@sha256:0450166354dc9c1d25f0322ac8b580774d4fb0184d2b087f6e4fe9499c66cf53"
+      ]
+    },
+    {
+      "image": "public.ecr.aws/supabase/postgrest:v16.4",
+      "digests": [
+        "public.ecr.aws/supabase/postgrest@sha256:d155c6718ed9a9f990d159a2ab7c0a3f16944dbb6d0a0344557421042acfe0df"
+      ]
+    },
+    {
+      "image": "public.ecr.aws/supabase/mailpit:v1.31.3",
+      "digests": [
+        "public.ecr.aws/supabase/mailpit@sha256:ed9b00c609e77e99c79b93f1178255ebc271868920f2c69a8d166bd5634ed10d"
+      ]
+    },
+    {
+      "image": "public.ecr.aws/supabase/gotrue:v2.197.0",
+      "digests": [
+        "public.ecr.aws/supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+      ]
+    },
+    {
+      "image": "public.ecr.aws/supabase/kong:2.8.1",
+      "digests": [
+        "public.ecr.aws/supabase/kong@sha256:1b53405d8680a09d6f44494b7990bf7da2ea43f84a258c59717d4539abf09f6d"
+      ]
+    }
+  ],
+  "python": "3.12.14",
+  "pythonDependencies": [
+    {
+      "name": "chardet",
+      "version": "7.6.0"
+    },
+    {
+      "name": "click",
+      "version": "8.4.2"
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6"
+    },
+    {
+      "name": "diff_cover",
+      "version": "10.6.0"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0"
+    },
+    {
+      "name": "Jinja2",
+      "version": "3.1.6"
+    },
+    {
+      "name": "MarkupSafe",
+      "version": "3.0.4"
+    },
+    {
+      "name": "packaging",
+      "version": "26.3"
+    },
+    {
+      "name": "pathspec",
+      "version": "1.1.1"
+    },
+    {
+      "name": "pip",
+      "version": "26.2.1"
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.12.2"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0"
+    },
+    {
+      "name": "pytest",
+      "version": "9.1.1"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29"
+    },
+    {
+      "name": "sqlfluff",
+      "version": "4.4.0"
+    },
+    {
+      "name": "tblib",
+      "version": "3.2.2"
+    },
+    {
+      "name": "tqdm",
+      "version": "4.70.1"
+    }
+  ]
+}

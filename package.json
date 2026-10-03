@@ -1,0 +1,66 @@
+{
+  "name": "license-renewal-radar",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --project unit",
+    "test:coverage": "vitest run --project unit --coverage",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
+    "test:db": "node tools/local-environment.mjs test-db",
+    "db:reset": "node tools/local-environment.mjs reset",
+    "gauntlet": "node tools/gauntlet.mjs",
+    "test:controls": "node --test tools/gauntlet-controls.test.mjs",
+    "mutation": "stryker run",
+    "mutation:properties": "stryker run stryker.properties.config.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.2",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/typescript-checker": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.19.1",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitest/coverage-v8": "5.0.3",
+    "c8": "12.0.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.8",
+    "fast-check": "4.10.2",
+    "istanbul-lib-coverage": "3.2.2",
+    "jsdom": "30.1.1",
+    "license-checker-rseidelsohn": "4.4.2",
+    "pg": "8.23.1",
+    "prettier": "3.9.9",
+    "supabase": "2.119.0",
+    "typescript": "6.0.3",
+    "v8-to-istanbul": "9.3.0",
+    "vitest": "5.0.3"
+  },
+  "type": "module",
+  "overrides": {
+    "braces": "3.0.3"
+  }
+}

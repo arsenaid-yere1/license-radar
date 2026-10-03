@@ -1,0 +1,9 @@
+thoughts/
+.tools/
+coverage/
+reports/
+.next/
+supabase/.temp/
+.venv-gauntlet/
+package-lock.json
+.browser-cache/

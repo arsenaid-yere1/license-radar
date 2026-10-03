@@ -1,0 +1,57 @@
+{
+  "scope": "Local development only; no binary redistribution, hosted deployment, dependency modifications or image optimization features. Review is scoped to this approved story; redistribution is a later decision.",
+  "permissive": [
+    "MIT",
+    "MIT-0",
+    "ISC",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "0BSD",
+    "CC0-1.0",
+    "BlueOak-1.0.0",
+    "Python-2.0",
+    "CC-BY-3.0",
+    "CC-BY-4.0",
+    "(MIT AND CC-BY-3.0)"
+  ],
+  "reviewed": {
+    "@axe-core/playwright@4.13.0": {
+      "license": "MPL-2.0",
+      "reason": "Explicitly approved accessibility test tool; unmodified local test dependency, not browser application code."
+    },
+    "axe-core@4.13.0": {
+      "license": "MPL-2.0",
+      "reason": "Approved axe tool dependency; injected into test browsers only."
+    },
+    "lightningcss@1.33.0": {
+      "license": "MPL-2.0",
+      "reason": "Unmodified Next/Vite CSS build tooling; not an application feature or distributed binary."
+    },
+    "lightningcss-darwin-arm64@1.33.0": {
+      "license": "MPL-2.0",
+      "reason": "Unmodified local native CSS build tooling."
+    },
+    "@img/sharp-libvips-darwin-arm64@1.3.4": {
+      "license": "LGPL-3.0-or-later",
+      "reason": "Unmodified optional server image-processing dependency inherited through approved Next. No image route/optimization usage or distributable binary product in this story. Source repository and upstream notices preserved in node_modules; public redistribution not reviewed."
+    },
+    "license-renewal-radar@0.1.0": {
+      "license": "UNLICENSED",
+      "reason": "Private local application, not a third-party dependency."
+    }
+  },
+  "advisories": {
+    "GHSA-vfj7-8cjw-p6xm": {
+      "packages": [
+        "braces",
+        "micromatch",
+        "fast-glob",
+        "@next/eslint-plugin-next",
+        "eslint-config-next"
+      ],
+      "classification": "not-exploitable-in-this-story",
+      "reason": "Stack exhaustion requires attacker-controlled deeply nested glob patterns. This chain is development-only ESLint scanning fixed repository files; no application/runtime import, user glob endpoint, or upload processing. No published fix in resolved compatible Next lint chain. Runtime npm audit must remain empty."
+    }
+  }
+}

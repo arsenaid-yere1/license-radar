@@ -1,0 +1,152 @@
+[
+  {
+    "id": "checker-controls",
+    "command": "npm",
+    "args": ["run", "test:controls"]
+  },
+  {
+    "id": "checker-sensitivity",
+    "command": "node",
+    "args": ["tools/checker-sensitivity.mjs"]
+  },
+  {
+    "id": "types",
+    "command": "npm",
+    "args": ["run", "typecheck"]
+  },
+  {
+    "id": "lint",
+    "command": "npm",
+    "args": ["run", "lint"]
+  },
+  {
+    "id": "format",
+    "command": "npm",
+    "args": ["run", "format:check"]
+  },
+  {
+    "id": "sql-lint",
+    "command": ".venv-gauntlet/bin/sqlfluff",
+    "args": ["lint", "supabase/migrations", "supabase/tests"]
+  },
+  {
+    "id": "replay",
+    "command": "npm",
+    "args": ["run", "db:reset"]
+  },
+  {
+    "id": "schema",
+    "command": "node",
+    "args": ["tools/schema-fingerprint.mjs"]
+  },
+  {
+    "id": "database",
+    "command": "npm",
+    "args": ["run", "test:db"]
+  },
+  {
+    "id": "integration",
+    "command": "npm",
+    "args": ["run", "test:integration"]
+  },
+  {
+    "id": "unit-coverage",
+    "command": "npm",
+    "args": ["run", "test:coverage"]
+  },
+  {
+    "id": "mutation",
+    "command": "npm",
+    "args": ["run", "mutation"]
+  },
+  {
+    "id": "mutation-properties",
+    "command": "npm",
+    "args": ["run", "mutation:properties"]
+  },
+  {
+    "id": "sql-mutants",
+    "command": "node",
+    "args": ["tools/sql-mutants.mjs"]
+  },
+  {
+    "id": "schema-restored",
+    "command": "node",
+    "args": ["tools/schema-fingerprint.mjs"]
+  },
+  {
+    "id": "generated-types",
+    "command": "node",
+    "args": ["tools/check-generated-types.mjs"]
+  },
+  {
+    "id": "build",
+    "command": "npm",
+    "args": ["run", "build"]
+  },
+  {
+    "id": "browser",
+    "command": "npm",
+    "args": ["run", "test:e2e"]
+  },
+  {
+    "id": "coverage",
+    "command": "node",
+    "args": ["tools/check-coverage.mjs"]
+  },
+  {
+    "id": "suite-health-unit",
+    "command": "npm",
+    "args": ["run", "test", "--", "--sequence.seed=20261017"]
+  },
+  {
+    "id": "suite-health-integration",
+    "command": "npm",
+    "args": ["run", "test:integration", "--", "--sequence.seed=20261017"]
+  },
+  {
+    "id": "suite-health-browser",
+    "command": "node",
+    "args": ["tools/shuffle-browser.mjs"]
+  },
+  {
+    "id": "capabilities",
+    "command": "node",
+    "args": ["tools/check-capabilities.mjs"]
+  },
+  {
+    "id": "supply-chain",
+    "command": "node",
+    "args": ["tools/supply-chain.mjs"]
+  },
+  {
+    "id": "secrets-history",
+    "command": ".tools/gitleaks",
+    "args": [
+      "git",
+      ".",
+      "--redact",
+      "--no-banner",
+      "--ignore-gitleaks-allow",
+      "--report-format",
+      "json",
+      "--report-path",
+      "reports/secrets-history.json"
+    ]
+  },
+  {
+    "id": "secrets-assets",
+    "command": ".tools/gitleaks",
+    "args": [
+      "dir",
+      ".next/static",
+      "--redact",
+      "--no-banner",
+      "--ignore-gitleaks-allow",
+      "--report-format",
+      "json",
+      "--report-path",
+      "reports/secrets-assets.json"
+    ]
+  }
+]

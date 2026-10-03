@@ -1,0 +1,45 @@
+{
+  "approval": "approved",
+  "baseline": "784bf77",
+  "runs": [
+    {
+      "command": "npm test",
+      "phase": "validation stubs",
+      "observedFailedTests": 25,
+      "reason": "Not implemented"
+    },
+    {
+      "command": "npm test",
+      "phase": "auth/repository stubs",
+      "observedFailedTests": 19,
+      "existingPassedTests": 25,
+      "reason": "Not implemented"
+    },
+    {
+      "command": "npm run test:integration",
+      "phase": "before schema",
+      "observedFailedTests": 5,
+      "reason": "Real API returned unavailable; required profile absent"
+    },
+    {
+      "command": "npm test",
+      "phase": "save/form stubs",
+      "observedFailedTests": 12,
+      "existingPassedTests": 44,
+      "reason": "Not implemented"
+    },
+    {
+      "command": "npm run test:controls",
+      "phase": "custom checker stubs",
+      "result": "failed"
+    },
+    {
+      "command": "npm test",
+      "phase": "SDK status-zero outage classification",
+      "observedFailedTests": 2,
+      "existingPassedTests": 92,
+      "reason": "Returned auth-required/redirect instead of unavailable"
+    }
+  ],
+  "limits": "Historical RED observations, not final GREEN results. Additional tests written after implementation are supported by subsequent executed mutations; they do not have an independent pre-implementation RED record."
+}

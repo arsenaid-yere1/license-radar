@@ -1,0 +1,9 @@
+[sqlfluff]
+dialect = postgres
+max_line_length = 100
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:references.keywords]
+# These names are the approved public contract, not accidental SQL identifiers.
+ignore_words = name,timezone,operation,version
