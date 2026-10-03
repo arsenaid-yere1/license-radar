@@ -292,3 +292,17 @@ Discover actual Supabase command syntax via `--help` when creating scripts. Data
 This is a proposed implementation, not a completed story. Current verification consists of reading the existing research file and skills, inspecting workspace/runtime availability, reviewing current official documentation, and reviewing this plan. Application lint, types, migrations, and tests have not been run because their files do not exist yet.
 
 No material product or architecture choice remains open for this plan. Exact package patch versions, CLI flags, Docker availability, and hosted email/project credentials are implementation preflight checks, not permission to provision external resources. The plan can be implemented and verified locally without a cloud project.
+
+
+## Implementation completion record — 2026-10-03
+
+The original planning text above is retained unchanged as history. The user approved the old-coder executable specification with **“approved”** before implementation.
+
+- Phase 1: Next.js 16 / Node 24 foundation, email OTP, protected routing, cookie refresh and sign-out implemented and verified against local Supabase/Mailpit.
+- Phase 2: Owner-scoped practice storage, column grants/RLS, optimistic versioning and atomic private audits implemented. Fresh replay, actual two-account access, 20-way creation, conflicting edits, rollback and restrictive foreign keys verified.
+- Phase 3: Practice creation/settings, name and timezone validation, editable browser suggestion/UTC fallback, truthful example, retained errors and accessible mobile form implemented. Real Chromium production flows, keyboard checks, axe and agent image inspection completed.
+- Phase 4: README and final source review completed. Final fresh gauntlet run `82563028-5e3d-42c5-aa86-bbd722aed3a4` passed 26/26 required layers against source `5121df8b3c4a158f83d9d5fe540f106120216077`: 97 unit tests, 7 integration tests, 20 SQL assertions, 10 browser tests, 914/914 mapped owned lines; mutation and shuffled-order checks passed.
+
+Evidence: `thoughts/shared/research/2026-10-03-e1-s1-old-coder-evidence.md`. It records exact commands, scenario mappings, actual dependency findings, failure history and assurance limits. Independent fresh-agent review and user manual product sign-off were not obtained. No hosted project, public deployment, SMS/reminder delivery or portal agent work was performed.
+
+Implementation is committed in the attached worktree on `codex/e1-s1-practice-profile`; original research and approved specification remain intact. Optional browser client scaffolding was unnecessary because this story uses server clients/actions.
