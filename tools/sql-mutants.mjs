@@ -94,7 +94,7 @@ const mutants = [
   {
     id: "creator-fallback",
     file: access,
-    pattern: "S06 S38",
+    pattern: "S06 S38|^S38 public",
     apply: () =>
       ddlFault(
         "alter policy practices_select on public.practices using (id=(select private.current_practice_id()) or owner_user_id=auth.uid())",

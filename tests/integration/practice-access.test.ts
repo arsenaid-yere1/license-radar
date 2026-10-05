@@ -10,6 +10,70 @@ import {
 } from "../helpers/access-fixtures";
 afterAll(() => pool.end());
 
+it("S38 public creator revocation removes existing JWT authority and preserves provenance and another practice", async () => {
+  const a = await practice(),
+    q = await practice("Birch Clinic"),
+    d = await account(),
+    link = await invite(a, d.email, "administrator");
+  expect(
+    (
+      await d.client.rpc("accept_practice_invitation", {
+        p_token_digest: link.digest,
+      })
+    ).data.status,
+  ).toBe("success");
+  const creator = await membership(a.practice.id, a.user.id);
+  expect(
+    (
+      await d.client.rpc("revoke_practice_member", {
+        p_membership_id: creator.id,
+        p_expected_version: 1,
+      })
+    ).data,
+  ).toEqual({ status: "success" });
+  expect(await membership(a.practice.id, a.user.id)).toMatchObject({
+    id: creator.id,
+    state: "revoked",
+    version: 2,
+  });
+  const before = await events(a.practice.id);
+  expect((await a.client.from("practices").select("*")).data).toEqual([]);
+  expect(
+    (await a.client.from("practice_memberships").select("*")).data,
+  ).toEqual([]);
+  expect(
+    (await a.client.rpc("list_practice_team", { p_practice_id: a.practice.id }))
+      .error?.code,
+  ).toBe("42501");
+  expect(
+    (
+      await a.client.rpc("update_practice", {
+        p_practice_id: a.practice.id,
+        p_name: "Attacked",
+        p_timezone: "UTC",
+        p_expected_version: 1,
+      })
+    ).error?.code,
+  ).toBe("42501");
+  expect(await events(a.practice.id)).toEqual(before);
+  expect((await d.client.from("practices").select("*")).data).toEqual([
+    a.practice,
+  ]);
+  expect((await q.client.from("practices").select("*")).data).toEqual([
+    q.practice,
+  ]);
+  const next = await a.client.rpc("create_practice", {
+    p_name: "New Practice",
+    p_timezone: "UTC",
+  });
+  expect(next.error).toBeNull();
+  expect(next.data.id).not.toBe(a.practice.id);
+  expect(next.data.owner_user_id).toBe(a.user.id);
+  expect((await d.client.from("practices").select("*")).data).toEqual([
+    a.practice,
+  ]);
+});
+
 async function create() {
   const actor = await account();
   const result = await actor.client.rpc("create_practice", {
