@@ -21,7 +21,7 @@ Today, users can:
 
 Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
 
-The reminder preview in practice settings is an **example**, not a scheduled notification. The current application runs locally; hosted deployment and external email delivery have not been configured.
+The reminder preview in practice settings is an **example**, not a scheduled notification. The hosted pilot is available at [license-radar.vercel.app](https://license-radar.vercel.app), using Vercel and the existing hosted Supabase project. Email-code sign-in uses the configured Resend SMTP provider. The original pilot setup used Resend’s test sender, which delivers only to the Resend account address; onboarding other staff requires a verified sending domain. Invitation links are shared manually.
 
 ## Planned workflow
 
