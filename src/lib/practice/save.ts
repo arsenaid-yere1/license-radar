@@ -10,7 +10,7 @@ import { validatePractice } from "./schema";
 export type SaveResult =
   | { status: "success"; practice: Practice }
   | { status: "invalid"; errors: Record<string, string> }
-  | { status: "auth-required" | "conflict" | "unavailable" };
+  | { status: "auth-required" | "conflict" | "forbidden" | "unavailable" };
 export async function savePractice(
   client: SupabaseClient,
   raw: unknown,

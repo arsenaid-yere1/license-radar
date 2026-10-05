@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      practice_memberships: {
+        Row: {
+          created_at: string;
+          id: string;
+          practice_id: string;
+          revoked_at: string | null;
+          role: string;
+          state: string;
+          updated_at: string;
+          user_id: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          practice_id: string;
+          revoked_at?: string | null;
+          role: string;
+          state?: string;
+          updated_at?: string;
+          user_id: string;
+          version?: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          practice_id?: string;
+          revoked_at?: string | null;
+          role?: string;
+          state?: string;
+          updated_at?: string;
+          user_id?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "practice_memberships_practice_id_fkey";
+            columns: ["practice_id"];
+            isOneToOne: false;
+            referencedRelation: "practices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       practices: {
         Row: {
           created_at: string;
@@ -44,7 +88,47 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_practice: {
+        Args: { p_name: string; p_timezone: string };
+        Returns: {
+          created_at: string;
+          id: string;
+          name: string;
+          owner_user_id: string;
+          timezone: string;
+          updated_at: string;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "practices";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      update_practice: {
+        Args: {
+          p_expected_version: number;
+          p_name: string;
+          p_practice_id: string;
+          p_timezone: string;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          name: string;
+          owner_user_id: string;
+          timezone: string;
+          updated_at: string;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "practices";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
     };
     Enums: {
       [_ in never]: never;

@@ -47,6 +47,7 @@ function client({
       signOut: vi.fn().mockResolvedValue(authResult),
     },
     from: vi.fn().mockReturnValue(chain),
+    rpc: vi.fn().mockImplementation(() => single()),
   };
   boundary.createClient.mockResolvedValue(c);
   return c as unknown as SupabaseClient;
@@ -150,7 +151,10 @@ it("S08 create redirects and ignores framework action metadata", async () => {
       form({ ...profile, $ACTION_ID_fixture: "framework" }),
     ),
   ).rejects.toThrow("REDIRECT:/practice");
-  expect(c.from).toHaveBeenCalledWith("practices");
+  expect(c.rpc).toHaveBeenCalledWith("create_practice", {
+    p_name: "Cedar",
+    p_timezone: "UTC",
+  });
 });
 it("S12 action rejects forged identity and malformed version strings", async () => {
   client();

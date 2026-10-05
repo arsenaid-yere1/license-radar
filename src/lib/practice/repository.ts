@@ -10,7 +10,7 @@ export type Practice = {
 };
 export type PracticeResult =
   | { status: "success"; practice: Practice }
-  | { status: "conflict" | "unavailable" | "auth-required" };
+  | { status: "conflict" | "forbidden" | "unavailable" | "auth-required" };
 export async function getCurrentPractice(
   client: SupabaseClient,
 ): Promise<
@@ -33,21 +33,12 @@ export async function createPractice(
   input: { name: string; timezone: string },
 ): Promise<PracticeResult> {
   try {
-    const { data, error } = await client
-      .from("practices")
-      .insert({ name: input.name, timezone: input.timezone })
-      .select("*")
-      .maybeSingle();
+    const { data, error } = await client.rpc("create_practice", {
+      p_name: input.name,
+      p_timezone: input.timezone,
+    });
     if (!error && data) return { status: "success", practice: data };
-    if (
-      error?.code !== "23505" ||
-      !error.message.includes("practices_owner_user_id_key")
-    )
-      return { status: "unavailable" };
-    const existing = await getCurrentPractice(client);
-    return existing.status === "success" && existing.practice
-      ? { status: "success", practice: existing.practice }
-      : { status: "unavailable" };
+    return { status: error?.code === "42501" ? "forbidden" : "unavailable" };
   } catch {
     return { status: "unavailable" };
   }
@@ -58,13 +49,14 @@ export async function updatePractice(
   input: { name: string; timezone: string; expectedVersion: number },
 ): Promise<PracticeResult> {
   try {
-    const { data, error } = await client
-      .from("practices")
-      .update({ name: input.name, timezone: input.timezone })
-      .eq("id", id)
-      .eq("version", input.expectedVersion)
-      .select("*")
-      .maybeSingle();
+    const { data, error } = await client.rpc("update_practice", {
+      p_practice_id: id,
+      p_name: input.name,
+      p_timezone: input.timezone,
+      p_expected_version: input.expectedVersion,
+    });
+    if (error?.code === "42501") return { status: "forbidden" };
+    if (error?.code === "PT409") return { status: "conflict" };
     if (error) return { status: "unavailable" };
     return data
       ? { status: "success", practice: data }

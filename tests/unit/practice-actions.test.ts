@@ -29,6 +29,7 @@ function boundary(results: unknown[]) {
   return {
     client: {
       from: vi.fn().mockReturnValue(chain),
+      rpc: vi.fn().mockImplementation(() => maybeSingle()),
     } as unknown as SupabaseClient,
     chain,
   };
@@ -42,28 +43,26 @@ it("S16 reads own saved row and handles absent row", async () => {
     });
   }
 });
-it("S19 existing profile resolves only owner unique constraint", async () => {
-  const { client } = boundary([
-    {
-      data: null,
-      error: {
-        code: "23505",
-        message:
-          'duplicate key violates unique constraint "practices_owner_user_id_key"',
-      },
-    },
-    { data: row, error: null },
-  ]);
+it("S04 S05 RPC returns existing authorized profile unchanged", async () => {
+  const { client } = boundary([{ data: row, error: null }]);
   expect(
     await createPractice(client, { name: "Different", timezone: "UTC" }),
   ).toEqual({ status: "success", practice: row });
+  expect(client.rpc).toHaveBeenCalledWith("create_practice", {
+    p_name: "Different",
+    p_timezone: "UTC",
+  });
 });
 it("S08 inserts only editable fields", async () => {
   const { client, chain } = boundary([{ data: row, error: null }]);
   expect(
     await createPractice(client, { name: "Cedar", timezone: "UTC" }),
   ).toEqual({ status: "success", practice: row });
-  expect(chain.insert).toHaveBeenCalledWith({ name: "Cedar", timezone: "UTC" });
+  expect(client.rpc).toHaveBeenCalledWith("create_practice", {
+    p_name: "Cedar",
+    p_timezone: "UTC",
+  });
+  expect(chain.insert).not.toHaveBeenCalled();
 });
 it("S21 version checked update", async () => {
   const { client, chain } = boundary([
@@ -76,17 +75,16 @@ it("S21 version checked update", async () => {
       expectedVersion: 1,
     }),
   ).toEqual({ status: "success", practice: { ...row, version: 2 } });
-  expect(chain.eq.mock.calls).toEqual([
-    ["id", row.id],
-    ["version", 1],
-  ]);
-  expect(chain.update).toHaveBeenCalledWith({
-    name: "Updated",
-    timezone: "UTC",
+  expect(client.rpc).toHaveBeenCalledWith("update_practice", {
+    p_practice_id: row.id,
+    p_name: "Updated",
+    p_timezone: "UTC",
+    p_expected_version: 1,
   });
+  expect(chain.update).not.toHaveBeenCalled();
 });
 it("S22 stale version returns conflict", async () => {
-  const { client } = boundary([{ data: null, error: null }]);
+  const { client } = boundary([{ data: null, error: { code: "PT409" } }]);
   expect(
     await updatePractice(client, row.id, {
       name: "Updated",
@@ -174,10 +172,11 @@ it("S19 unrelated unique error cannot resolve to an existing row", async () => {
     expect(
       await createPractice(client, { name: "Cedar", timezone: "UTC" }),
     ).toEqual({ status: "unavailable" });
-    expect(client.from).toHaveBeenCalledTimes(1);
+    expect(client.rpc).toHaveBeenCalledTimes(1);
+    expect(client.from).not.toHaveBeenCalled();
   }
 });
-it("S17 all repository operations use only the practices table", async () => {
+it("S33 repository reads use RLS and mutations use authenticated RPCs", async () => {
   const { client } = boundary([
     { data: row, error: null },
     { data: row, error: null },
@@ -190,9 +189,5 @@ it("S17 all repository operations use only the practices table", async () => {
     timezone: "UTC",
     expectedVersion: 1,
   });
-  expect(vi.mocked(client.from).mock.calls).toEqual([
-    ["practices"],
-    ["practices"],
-    ["practices"],
-  ]);
+  expect(vi.mocked(client.from).mock.calls).toEqual([["practices"]]);
 });

@@ -41,5 +41,49 @@
       "reason": "Returned auth-required/redirect instead of unavailable"
     }
   ],
-  "limits": "Historical RED observations, not final GREEN results. Additional tests written after implementation are supported by subsequent executed mutations; they do not have an independent pre-implementation RED record."
+  "limits": "Historical RED observations, not final GREEN results. Additional tests written after implementation are supported by subsequent executed mutations; they do not have an independent pre-implementation RED record.",
+  "e1s2": {
+    "approval": "continue with implementation",
+    "specCommit": "defdc87",
+    "runs": [
+      {
+        "command": "node_modules/.bin/vitest run --project integration tests/integration/practice-access.test.ts",
+        "phase": "before membership migration",
+        "observedFailedTests": 4,
+        "names": [
+          "S04 concurrent RPC creation produces one practice, membership and each audit",
+          "S33 N05 direct writes denied and manager reads shared profile only",
+          "S37 deferred invariant rejects last administrator loss and orphan creation",
+          "S06 S38 creator provenance never restores access with the existing JWT"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/practice-actions.test.ts tests/unit/save.test.ts tests/unit/server-actions.test.ts",
+        "phase": "before RPC repository implementation",
+        "observedFailedTests": 7,
+        "names": [
+          "S04 S05 RPC returns existing authorized profile unchanged",
+          "S08 inserts only editable fields",
+          "S21 version checked update",
+          "S22 stale version returns conflict",
+          "S19 unrelated unique error cannot resolve to an existing row",
+          "S33 repository reads use RLS and mutations use authenticated RPCs",
+          "S08 create redirects and ignores framework action metadata"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/practice-access.test.ts",
+        "phase": "live membership access throwing stub",
+        "observedFailedTests": 6,
+        "names": [
+          "S33 current access derives administrator role and version from live membership",
+          "S33 current access derives manager role and version from live membership",
+          "S33 current access derives viewer role and version from live membership",
+          "S38 revoked membership never receives owner fallback",
+          "S43 inconsistent and unavailable reads fail closed",
+          "S43 thrown access transport remains unavailable"
+        ]
+      }
+    ]
+  }
 }

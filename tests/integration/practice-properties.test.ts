@@ -32,7 +32,7 @@ it("P01 1000 seeded Unicode names agree with actual PostgreSQL writes", async ()
       await db.query("savepoint name_case");
       try {
         const r = await db.query(
-          "update public.practices set name=$1 where id=$2 returning name",
+          "select (public.update_practice($2,$1,'UTC',(select version from public.practices where id=$2))).name as name",
           [name, first.practice.id],
         );
         expect(accepted).toBe(true);

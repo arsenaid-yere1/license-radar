@@ -26,7 +26,7 @@ select
         not has_column_privilege('authenticated', 'public.practices', 'version', 'update'),
         'S18 version database managed'
     );
-select ok(not has_schema_privilege('authenticated', 'private', 'usage'), 'S23 audit denied');
+select ok(not has_table_privilege('authenticated', 'private.practice_audit_events', 'select'), 'S23 audit denied');
 select
     ok(
         not has_function_privilege('authenticated', 'private.audit_practice()', 'execute'),
@@ -46,46 +46,46 @@ select is((
         and contype = 'f' and confdeltype = 'r'
         and confrelid in ('public.practices'::regclass, 'auth.users'::regclass)
 ), 2, 'N04 audit practice and actor foreign keys restrict deletion');
-insert into auth.users (id, email) values (
-    '10000000-0000-0000-0000-000000000001', 'sql-fixture@example.test'
+insert into auth.users (id, email, email_confirmed_at) values (
+    '10000000-0000-0000-0000-000000000001', 'sql-fixture@example.test', clock_timestamp()
 );
 select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
 set local role authenticated;
 select
     lives_ok(
-        $q$insert into public.practices (name, timezone) values ('  Cedar  ', 'UTC')$q$,
+        $q$select public.create_practice('  Cedar  ', 'UTC')$q$,
         'S08 valid create'
     );
 select is((select name from public.practices), 'Cedar', 'S08 trim in storage');
 select is((select version from public.practices), 1, 'S21 initial version');
 select
     throws_ok(
-        $q$insert into public.practices (name, timezone) values ('', 'UTC')$q$,
+        $q$select public.update_practice((select id from public.practices), '', 'UTC', (select version from public.practices))$q$,
         '23514', null,
         'S09 blank rejected'
     );
 select
     throws_ok(
-        $q$update public.practices set name = repeat('😀', 121)$q$,
+        $q$select public.update_practice((select id from public.practices), repeat('😀', 121), 'UTC', (select version from public.practices))$q$,
         '23514', null,
         'S10 overlong Unicode rejected'
     );
 select
     lives_ok(
-        $q$update public.practices set name = repeat('😀', 120)$q$,
+        $q$select public.update_practice((select id from public.practices), repeat('😀', 120), 'UTC', (select version from public.practices))$q$,
         'S10 boundary Unicode accepted'
     );
 select
     throws_ok(
-        $q$update public.practices set timezone = 'Mars/Olympus'$q$,
+        $q$select public.update_practice((select id from public.practices), 'Cedar', 'Mars/Olympus', (select version from public.practices))$q$,
         '23514', null,
         'S11 invalid zone rejected'
     );
 select
     throws_ok(
         $q$insert into public.practices (name, timezone) values ('Duplicate', 'UTC')$q$,
-        '23505', null,
-        'S19 one owner unique'
+        '42501', null,
+        'S33 direct creation denied'
     );
 reset role;
 select is((

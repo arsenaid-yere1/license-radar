@@ -62,8 +62,8 @@ it("S17 S18 S23 direct Data API ownership and grants", async () => {
         .update({ name: "Attacked" })
         .eq("id", id)
         .select()
-    ).data,
-  ).toEqual([]);
+    ).error,
+  ).not.toBeNull();
   expect((await anonymous().from("practices").select()).error).not.toBeNull();
   expect(
     (await anonymous().from("practices").insert(input)).error,

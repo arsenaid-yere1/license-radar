@@ -222,3 +222,12 @@ AC1–AC12 pass with specific current-source evidence; prior profile behavior re
 ## Planning verification
 
 The companion verification report records plan review and current baseline checks. Defaults are proposed, not user-approved decisions. Implementation is a separate next step.
+
+## Implementation progress (2026-10-05)
+
+- [x] SPEC approved by “continue with implementation”; documentation checkpoint `defdc87`; isolated branch `codex/e1-s2-staff-access`.
+- [x] Phase 1 core membership migration, backfill, RPC profile persistence and live access helper implemented; unit/types/lint/API/SQL checks passed as recorded in the draft evidence. Actual upgrade/rollback/replay rehearsal passed.
+- [ ] Phase 1 remaining shared-tool/browser verification completes with Phase 4; creator revocation through public role/revoke RPCs and queued profile-role race completes in Phase 2. Manual/user verification not claimed.
+- [ ] Phase 2 invitation and team mutations.
+- [ ] Phase 3 team/join flows and browser verification.
+- [ ] Phase 4 full 28-layer gauntlet, controls/sensitivity, documentation and final evidence.

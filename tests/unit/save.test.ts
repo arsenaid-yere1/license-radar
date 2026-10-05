@@ -18,6 +18,7 @@ function boundary(user: unknown, read: unknown, write: unknown) {
   return {
     auth: { getUser: vi.fn().mockResolvedValue(user) },
     from: vi.fn().mockReturnValue(chain),
+    rpc: vi.fn().mockImplementation(() => maybeSingle()),
   } as unknown as SupabaseClient;
 }
 const row = { id: "own-id", name: "Cedar", timezone: "UTC", version: 1 };
