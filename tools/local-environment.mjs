@@ -1,6 +1,29 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { Client } from "pg";
+export function assertFixtureTarget(nonFixtureCount) {
+  if (nonFixtureCount !== 0)
+    throw new Error("Refusing non-fixture database reset");
+}
+export function assertProject(source) {
+  const ids = [...source.matchAll(/^project_id\s*=\s*"([^"]+)"\s*$/gm)];
+  if (ids.length !== 1 || ids[0][1] !== "license-radar-e1-s1")
+    throw new Error("Refusing unexpected local project");
+}
+export async function fixtureGuard() {
+  const config = localConfig();
+  const db = new Client({ connectionString: config.DB_URL });
+  await db.connect();
+  try {
+    const result = await db.query(
+      "select count(*)::int n from auth.users where email is null or (email not like 'fixture-%@example.test' and email <> 'sql-fixture@example.test')",
+    );
+    assertFixtureTarget(result.rows[0]?.n);
+  } finally {
+    await db.end();
+  }
+}
 export function assertLocal(raw, port, protocol) {
   const u = new URL(raw);
   if (
@@ -12,6 +35,7 @@ export function assertLocal(raw, port, protocol) {
   return u;
 }
 export function localConfig() {
+  assertProject(readFileSync("supabase/config.toml", "utf8"));
   const p = JSON.parse(readFileSync(".env.test.json", "utf8"));
   assertLocal(p.API_URL, 55321, "http:");
   assertLocal(p.DB_URL, 55322, "postgresql:");
@@ -25,6 +49,7 @@ export function run(command, args, options = {}) {
   return r;
 }
 export function prepare() {
+  assertProject(readFileSync("supabase/config.toml", "utf8"));
   const r = run("node_modules/.bin/supabase", ["status", "-o", "json"], {
     stdio: "pipe",
   });
@@ -53,7 +78,8 @@ if (
   if (mode === "prepare") prepare();
   else {
     localConfig();
-    if (mode === "reset")
+    if (mode === "reset") {
+      await fixtureGuard();
       run("node_modules/.bin/supabase", [
         "db",
         "reset",
@@ -61,7 +87,7 @@ if (
         "--no-seed",
         "--yes",
       ]);
-    else if (mode === "test-db") {
+    } else if (mode === "test-db") {
       run("node_modules/.bin/supabase", ["test", "db", "--local"]);
       run(process.execPath, ["tools/foreign-key-controls.mjs"]);
     } else throw new Error("Unknown local command");

@@ -22,7 +22,7 @@ test("S24 interrupted Data API retains inputs and retry succeeds", async ({
   await expect(page.locator('input[name="expectedVersion"]')).toHaveValue("3");
   await page.getByLabel("Practice name").fill("Retry Clinic");
   await pool.query(
-    "revoke update(name,timezone) on public.practices from authenticated",
+    "create function private.fixture_profile_ui_failure() returns trigger language plpgsql as $$ begin raise exception 'fixture storage outage'; end $$; create trigger fixture_profile_ui_failure before update on public.practices for each row execute function private.fixture_profile_ui_failure()",
   );
   try {
     await page.getByRole("button", { name: "Save changes" }).click();
@@ -35,7 +35,7 @@ test("S24 interrupted Data API retains inputs and retry succeeds", async ({
     );
   } finally {
     await pool.query(
-      "grant update(name,timezone) on public.practices to authenticated",
+      "drop trigger fixture_profile_ui_failure on public.practices; drop function private.fixture_profile_ui_failure()",
     );
   }
   await page.getByRole("button", { name: "Save changes" }).click();

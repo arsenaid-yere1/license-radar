@@ -5,7 +5,7 @@ import { getSupportedTimezones } from "@/lib/practice/timezones";
 import { PracticeForm } from "@/components/practice/practice-form";
 import { Shell } from "@/components/shell";
 import { createPracticeAction } from "@/app/practice/actions";
-import { signOutAction } from "@/app/login/actions";
+import { SignOutForm } from "@/components/auth/sign-out-form";
 export const dynamic = "force-dynamic";
 export default async function Setup() {
   const { client } = await requireUser();
@@ -14,13 +14,7 @@ export default async function Setup() {
     throw new Error("We could not complete this request. Try again.");
   if (result.practice) redirect("/practice");
   return (
-    <Shell
-      action={
-        <form action={signOutAction}>
-          <button className="secondary">Sign out</button>
-        </form>
-      }
-    >
+    <Shell action={<SignOutForm />}>
       <div className="split-layout">
         <section className="intro">
           <span className="eyebrow">Practice essentials / 02</span>

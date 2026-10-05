@@ -4,12 +4,16 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 const boundary = vi.hoisted(() => ({
   requireUser: vi.fn(),
   getCurrentPractice: vi.fn(),
+  getPracticeAccess: vi.fn(),
 }));
 vi.mock("@/lib/auth/require-user", () => ({
   requireUser: boundary.requireUser,
 }));
 vi.mock("@/lib/practice/repository", () => ({
   getCurrentPractice: boundary.getCurrentPractice,
+}));
+vi.mock("@/lib/practice/access", () => ({
+  getPracticeAccess: boundary.getPracticeAccess,
 }));
 vi.mock("@/components/auth/email-code-form", () => ({
   EmailCodeForm: () => <div>Code form</div>,
@@ -30,6 +34,21 @@ beforeEach(() => {
   boundary.requireUser.mockResolvedValue({
     client: {},
     user: { email: "fixture@example.test" },
+  });
+  boundary.getPracticeAccess.mockImplementation(async () => {
+    const current = await boundary.getCurrentPractice();
+    return current.status === "success"
+      ? {
+          status: "success",
+          access: current.practice
+            ? {
+                practice: current.practice,
+                role: "administrator",
+                membershipVersion: 1,
+              }
+            : null,
+        }
+      : current;
   });
 });
 afterEach(cleanup);
@@ -81,3 +100,31 @@ it("S01 login and semantic layout render the sign-in entry", () => {
     screen.getByRole("heading", { name: "Make yourself at home." }),
   ).toBeTruthy();
 });
+it.each([
+  ["manager", "Office manager"],
+  ["viewer", "Viewer"],
+])(
+  "S47 %s sees shared profile with no administrator controls",
+  async (role, label) => {
+    const practice = {
+      id: "own",
+      name: "Cedar Clinic",
+      timezone: "UTC",
+      version: 1,
+    };
+    boundary.getCurrentPractice.mockResolvedValue({
+      status: "success",
+      practice,
+    });
+    boundary.getPracticeAccess.mockResolvedValue({
+      status: "success",
+      access: { practice, role, membershipVersion: 1 },
+    });
+    render(await Settings());
+    expect(screen.getByText(label)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Cedar Clinic" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Manage team" })).toBeNull();
+    expect(screen.getByText("UTC")).toBeTruthy();
+  },
+);

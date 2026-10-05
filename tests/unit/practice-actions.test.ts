@@ -34,6 +34,12 @@ function boundary(results: unknown[]) {
     chain,
   };
 }
+it("S33 creator RPC permission denial remains distinct from storage outage", async () => {
+  const { client } = boundary([{ data: null, error: { code: "42501" } }]);
+  expect(
+    await createPractice(client, { name: "Cedar", timezone: "UTC" }),
+  ).toEqual({ status: "forbidden" });
+});
 it("S16 reads own saved row and handles absent row", async () => {
   for (const data of [row, null]) {
     const { client } = boundary([{ data, error: null }]);

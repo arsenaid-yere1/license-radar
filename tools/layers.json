@@ -30,6 +30,11 @@
     "args": ["lint", "supabase/migrations", "supabase/tests"]
   },
   {
+    "id": "access-upgrade",
+    "command": "node",
+    "args": ["tools/access-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]
@@ -88,6 +93,11 @@
     "id": "browser",
     "command": "npm",
     "args": ["run", "test:e2e"]
+  },
+  {
+    "id": "access-adversarial",
+    "command": "node",
+    "args": ["tools/access-adversarial.mjs"]
   },
   {
     "id": "coverage",

@@ -12,6 +12,8 @@ export function assertCoverage(map, files) {
     if (!c) throw new Error(`Missing coverage: ${file}`);
     const executed = new Map();
     for (const [key, position] of Object.entries(c.statementMap)) {
+      if (!Number.isFinite(c.s[key]) || c.s[key] < 0)
+        throw new Error(`Incomplete statement coverage: ${file}`);
       const line = position.start.line;
       executed.set(line, Math.max(executed.get(line) ?? 0, c.s[key]));
     }
@@ -49,7 +51,7 @@ function mergeOwned(target, raw) {
   }
   return count;
 }
-function verifyMap(map) {
+export function verifyMap(map) {
   for (let i = 0; i < map.sources.length; i++) {
     const name = owned(map.sources[i]);
     if (name && map.sourcesContent?.[i] !== readFileSync(name, "utf8"))

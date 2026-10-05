@@ -14,7 +14,10 @@ function walk(dir) {
         throw new Error(`Unauthorized app authorization capability: ${file}`);
       for (const [kind, pattern] of Object.entries({
         environment: /process\.env\.[A-Z_]+/g,
-        network: /\.auth\.[a-zA-Z]+|client\.from\([^)]*\)/g,
+        network: /\.auth\.[a-zA-Z]+|client\.(?:from|rpc)\([^)]*\)/g,
+        cryptography: /node:crypto|randomBytes\([^)]*\)|createHash\([^)]*\)/g,
+        clipboard: /navigator\.clipboard\.[a-zA-Z]+/g,
+        sessionStorage: /sessionStorage\.[a-zA-Z]+/g,
         cookies: /\.cookies\.[a-zA-Z]+/g,
         process: /node:child_process/g,
         filesystem: /node:fs/g,
@@ -31,7 +34,7 @@ walk("src");
 const report = {
   capabilities: result,
   scope:
-    "Application source uses configured Supabase Auth/Data API, cookies, and two public configuration values. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem, and verification subprocesses. No hosting or renewal portal actions.",
+    "Application source uses configured Supabase Auth/Data API and authenticated RPCs, cryptographic invitation generation/hashing, tab-scoped session storage, clipboard copying, cookies, and two public configuration values. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem, and verification subprocesses. No hosting or renewal portal actions.",
   limits:
     "Text inspection detects listed spellings; it is not a complete transitive capability proof. Schema fingerprint and dependency inventory provide separate evidence.",
 };

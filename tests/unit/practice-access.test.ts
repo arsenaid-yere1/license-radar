@@ -34,6 +34,26 @@ it("S38 revoked membership never receives owner fallback", async () => {
     await getPracticeAccess(client({ data: null, error: null }, null)),
   ).toEqual({ status: "success", access: null });
 });
+it("S33 membership lookup binds practice and active state and membership transport fails safely", async () => {
+  const c = client(
+    { data: { id: "practice" }, error: null },
+    {
+      data: { practice_id: "practice", role: "viewer", version: 1 },
+      error: null,
+    },
+  );
+  const chain = c.from("practice_memberships").select("*");
+  expect((await getPracticeAccess(c)).status).toBe("success");
+  expect(chain.eq).toHaveBeenCalledWith("practice_id", "practice");
+  expect(chain.eq).toHaveBeenCalledWith("state", "active");
+  const failing = client({ data: { id: "practice" }, error: null }, null),
+    query = failing.from("practice_memberships").select("*");
+  vi.mocked(query.maybeSingle)
+    .mockReset()
+    .mockResolvedValueOnce({ data: { id: "practice" }, error: null } as never)
+    .mockRejectedValueOnce(new Error("private"));
+  expect(await getPracticeAccess(failing)).toEqual({ status: "unavailable" });
+});
 it("S43 inconsistent and unavailable reads fail closed", async () => {
   for (const member of [
     { data: null, error: null },

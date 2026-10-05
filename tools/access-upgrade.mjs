@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { Client } from "pg";
-import { localConfig, prepare, run } from "./local-environment.mjs";
+import {
+  fixtureGuard,
+  localConfig,
+  prepare,
+  run,
+} from "./local-environment.mjs";
+import { assertSnapshot, assertSchema } from "./gauntlet-contract.mjs";
 
 const original = "20261003191334";
 const migrations = readdirSync("supabase/migrations")
@@ -16,17 +22,6 @@ async function connect() {
   const db = new Client({ connectionString: localConfig().DB_URL });
   await db.connect();
   return db;
-}
-async function fixtureGuard() {
-  const db = await connect();
-  try {
-    const result = await db.query(
-      "select count(*)::int n from auth.users where email is null or (email not like 'fixture-%@example.test' and email <> 'sql-fixture@example.test')",
-    );
-    assert.equal(result.rows[0].n, 0, "Refusing non-fixture database reset");
-  } finally {
-    await db.end();
-  }
 }
 async function snapshot(db) {
   const result = {};
@@ -77,6 +72,15 @@ try {
     await db.query("commit");
   }
   const before = await snapshot(db);
+  assertSnapshot(before);
+  writeFileSync("reports/access-upgrade-before.json", JSON.stringify(before));
+  assertSnapshot(
+    JSON.parse(readFileSync("reports/access-upgrade-before.json", "utf8")),
+  );
+  assert.deepEqual(
+    JSON.parse(readFileSync("reports/access-upgrade-before.json", "utf8")),
+    JSON.parse(JSON.stringify(before)),
+  );
   const schemaBefore = await catalog(db);
   await db.query("begin");
   for (const migration of migrations)
@@ -126,6 +130,7 @@ try {
         historicalEvents: before["private.practice_audit_events"].length,
         rollback: "observed",
         migrations,
+        runId: process.env.GAUNTLET_RUN_ID ?? "standalone",
       },
       null,
       2,
@@ -142,6 +147,10 @@ assert.equal(
   "S03 fresh replay and upgrade schema agree",
 );
 const report = JSON.parse(readFileSync("reports/access-upgrade.json", "utf8"));
+assertSchema(
+  JSON.parse(readFileSync("reports/replay-schema.json", "utf8")),
+  JSON.parse(readFileSync("reports/upgrade-schema.json", "utf8")),
+);
 report.scenarios.push("S03");
 report.replay = "schema matched";
 writeFileSync("reports/access-upgrade.json", JSON.stringify(report, null, 2));

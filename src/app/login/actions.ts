@@ -23,7 +23,8 @@ export async function loginAction(
       message: "We could not complete this request. Try again.",
     };
   }
-  if (result.status === "verified") redirect("/");
+  if (result.status === "verified")
+    redirect(form.get("destination") === "/join" ? "/join" : "/");
   if (result.status === "sent")
     return {
       status: "sent",

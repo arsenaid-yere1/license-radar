@@ -14,6 +14,7 @@ const requiredLayers = [
   "lint",
   "format",
   "sql-lint",
+  "access-upgrade",
   "replay",
   "schema",
   "database",
@@ -26,6 +27,7 @@ const requiredLayers = [
   "generated-types",
   "build",
   "browser",
+  "access-adversarial",
   "coverage",
   "suite-health-unit",
   "suite-health-integration",
@@ -54,6 +56,7 @@ const env = {
   PLAYWRIGHT_BROWSERS_PATH: `${process.cwd()}/.browser-cache`,
   TEST_SEED: "20261003",
   NO_COLOR: "1",
+  GAUNTLET_RUN_ID: result.runId,
 };
 try {
   for (const layer of layers) {

@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup is implemented.** The renewal register, calendar, and SMS reminders are planned features.
+**Early development: practice setup and staff access are implemented.** The renewal register, calendar, and SMS reminders are planned features.
 
 Today, users can:
 
@@ -15,14 +15,17 @@ Today, users can:
 - Edit those settings and return to the saved profile across sessions.
 - Recover from validation and save failures without losing their input.
 - Resolve conflicting edits by reloading the latest settings.
+- Copy staff invitation links valid for seven elapsed days; staff verify their email and explicitly accept.
+- Assign administrator, office manager, or viewer roles and revoke access while retaining an active administrator.
+- Cancel invitations or reissue a fresh link when the original response is lost.
 
-Each account currently owns one practice. Server-side authorization and database row-level security isolate practice records. Profile changes and their private audit events are saved in the same transaction.
+Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
 
 The reminder preview in practice settings is an **example**, not a scheduled notification. The current application runs locally; hosted deployment and external email delivery have not been configured.
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are the next story, E1-S2.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. The next story, E1-S3, assigns reminder recipients.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -90,7 +93,7 @@ npm run test:db
 npm run test:integration
 ```
 
-**`db:reset` deletes data in the dedicated local test stack.** Privileged fixtures enforce loopback endpoints at ports 55321/55322/55324; these commands are intended for that stack.
+**`db:reset` deletes fixture data in the dedicated local test stack.** It requires the exact project, loopback endpoints at ports 55321/55322/55324, and no non-fixture accounts. Upgrade and mutation rehearsals use the same guards.
 
 For production browser tests, install Chromium, build the app, and leave port 3000 free so the test runner can start its own server:
 
@@ -103,7 +106,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the full verification pipeline: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 28-layer verification pipeline, including upgrade/rollback rehearsal and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -119,4 +122,6 @@ Place the checksum-verified Gitleaks binary at `.tools/gitleaks`; versions, chec
 - [Product design, epics, and stories](thoughts/shared/research/2026-10-03-license-renewal-radar-system-design.md) — the original proposal; its initial empty-workspace observations are historical.
 - [Practice setup implementation plan](thoughts/shared/plans/2026-10-03-e1-s1-practice-profile-and-timezone.md).
 - [Approved executable specification](thoughts/shared/plans/2026-10-03-e1-s1-old-coder-spec.md).
+- [E1-S2 executable specification](thoughts/shared/plans/2026-10-05-e1-s2-old-coder-spec.md).
+- [E1-S2 implementation evidence](thoughts/shared/research/2026-10-05-e1-s2-old-coder-evidence.md).
 - [Project verification report](thoughts/shared/research/2026-10-03-e1-s1-project-verification.md) — results tied to the tested source, recovery regression, and verification boundaries.

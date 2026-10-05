@@ -1,62 +1,138 @@
 import { Client } from "pg";
 import { readFileSync, writeFileSync } from "node:fs";
 import { localConfig } from "./local-environment.mjs";
-const sql = readFileSync("supabase/tests/practice_profiles.test.sql", "utf8");
-const cases = [
-  { id: "baseline", mutation: "", expected: [] },
+const files = [
+  { path: "supabase/tests/practice_profiles.test.sql", plan: 20 },
+  { path: "supabase/tests/practice_access.test.sql", plan: 16 },
+  { path: "supabase/tests/practice_invitations.test.sql", plan: 16 },
+];
+const cases = files.map((file) => ({
+  id: `baseline-${file.plan}-${file.path}`,
+  file,
+  mutation: "",
+  expected: [],
+}));
+cases.push(
   {
     id: "owner-fk",
+    file: files[0],
     mutation:
-      "alter table public.practices drop constraint practices_owner_user_id_fkey;",
+      "alter table public.practices drop constraint practices_owner_user_id_fkey",
     expected: ["N04 owner foreign key restricts deletion"],
   },
   {
-    id: "audit-fks",
+    id: "profile-audit-fks",
+    file: files[0],
     mutation:
-      "alter table private.practice_audit_events drop constraint practice_audit_events_practice_id_fkey, drop constraint practice_audit_events_actor_user_id_fkey;",
+      "alter table private.practice_audit_events drop constraint practice_audit_events_practice_id_fkey, drop constraint practice_audit_events_actor_user_id_fkey",
     expected: ["N04 audit practice and actor foreign keys restrict deletion"],
   },
-];
+);
+for (const [table, constraint] of [
+  ["public.practice_memberships", "practice_memberships_practice_id_fkey"],
+  ["public.practice_memberships", "practice_memberships_user_id_fkey"],
+  ["private.practice_invitations", "practice_invitations_practice_id_fkey"],
+  ["private.practice_invitations", "practice_invitations_creator_user_id_fkey"],
+  [
+    "private.practice_invitations",
+    "practice_invitations_accepted_user_id_fkey",
+  ],
+  ["private.practice_access_events", "practice_access_events_practice_id_fkey"],
+  [
+    "private.practice_access_events",
+    "practice_access_events_actor_user_id_fkey",
+  ],
+  [
+    "private.practice_access_events",
+    "practice_access_events_membership_id_fkey",
+  ],
+  [
+    "private.practice_access_events",
+    "practice_access_events_invitation_id_fkey",
+  ],
+])
+  cases.push({
+    id: constraint,
+    file: files[1],
+    mutation: `alter table ${table} drop constraint ${constraint}`,
+    expected: [
+      "N04 membership invitation and access foreign keys restrict deletion",
+    ],
+  });
+cases.push(
+  {
+    id: "active-user-index",
+    file: files[1],
+    mutation: "drop index public.practice_memberships_one_active_user",
+    expected: ["N02 active user partial uniqueness"],
+  },
+  {
+    id: "last-admin-trigger",
+    file: files[1],
+    mutation:
+      "drop trigger membership_requires_administrator on public.practice_memberships",
+    expected: ["S37 both deferred administrator invariants"],
+  },
+  {
+    id: "private-invitation-grant",
+    file: files[2],
+    mutation: "grant select on private.practice_invitations to authenticated",
+    expected: ["N04 private invitations denied"],
+  },
+  {
+    id: "anonymous-accept-grant",
+    file: files[2],
+    mutation:
+      "grant execute on function public.accept_practice_invitation(text) to anon",
+    expected: ["S33 anonymous accept denied"],
+  },
+);
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });
   await db.connect();
   try {
+    const before = (
+      await db.query(
+        "select oid,conname,pg_get_constraintdef(oid) definition from pg_constraint where connamespace in ('public'::regnamespace,'private'::regnamespace) order by oid",
+      )
+    ).rows;
     await db.query("begin");
     if (item.mutation) await db.query(item.mutation);
-    const constraints = await db.query(
-      "select count(*)::int n from pg_constraint where contype='f' and conrelid in ('public.practices'::regclass, 'private.practice_audit_events'::regclass)",
-    );
-    const expectedCount =
-      item.id === "baseline" ? 3 : item.id === "owner-fk" ? 2 : 1;
-    if (constraints.rows[0].n !== expectedCount)
-      throw new Error("Foreign-key control not applied");
-    const input = sql.replace(/^begin;\n/, "").replace(/rollback;\s*$/, "");
-    const result = await db.query(input);
-    const messages = result
+    const sql = readFileSync(item.file.path, "utf8")
+      .replace(/^begin;\n/, "")
+      .replace(/rollback;\s*$/, "");
+    const rows = await db.query(sql);
+    const messages = rows
       .flatMap((r) => r.rows.flatMap((row) => Object.values(row)))
       .filter((v) => typeof v === "string");
-    const failures = messages
-      .filter((v) => /^not ok \d+ - /.test(v))
+    const assertions = messages.filter((v) => /^(?:not )?ok \d+ - /.test(v));
+    const failures = assertions
+      .filter((v) => v.startsWith("not ok"))
       .map((v) => v.split(" - ")[1].split("\n")[0]);
-    if (JSON.stringify(failures) !== JSON.stringify(item.expected))
-      throw new Error(
-        `Unexpected foreign-key control failures: ${JSON.stringify(failures)}`,
-      );
-    if (!messages.some((v) => v === "1..20"))
-      throw new Error("SQL test plan did not execute");
+    if (
+      JSON.stringify(failures) !== JSON.stringify(item.expected) ||
+      assertions.length !== item.file.plan ||
+      !messages.includes(`1..${item.file.plan}`)
+    )
+      throw new Error(`Incomplete or unexpected SQL control: ${item.id}`);
     reports.push({
       id: item.id,
       applied: true,
       executed: true,
+      assertions: assertions.length,
       failedAssertions: failures,
     });
+    await db.query("rollback");
+    const restored = (
+      await db.query(
+        "select oid,conname,pg_get_constraintdef(oid) definition from pg_constraint where connamespace in ('public'::regnamespace,'private'::regnamespace) order by oid",
+      )
+    ).rows;
+    if (JSON.stringify(before) !== JSON.stringify(restored))
+      throw new Error("Constraint restore failed");
   } finally {
     await db.query("rollback");
-    const restored = await db.query(
-      "select count(*)::int n from pg_constraint where contype='f' and conrelid in ('public.practices'::regclass, 'private.practice_audit_events'::regclass)",
-    );
-    if (restored.rows[0].n !== 3) throw new Error("Foreign keys not restored");
     await db.end();
   }
 }
@@ -65,5 +141,5 @@ writeFileSync(
   JSON.stringify(reports, null, 2),
 );
 console.log(
-  "20 SQL assertions pass; removing owner/audit foreign keys produces both expected N04 failures; rolled back.",
+  `${files.reduce((n, f) => n + f.plan, 0)} SQL assertions pass; ${cases.length - files.length} applied missing FK/index/invariant/grant controls produced the expected assertion failures and rolled back.`,
 );

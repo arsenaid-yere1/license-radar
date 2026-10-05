@@ -20,7 +20,7 @@
     "test:db": "node tools/local-environment.mjs test-db",
     "db:reset": "node tools/local-environment.mjs reset",
     "gauntlet": "node tools/gauntlet.mjs",
-    "test:controls": "node --test tools/gauntlet-controls.test.mjs",
+    "test:controls": "node --test tools/gauntlet-controls.test.mjs tools/access-controls.test.mjs",
     "mutation": "stryker run",
     "mutation:properties": "stryker run stryker.properties.config.mjs"
   },

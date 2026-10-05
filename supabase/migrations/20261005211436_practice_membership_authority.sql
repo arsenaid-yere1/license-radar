@@ -45,10 +45,20 @@ revoke all on private.practice_access_events from public, anon, authenticated;
 
 -- Backfill before enabling mutation audit triggers: historical profile events stay intact.
 insert into public.practice_memberships (practice_id, user_id, role)
-select id, owner_user_id, 'administrator' from public.practices;
+select
+    id,
+    owner_user_id,
+    'administrator' as role
+from public.practices;
 insert into private.practice_access_events
-    (practice_id, actor_user_id, membership_id, operation, after_role, after_state)
-select practice_id, user_id, id, 'membership_initialized', role, state
+(practice_id, actor_user_id, membership_id, operation, after_role, after_state)
+select
+    practice_id,
+    user_id,
+    id,
+    'membership_initialized' as operation,
+    role,
+    state
 from public.practice_memberships;
 
 create function private.current_practice_id() returns uuid
@@ -184,7 +194,9 @@ begin
     return result;
 end;
 $$;
-revoke all on function private.update_practice(uuid, text, text, integer) from public, anon, authenticated;
+revoke all on function private.update_practice(uuid, text, text, integer) from public,
+anon,
+authenticated;
 grant execute on function private.update_practice(uuid, text, text, integer) to authenticated;
 create function public.update_practice(
     p_practice_id uuid, p_name text, p_timezone text, p_expected_version integer
@@ -192,5 +204,7 @@ create function public.update_practice(
 language sql volatile security invoker set search_path = '' as $$
     select private.update_practice(p_practice_id, p_name, p_timezone, p_expected_version);
 $$;
-revoke all on function public.update_practice(uuid, text, text, integer) from public, anon, authenticated;
+revoke all on function public.update_practice(uuid, text, text, integer) from public,
+anon,
+authenticated;
 grant execute on function public.update_practice(uuid, text, text, integer) to authenticated;

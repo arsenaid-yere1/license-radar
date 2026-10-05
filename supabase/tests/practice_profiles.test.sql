@@ -26,7 +26,13 @@ select
         not has_column_privilege('authenticated', 'public.practices', 'version', 'update'),
         'S18 version database managed'
     );
-select ok(not has_table_privilege('authenticated', 'private.practice_audit_events', 'select'), 'S23 audit denied');
+select
+    ok(not has_table_privilege(
+        'authenticated',
+        'private.practice_audit_events',
+        'select'
+    ),
+    'S23 audit denied');
 select
     ok(
         not has_function_privilege('authenticated', 'private.audit_practice()', 'execute'),
@@ -60,24 +66,42 @@ select is((select name from public.practices), 'Cedar', 'S08 trim in storage');
 select is((select version from public.practices), 1, 'S21 initial version');
 select
     throws_ok(
-        $q$select public.update_practice((select id from public.practices), '', 'UTC', (select version from public.practices))$q$,
+        $q$select public.update_practice((select id from public.practices),
+        '',
+        'UTC',
+        (select version from public.practices))$q$,
+
         '23514', null,
         'S09 blank rejected'
     );
 select
     throws_ok(
-        $q$select public.update_practice((select id from public.practices), repeat('😀', 121), 'UTC', (select version from public.practices))$q$,
+        $q$select public.update_practice((select id from public.practices),
+        repeat('😀',
+        121),
+        'UTC',
+        (select version from public.practices))$q$,
+
         '23514', null,
         'S10 overlong Unicode rejected'
     );
 select
     lives_ok(
-        $q$select public.update_practice((select id from public.practices), repeat('😀', 120), 'UTC', (select version from public.practices))$q$,
+        $q$select public.update_practice((select id from public.practices),
+        repeat('😀',
+        120),
+        'UTC',
+        (select version from public.practices))$q$,
+
         'S10 boundary Unicode accepted'
     );
 select
     throws_ok(
-        $q$select public.update_practice((select id from public.practices), 'Cedar', 'Mars/Olympus', (select version from public.practices))$q$,
+        $q$select public.update_practice((select id from public.practices),
+        'Cedar',
+        'Mars/Olympus',
+        (select version from public.practices))$q$,
+
         '23514', null,
         'S11 invalid zone rejected'
     );

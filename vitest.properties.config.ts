@@ -3,7 +3,10 @@ export default defineConfig({
   resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
   test: {
     environment: "node",
-    include: ["src/lib/practice/properties.test.ts"],
+    include: [
+      "src/lib/practice/properties.test.ts",
+      "src/lib/team/properties.test.ts",
+    ],
     sequence: { shuffle: true, seed: 20261004 },
   },
 });

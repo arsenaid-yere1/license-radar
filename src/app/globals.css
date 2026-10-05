@@ -348,3 +348,55 @@ fieldset {
   margin: 0;
   min-width: 0;
 }
+.team-heading {
+  padding: 56px 56px 28px;
+}
+.team-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  padding: 0 56px 60px;
+}
+.team-layout > .panel:last-child {
+  grid-column: 1 / -1;
+}
+.team-row {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+  overflow-wrap: anywhere;
+}
+.team-row h3 {
+  font-size: 16px;
+  margin: 0;
+}
+.member-controls {
+  display: grid;
+  gap: 16px;
+}
+.member-controls form {
+  display: grid;
+  gap: 12px;
+}
+.team-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.invitation-link {
+  margin: 24px 0;
+}
+.invitation-link button {
+  margin-top: 12px;
+}
+@media (max-width: 700px) {
+  .team-heading {
+    padding: 30px 20px;
+  }
+  .team-layout {
+    grid-template-columns: 1fr;
+    padding: 0 20px 50px;
+  }
+  .team-buttons button {
+    width: 100%;
+  }
+}

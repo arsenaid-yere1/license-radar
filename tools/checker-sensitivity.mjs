@@ -2,6 +2,82 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 const mutants = [
   {
+    file: "tools/gauntlet-contract.mjs",
+    from: "export function assertionFailure(message) {",
+    to: "export function assertionFailure(message) { return true;",
+    test: "mutation kill requires a behavioral assertion rather than an infrastructure error",
+  },
+  ...[
+    [
+      "tools/local-environment.mjs",
+      "assertFixtureTarget(nonFixtureCount)",
+      "non-fixture reset target hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertBrowserFault(expected, actual, errors, exitCode)",
+      "browser mutation requires every named assertion failure",
+    ],
+    [
+      "tools/local-environment.mjs",
+      "assertProject(source)",
+      "wrong project reset hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertLayers(expected, results)",
+      "duplicate layer hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertInventory(expected, results)",
+      "empty incomplete duplicate skipped inventory hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertArtifact(content, tokens)",
+      "token-bearing retained artifact hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertSchema(actual, expected)",
+      "schema grant policy index FK trigger drift hard failure",
+    ],
+    [
+      "tools/gauntlet-contract.mjs",
+      "assertSnapshot(snapshot)",
+      "missing upgrade snapshot hard failure",
+    ],
+    [
+      "tools/check-coverage.mjs",
+      "verifyMap(map)",
+      "stale owned source map hard failure",
+    ],
+  ].map(([file, declaration, test]) => ({
+    file,
+    from: `export function ${declaration} {`,
+    to: `export function ${declaration} { return;`,
+    test,
+  })),
+  {
+    file: "tools/check-coverage.mjs",
+    from: "if (!Number.isFinite(c.s[key]) || c.s[key] < 0)",
+    to: "if (false)",
+    test: "incomplete statement coverage hard failure",
+  },
+  {
+    file: "tools/gauntlet-contract.mjs",
+    from: "status: listing",
+    to: 'status: true ? \"passed\" : listing',
+    test: "browser inventory detects retry skip and missing execution",
+  },
+  {
+    file: "tools/gauntlet-contract.mjs",
+    from: 'throw new Error("Missing assertion inventory");',
+    to: "return [];",
+    test: "Vitest inventory refuses missing assertion results",
+  },
+  {
     file: "tools/check-coverage.mjs",
     from: "if (!c) throw new Error(`Missing coverage: ${file}`);",
     to: "if(!c)continue;",
@@ -34,7 +110,11 @@ const mutants = [
 ];
 const baseline = spawnSync(
   process.execPath,
-  ["--test", "tools/gauntlet-controls.test.mjs"],
+  [
+    "--test",
+    "tools/gauntlet-controls.test.mjs",
+    "tools/access-controls.test.mjs",
+  ],
   { encoding: "utf8" },
 );
 if (baseline.status !== 0)
@@ -53,6 +133,7 @@ for (const mutant of mutants) {
         "--test-reporter=tap",
         `--test-name-pattern=${mutant.test}`,
         "tools/gauntlet-controls.test.mjs",
+        "tools/access-controls.test.mjs",
       ],
       { encoding: "utf8" },
     );

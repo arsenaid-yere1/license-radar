@@ -23,11 +23,13 @@ export async function updateSession(request: NextRequest) {
   response.headers.set("Cache-Control", "private, no-store, max-age=0");
   response.headers.set("Pragma", "no-cache");
   response.headers.set("Expires", "0");
+  if (request.nextUrl.pathname === "/join")
+    response.headers.set("Referrer-Policy", "no-referrer");
   if (
     request.method !== "POST" &&
     !data?.claims &&
     !(error && !authenticationRequired(error.status)) &&
-    request.nextUrl.pathname !== "/login"
+    !["/login", "/join"].includes(request.nextUrl.pathname)
   ) {
     const redirected = NextResponse.redirect(new URL("/login", request.url));
     for (const cookie of response.cookies.getAll())

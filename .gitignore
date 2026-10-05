@@ -3,6 +3,7 @@ node_modules/
 .env*
 !.env.example
 .tools/
+.tools
 .venv-gauntlet/
 .supabase/
 supabase/.temp/

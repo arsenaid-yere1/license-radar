@@ -41,7 +41,9 @@ async function save(form: FormData, editing: boolean): Promise<FormState> {
     message:
       result.status === "conflict"
         ? "These settings changed. Reload before saving."
-        : "We could not complete this request. Try again.",
+        : result.status === "forbidden"
+          ? "You do not have permission to do that."
+          : "We could not complete this request. Try again.",
   };
 }
 export async function createPracticeAction(_state: FormState, form: FormData) {

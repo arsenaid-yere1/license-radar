@@ -1,6 +1,7 @@
 import { Client } from "pg";
 import { readFileSync, writeFileSync } from "node:fs";
 import { localConfig } from "./local-environment.mjs";
+import { assertSchema } from "./gauntlet-contract.mjs";
 const db = new Client({ connectionString: localConfig().DB_URL });
 await db.connect();
 const result = {};
@@ -35,8 +36,10 @@ if (["record-upgrade", "record-replay"].includes(process.argv[2]))
 else if (process.argv[2] === "record")
   writeFileSync("tools/schema-contract.json", text);
 else {
-  if (text !== readFileSync("tools/schema-contract.json", "utf8"))
-    throw new Error("Fresh schema drift from recorded contract");
+  assertSchema(
+    result,
+    JSON.parse(readFileSync("tools/schema-contract.json", "utf8")),
+  );
   writeFileSync("reports/schema-verified.json", text);
   console.log(
     "Fresh schema, grants, policies, private functions and triggers match contract.",

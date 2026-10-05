@@ -91,3 +91,14 @@ it("S07 SSR cookie adapter writes in action, tolerates read-only server render",
   });
   expect(await createClient()).toEqual({ marker: "client" });
 });
+it("S44 S48 signed out join remains public, private and no-referrer", async () => {
+  boundary.createServerClient.mockReturnValue({
+    auth: { getClaims: vi.fn().mockResolvedValue({ data: null, error: null }) },
+  });
+  const response = await proxy(new NextRequest("http://127.0.0.1:3000/join"));
+  expect(response.status).toBe(200);
+  expect(response.headers.get("cache-control")).toBe(
+    "private, no-store, max-age=0",
+  );
+  expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+});

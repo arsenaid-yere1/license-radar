@@ -289,3 +289,74 @@ it("S12 multi-digit versions are accepted and decimal strings are rejected", asy
     errors: { expectedVersion: "Reload the settings and try again." },
   });
 });
+it("S46 invitation OTP returns only to the allowlisted join route", async () => {
+  client();
+  await expect(
+    loginAction(
+      idle,
+      form({
+        email: "fixture@example.test",
+        token: "123456",
+        intent: "verify",
+        destination: "/join",
+      }),
+    ),
+  ).rejects.toThrow("REDIRECT:/join");
+  for (const destination of [
+    "https://evil.test",
+    "//evil.test",
+    "/%2f%2fevil.test",
+    "/join?token=secret",
+  ]) {
+    client();
+    await expect(
+      loginAction(
+        idle,
+        form({
+          email: "fixture@example.test",
+          token: "123456",
+          intent: "verify",
+          destination,
+        }),
+      ),
+    ).rejects.toThrow("REDIRECT:/");
+  }
+});
+it("A04 arbitrary and absent OTP return destinations use exactly the home route", async () => {
+  for (const destination of [
+    undefined,
+    "https://evil.test",
+    "//evil.test",
+    "/join?next=evil",
+  ]) {
+    client();
+    await expect(
+      loginAction(
+        idle,
+        form({
+          email: "fixture@example.test",
+          token: "123456",
+          intent: "verify",
+          ...(destination === undefined ? {} : { destination }),
+        }),
+      ),
+    ).rejects.toThrow(/^REDIRECT:\/$/);
+  }
+});
+it("S33 revoked or demoted settings action reports permission denial", async () => {
+  client({
+    rows: [
+      { data: { id: "own", version: 1 }, error: null },
+      { data: null, error: { code: "42501" } },
+    ],
+  });
+  expect(
+    await updatePracticeAction(
+      idle,
+      form({ ...profile, expectedVersion: "1" }),
+    ),
+  ).toEqual({
+    status: "forbidden",
+    message: "You do not have permission to do that.",
+  });
+});

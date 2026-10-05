@@ -1,7 +1,11 @@
 "use client";
 import { useActionState, useEffect, useRef } from "react";
 import { loginAction } from "@/app/login/actions";
-export function EmailCodeForm() {
+export function EmailCodeForm({
+  destination = "/",
+}: {
+  destination?: "/" | "/join";
+}) {
   const [state, action, pending] = useActionState(loginAction, {
     status: "idle",
   });
@@ -11,6 +15,7 @@ export function EmailCodeForm() {
   }, [state]);
   return (
     <form action={action} className="login-form" noValidate>
+      <input type="hidden" name="destination" value={destination} />
       <div className="field">
         <label htmlFor="email">Work email</label>
         <input

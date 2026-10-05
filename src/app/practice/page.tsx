@@ -1,26 +1,23 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
-import { getCurrentPractice } from "@/lib/practice/repository";
+import { getPracticeAccess } from "@/lib/practice/access";
+import { roleLabels } from "@/lib/team/schema";
+import Link from "next/link";
 import { getSupportedTimezones } from "@/lib/practice/timezones";
 import { PracticeForm } from "@/components/practice/practice-form";
 import { Shell } from "@/components/shell";
 import { updatePracticeAction } from "./actions";
-import { signOutAction } from "@/app/login/actions";
+import { SignOutForm } from "@/components/auth/sign-out-form";
 export const dynamic = "force-dynamic";
 export default async function Settings() {
   const { client, user } = await requireUser();
-  const result = await getCurrentPractice(client);
+  const result = await getPracticeAccess(client);
   if (result.status !== "success")
     throw new Error("We could not complete this request. Try again.");
-  if (!result.practice) redirect("/onboarding/practice");
+  if (!result.access) redirect("/onboarding/practice");
+  const { practice, role } = result.access;
   return (
-    <Shell
-      action={
-        <form action={signOutAction}>
-          <button className="secondary">Sign out</button>
-        </form>
-      }
-    >
+    <Shell action={<SignOutForm />}>
       <div className="split-layout">
         <section className="intro">
           <span className="eyebrow">Practice essentials / Settings</span>
@@ -34,7 +31,7 @@ export default async function Settings() {
             practice grows.
           </p>
           <div className="owner-note">
-            <span className="eyebrow">Practice administrator</span>
+            <span className="eyebrow">{roleLabels[role]}</span>
             <p>{user.email}</p>
           </div>
           <p className="hint">
@@ -45,13 +42,34 @@ export default async function Settings() {
           <span className="saved-label">
             <span aria-hidden="true">●</span> Practice profile saved
           </span>
-          <h2>{result.practice.name}</h2>
-          <p>Manage your practice name and local time.</p>
-          <PracticeForm
-            practice={result.practice}
-            action={updatePracticeAction}
-            timezones={getSupportedTimezones()}
-          />
+          <h2>{practice.name}</h2>
+          <p>
+            {role === "administrator"
+              ? "Manage your practice name and local time."
+              : "Your shared practice profile."}
+          </p>
+          {role === "administrator" ? (
+            <>
+              <PracticeForm
+                practice={practice}
+                action={updatePracticeAction}
+                timezones={getSupportedTimezones()}
+              />
+              <Link href="/practice/team" className="text-link">
+                Manage team
+              </Link>
+            </>
+          ) : (
+            <>
+              <dl>
+                <dt>Practice timezone</dt>
+                <dd>{practice.timezone}</dd>
+              </dl>
+              <p className="hint">
+                An administrator can update these settings.
+              </p>
+            </>
+          )}
         </section>
       </div>
     </Shell>

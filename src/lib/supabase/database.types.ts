@@ -88,6 +88,22 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_practice_invitation: {
+        Args: { p_token_digest: string };
+        Returns: Json;
+      };
+      cancel_practice_invitation: {
+        Args: { p_expected_version: number; p_invitation_id: string };
+        Returns: Json;
+      };
+      change_practice_member_role: {
+        Args: {
+          p_expected_version: number;
+          p_membership_id: string;
+          p_role: string;
+        };
+        Returns: Json;
+      };
       create_practice: {
         Args: { p_name: string; p_timezone: string };
         Returns: {
@@ -105,6 +121,32 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      create_practice_invitation: {
+        Args: {
+          p_email: string;
+          p_practice_id: string;
+          p_role: string;
+          p_token_digest: string;
+        };
+        Returns: Json;
+      };
+      list_practice_team: { Args: { p_practice_id: string }; Returns: Json };
+      preview_practice_invitation: {
+        Args: { p_token_digest: string };
+        Returns: Json;
+      };
+      reissue_practice_invitation: {
+        Args: {
+          p_expected_version: number;
+          p_invitation_id: string;
+          p_token_digest: string;
+        };
+        Returns: Json;
+      };
+      revoke_practice_member: {
+        Args: { p_expected_version: number; p_membership_id: string };
+        Returns: Json;
       };
       update_practice: {
         Args: {

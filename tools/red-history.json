@@ -83,6 +83,152 @@
           "S43 inconsistent and unavailable reads fail closed",
           "S43 thrown access transport remains unavailable"
         ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project integration tests/integration/practice-invitations.test.ts",
+        "phase": "before invitation migration",
+        "observedFailedTests": 14,
+        "names": [
+          "S08 S10 S17 creates canonical digest-only invitation with exactly seven elapsed days",
+          "S09 malformed invitation inputs cannot write",
+          "S11 concurrent duplicate invitation preserves first role and audits once",
+          "S12 cancel retry is no-op and old capability unavailable",
+          "S13 S14 S15 reissue recovers lost response, rotates token and rejects stale change",
+          "S19 S20 S21 confirmed matching account alone receives preview and explicitly joins",
+          "S22 expired capability including equality denies without state changes",
+          "S24 twenty accepts create one membership and one invitation acceptance event",
+          "S25 accepted retry cannot reset current role and S30 cannot reactivate",
+          "S26 pending invitation cannot overwrite active same-practice role",
+          "S27 S28 two practice accept race has one winner and neutral unchanged loser",
+          "S29 create versus accept race leaves only profiles with administrators",
+          "S31 S32 S40 only explicit post-revocation reissue reactivates durable membership",
+          "S34 S35 role versioning and final administrator guard"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit src/lib/team/schema.test.ts",
+        "phase": "invitation validation and crypto throwing stubs",
+        "observedFailedTests": 9,
+        "names": [
+          "S08 S10 ASCII normalization preserves dots and plus tags",
+          "S09 invalid email case \"bad\" rejected",
+          "S09 invalid email case \"\\ta@example.test\" rejected",
+          "S09 invalid email case \"a@example.test\\n\" rejected",
+          "S09 invalid email case \"\u00e9@example.test\" rejected",
+          "S09 invalid email case \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.test\" rejected",
+          "S09 role and extra authority fields rejected",
+          "S08 P02 cryptographic token is 32 bytes and hashes independently",
+          "S21 malformed or noncanonical token gives no capability"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/team-actions.test.ts",
+        "phase": "team orchestration throwing stubs",
+        "observedFailedTests": 9,
+        "names": [
+          "S08 server derives practice and exposes token only for persisted creation",
+          "S09 hostile actor/practice fields reject before writes",
+          "S33 manager cannot manage team",
+          "S33 viewer cannot manage team",
+          "S14 stale and domain denials preserve outcomes and never expose token",
+          "S43 RPC errors and missing creation metadata never claim success",
+          "S13 S34 valid versioned mutations use only target ID, version and role/digest",
+          "S43 auth outages and expiry fail safely before writes",
+          "S20 S21 join hashes canonical tokens and denies malformed/extra identity uniformly"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/server-actions.test.ts tests/unit/session.test.ts",
+        "phase": "join routing and permission messages before implementation",
+        "observedFailedTests": 3,
+        "names": [
+          "S46 invitation OTP returns only to the allowlisted join route",
+          "S33 revoked or demoted settings action reports permission denial",
+          "S44 S48 signed out join remains public, private and no-referrer"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/team-forms.test.tsx tests/unit/join-form.test.tsx",
+        "phase": "team and join throwing component stubs",
+        "observedFailedTests": 6,
+        "names": [
+          "S44 fragment is captured and cleared while signed out without accepting",
+          "S18 explicit preview precedes acceptance and successful join clears tab context",
+          "S21 missing tab capability remains unavailable and cannot post",
+          "S09 S48 invitation field errors retain values and focus result",
+          "S48 pending invitation prevents repeat submission",
+          "S35 member revoke asks confirmation before submitting and versions target"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/join-actions.test.ts",
+        "phase": "server action throwing stubs",
+        "observedFailedTests": 5,
+        "names": [
+          "S18 preview and accept are separate explicit server actions",
+          "S21 all invalid invitation responses are neutral and contain no private details",
+          "S43 join transport or client setup failures never disclose exception",
+          "S09 team form rejects unknown intent or malformed version before RPC",
+          "S14 S35 team conflicts and final administrator failures use precise messages"
+        ]
+      },
+      {
+        "command": "node_modules/.bin/vitest run --project unit tests/unit/routes.test.tsx",
+        "phase": "role-aware settings before implementation",
+        "observedFailedTests": 2,
+        "names": [
+          "S47 manager sees shared profile with no administrator controls",
+          "S47 viewer sees shared profile with no administrator controls"
+        ]
+      },
+      {
+        "command": "node --test tools/access-controls.test.mjs",
+        "phase": "new reset inventory artifact throwing stubs and duplicate-layer behavior",
+        "observedFailedTests": 9
+      },
+      {
+        "command": "node --test tools/access-controls.test.mjs",
+        "phase": "upgrade schema snapshot stubs and malformed coverage guard",
+        "observedFailedTests": 3,
+        "preExistingBehaviorControl": "stale map control passed; removed-defense sensitivity subsequently executed"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"mutation kill requires\" tools/access-controls.test.mjs",
+        "phase": "assertion kill classification stub",
+        "observedFailedTests": 1
+      },
+      {
+        "command": "PLAYWRIGHT_BROWSERS_PATH=.browser-cache node tools/access-adversarial.mjs",
+        "phase": "initially GREEN strict-input property and all nine new browser cases",
+        "observedFailedTests": 10,
+        "faults": [
+          {
+            "id": "strict-team-object-properties",
+            "applied": true,
+            "executed": true,
+            "killed": true,
+            "restored": true
+          },
+          {
+            "id": "legitimate-administrator-browser-access",
+            "applied": true,
+            "executed": true,
+            "killed": true,
+            "restored": true,
+            "failedTests": [
+              "A04 markup invitation preview is text and foreign-Origin action cannot write",
+              "A05 fragment token stays out of request URLs referrers and retained text artifacts",
+              "S18 S44 S47 new account retains same-tab context through OTP and explicitly joins as manager",
+              "S19 S45 wrong account denied then sign-out clears context and reopened link joins existing account",
+              "S46 S48 GET does not consume and mobile keyboard join has private headers and accessibility",
+              "S44 another tab requires reopening the invitation",
+              "S09 S11 S13 S15 S48 invitation validation, duplicate and reissue recovery",
+              "S39 stale administrator settings retain edits after demotion and team route uses live role",
+              "S34 S35 S38 administrator role controls prevent final-admin loss and revoke existing session"
+            ]
+          }
+        ],
+        "restoredCasesPassed": true
       }
     ]
   }
