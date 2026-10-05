@@ -227,7 +227,11 @@ The companion verification report records plan review and current baseline check
 
 - [x] SPEC approved by “continue with implementation”; documentation checkpoint `defdc87`; isolated branch `codex/e1-s2-staff-access`.
 - [x] Phase 1 core membership migration, backfill, RPC profile persistence and live access helper implemented; unit/types/lint/API/SQL checks passed as recorded in the draft evidence. Actual upgrade/rollback/replay rehearsal passed.
-- [ ] Phase 1 remaining shared-tool/browser verification completes with Phase 4; creator revocation through public role/revoke RPCs and queued profile-role race completes in Phase 2. Manual/user verification not claimed.
-- [ ] Phase 2 invitation and team mutations.
-- [ ] Phase 3 team/join flows and browser verification.
-- [ ] Phase 4 full 28-layer gauntlet, controls/sensitivity, documentation and final evidence.
+- [x] Phase 1 remaining shared-tool/browser checks, actual public creator revocation and queued profile-role race verified by the final run. Manual/user sign-off and independent implementation verification are not claimed.
+- [x] Phase 2 invitation and team mutations, rollback/retry/version/expiry/epoch/race contracts verified.
+- [x] Phase 3 team/join flows verified: 19 browser cases, explicit attacks, actual fault sensitivity, keyboard/mobile/axe checks.
+- [x] Phase 4 full 28-layer gauntlet, 27 checker controls, 18 removed-defense checks, documentation and final scenario/invariant/AC mapping completed.
+
+## Implementation completion — 2026-10-05
+
+All 28 required layers passed on source eea83e9dc4adc8d9303a22e4f2a8c18980032ed2, run 348f97aa-842e-4ed0-b6f2-df7f337a0f2b. The attached implementation checkout is /Users/macbookpro/.codex/worktrees/e1-s2-staff-access/license-radar, branch codex/e1-s2-staff-access. [Final evidence](/Users/macbookpro/.codex/worktrees/e1-s2-staff-access/license-radar/thoughts/shared/research/2026-10-05-e1-s2-old-coder-evidence.md) maps every S/P/A/N case and AC1–AC12 to executable witnesses, records source/runtime/mutation/coverage results and retains preparation failures. Source hash 699b054873879599275ac471b702dda190363c14b503b1d909b45c620507da09 was restored unchanged. Independent implementation verification remains not performed, zero rounds, as declared in the approved SPEC. Subsequent evidence/plan-only commits do not change tested source.
