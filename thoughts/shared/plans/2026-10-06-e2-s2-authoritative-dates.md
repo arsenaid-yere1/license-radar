@@ -2,7 +2,7 @@
 
 Date: 2026-10-06 (America/Los_Angeles).
 Baseline: `93f058bdd31f0a9cbbcdebb8b397a90c6708a478`.
-Status: Implemented; final source-bound verification in progress.
+Status: Implemented; all 31 source-bound automated verification layers passed. User manual acceptance remains pending.
 Research: `thoughts/shared/research/2026-10-06-e2-s2-authoritative-dates.md`.
 Verification: `thoughts/shared/plans/2026-10-06-e2-s2-authoritative-dates-verification.md`.
 
@@ -235,6 +235,9 @@ AC1–AC12 have named source/test witnesses; each phase passes its exit criteria
 
 - [x] Phase 1: Database contracts and migration compatibility.
 - [x] Phase 2: Domain validation, projections, and action boundary.
-- [ ] Phase 3: Record entry and saved-date presentation.
-- [ ] Phase 4: Upgrade rehearsal, fault controls, and evidence.
+- [x] Phase 3: Record entry and saved-date presentation — automated checks and agent inspection complete.
+- [x] Phase 4: Upgrade rehearsal, fault controls, and evidence — automated checks and agent inspection complete.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.
+
+Final evidence: `thoughts/shared/research/2026-10-06-e2-s2-implementation-evidence.md`.
+Run `d474a1b4-2df3-4aef-83e7-49192e87ce3c` passed all 31 layers against source commit `411ab8dc0cf4fbe7ecea2e378a4449e2361a2838`, source hash `00cde850b87a2264c774ab1ca7c3c174090e467737ed73546a2e8d8ac58664ab`. No hosted release was performed.
