@@ -4,9 +4,13 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 const boundary = vi.hoisted(() => ({
   requireUser: vi.fn(),
   getRecipient: vi.fn(),
+  getRegister: vi.fn(),
   getTeam: vi.fn(),
   getCurrentPractice: vi.fn(),
   getPracticeAccess: vi.fn(),
+}));
+vi.mock("@/lib/register/repository", () => ({
+  getRegister: boundary.getRegister,
 }));
 vi.mock("@/lib/team/repository", () => ({ getTeam: boundary.getTeam }));
 vi.mock("@/lib/recipients/repository", () => ({
@@ -30,6 +34,7 @@ vi.mock("next/navigation", () => ({
     throw new Error(`REDIRECT:${url}`);
   },
 }));
+import PracticeRegister from "@/app/practice/register/page";
 import Home from "@/app/page";
 import Setup from "@/app/onboarding/practice/page";
 import Settings from "@/app/practice/page";
@@ -144,6 +149,11 @@ it.each([
     expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Manage team" })).toBeNull();
     expect(screen.getByText("UTC")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Renewal register" })
+        .getAttribute("href"),
+    ).toBe("/practice/register");
   },
 );
 
@@ -184,4 +194,51 @@ it("R18 team route reads current recipient only for administrator and fails clos
   });
   render(await PracticeTeam());
   expect(screen.getByRole("heading", { name: "Practice team" })).toBeTruthy();
+});
+
+it("G19 register guards missing access and outages without fabricated empty state", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({ status: "unavailable" });
+  await expect(PracticeRegister()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: null,
+  });
+  await expect(PracticeRegister()).rejects.toThrow(
+    "REDIRECT:/onboarding/practice",
+  );
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { role: "viewer", practice: { id: "own", name: "Cedar" } },
+  });
+  boundary.getRegister.mockResolvedValue({ status: "unavailable" });
+  await expect(PracticeRegister()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+  for (const role of ["administrator", "manager", "viewer"]) {
+    boundary.getPracticeAccess.mockResolvedValue({
+      status: "success",
+      access: { role, practice: { id: "own", name: "Cedar" } },
+    });
+    boundary.getRegister.mockResolvedValue({
+      status: "success",
+      register: { clinicians: [], credentials: [] },
+    });
+    const view = render(await PracticeRegister());
+    expect(boundary.getRegister).toHaveBeenLastCalledWith({}, "own");
+    expect(
+      screen.getByRole("heading", { name: "Your renewal register." }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Add clinician" }) !== null,
+    ).toBe(role !== "viewer");
+    expect(screen.getByText("No renewal records added yet.")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Practice settings" })
+        .getAttribute("href"),
+    ).toBe("/practice");
+    view.unmount();
+  }
 });

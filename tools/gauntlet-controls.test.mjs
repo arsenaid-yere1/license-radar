@@ -92,3 +92,174 @@ test("actually killed/restored mutant accepted", () =>
       restored: true,
     }),
   ));
+
+test("register public tables occur in every filtered catalog section", async () => {
+  const { schemaQueries } = await import("./schema-catalog.mjs");
+  for (const section of [
+    "columns",
+    "policies",
+    "triggers",
+    "grants",
+    "rls",
+    "constraints",
+    "indexes",
+  ])
+    for (const table of ["clinicians", "credentials", "policy_coverage"])
+      assert(
+        schemaQueries[section].includes(`'${table}'`),
+        `${section} omits ${table}`,
+      );
+});
+
+test("register fingerprint contains and detects removal of every table protection", () => {
+  const contract = JSON.parse(
+    readFileSync("tools/schema-contract.json", "utf8"),
+  );
+  for (const section of [
+    "columns",
+    "policies",
+    "grants",
+    "rls",
+    "constraints",
+    "indexes",
+  ])
+    for (const table of ["clinicians", "credentials", "policy_coverage"]) {
+      const belongs = (row) =>
+        [row.table_name, row.tablename, row.relname].includes(table);
+      assert(
+        contract[section].some(belongs),
+        `${section} fingerprint omits ${table}`,
+      );
+      assert.throws(
+        () =>
+          assertSchema(
+            {
+              ...contract,
+              [section]: contract[section].filter((row) => !belongs(row)),
+            },
+            contract,
+          ),
+        /schema/i,
+      );
+    }
+});
+
+test("coverage normalizes dot-segment source identities before bundled conversion", async () => {
+  const { normalizeSourceMap } = await import("./check-coverage.mjs");
+  const map = {
+    version: 3,
+    sources: [
+      "webpack://fixture/./src/yes.ts",
+      "webpack://fixture/./src/no.ts",
+    ],
+    sourcesContent: [
+      "function yes() { return 1; }\nyes();",
+      "function no() { return 2; }",
+    ],
+    names: [],
+    mappings: "AAAA;ACAA;ADCA",
+  };
+  assert.deepEqual(normalizeSourceMap(map).sources, [
+    "webpack://fixture/src/yes.ts",
+    "webpack://fixture/src/no.ts",
+  ]);
+  assert.deepEqual(normalizeSourceMap(map).sourcesContent, map.sourcesContent);
+});
+test("bundled coverage attributes an uncalled function to its own source", async () => {
+  const { convertCoverage } = await import("./check-coverage.mjs");
+  const yes = "function yes() { return 1; }",
+    no = "function no() { return 2; }",
+    source = `${yes}\n${no}\nyes();`;
+  const map = {
+    version: 3,
+    sources: [
+      "webpack://fixture/./src/yes.ts",
+      "webpack://fixture/./src/no.ts",
+    ],
+    sourcesContent: [`${yes}\nyes();`, no],
+    names: [],
+    mappings: "AAAA;ACAA;ADCA",
+  };
+  const functions = [
+    {
+      functionName: "",
+      isBlockCoverage: true,
+      ranges: [{ startOffset: 0, endOffset: source.length, count: 1 }],
+    },
+    {
+      functionName: "yes",
+      isBlockCoverage: true,
+      ranges: [{ startOffset: 0, endOffset: yes.length, count: 1 }],
+    },
+    {
+      functionName: "no",
+      isBlockCoverage: true,
+      ranges: [
+        {
+          startOffset: yes.length + 1,
+          endOffset: yes.length + 1 + no.length,
+          count: 0,
+        },
+      ],
+    },
+  ];
+  const output = await convertCoverage(
+    "fixture-bundle.js",
+    source,
+    functions,
+    map,
+  );
+  const entries = Object.entries(output),
+    found = (name) =>
+      entries.find(([file]) => file.endsWith(`/src/${name}.ts`));
+  const a = found("yes"),
+    b = found("no");
+  assert(a && b, "Both mapped sources required");
+  assert.doesNotThrow(() => assertCoverage({ [a[0]]: a[1] }, [a[0]]));
+  assert.throws(() => assertCoverage({ [b[0]]: b[1] }, [b[0]]), /Uncovered/);
+});
+
+test("executable coverage uses AST statement lines rather than formatting continuations", async () => {
+  const { assertExecutableCoverage } = await import("./check-coverage.mjs");
+  const statement = (line) => ({ start: { line }, end: { line } });
+  const raw = {
+    "source.ts": {
+      statementMap: { a: statement(2), b: statement(3), c: statement(4) },
+      s: { a: 1, b: 0, c: 0 },
+    },
+  };
+  const inventory = {
+    "source.ts": { statementMap: { a: statement(2) }, s: { a: 1 } },
+  };
+  assert.deepEqual(assertExecutableCoverage(raw, inventory, ["source.ts"]), {
+    lines: 1,
+    covered: 1,
+  });
+  const withUncalledStatement = {
+    "source.ts": {
+      statementMap: { a: statement(2), b: statement(4) },
+      s: { a: 1, b: 0 },
+    },
+  };
+  assert.throws(
+    () => assertExecutableCoverage(raw, withUncalledStatement, ["source.ts"]),
+    /Uncovered.*\nsource.ts:4/s,
+  );
+  assert.throws(
+    () => assertExecutableCoverage(raw, {}, ["source.ts"]),
+    /Missing/,
+  );
+  assert.throws(
+    () => assertExecutableCoverage({}, inventory, ["source.ts"]),
+    /Missing/,
+  );
+  assert.throws(
+    () =>
+      assertExecutableCoverage(
+        { "source.ts": { ...raw["source.ts"], s: { a: 1, b: null, c: 0 } } },
+        inventory,
+        ["source.ts"],
+      ),
+    /Incomplete/,
+  );
+});

@@ -1,6 +1,25 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { uiCoverageSensitivity } from "./ui-coverage-sensitivity.mjs";
 const mutants = [
+  {
+    file: "tools/check-coverage.mjs",
+    from: "s[key] = counts.get(line);",
+    to: "s[key] = 1;",
+    test: "executable coverage uses AST statement lines rather than formatting continuations",
+  },
+  {
+    file: "tools/check-coverage.mjs",
+    from: "sources: new TraceMap(map).resolvedSources",
+    to: "sources: map.sources",
+    test: "bundled coverage attributes an uncalled function to its own source",
+  },
+  {
+    file: "tools/schema-catalog.mjs",
+    from: "'clinicians'",
+    to: "'omitted_clinicians'",
+    test: "register public tables occur in every filtered catalog section",
+  },
   {
     file: "tools/gauntlet-contract.mjs",
     from: "export function assertionFailure(message) {",
@@ -160,3 +179,4 @@ writeFileSync(
 console.log(
   `${results.length} checker controls failed with their defenses removed; restored.`,
 );
+uiCoverageSensitivity();

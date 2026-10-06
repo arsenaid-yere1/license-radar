@@ -406,3 +406,54 @@ fieldset {
   gap: 1.5rem;
   min-width: 0;
 }
+
+.register-heading {
+  padding: 36px 56px 60px;
+}
+.register-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.register-list {
+  list-style: none;
+  padding: 0;
+  overflow-wrap: anywhere;
+}
+.register-list li {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.register-list h3 {
+  margin: 0;
+}
+.register-list p {
+  font-size: 14px;
+}
+.coverage-field {
+  margin: 26px 0;
+}
+.coverage-field legend {
+  font-weight: 600;
+}
+.coverage-choice {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.coverage-choice input {
+  width: auto;
+  padding: 0;
+  flex: 0 0 auto;
+}
+@media (max-width: 700px) {
+  .register-heading {
+    padding: 30px 20px 50px;
+  }
+  .register-layout {
+    grid-template-columns: 1fr;
+  }
+}

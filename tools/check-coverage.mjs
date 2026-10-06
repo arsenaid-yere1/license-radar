@@ -2,8 +2,35 @@ import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import v8toIstanbul from "v8-to-istanbul";
+import { TraceMap } from "@jridgewell/trace-mapping";
 import coverageLibrary from "istanbul-lib-coverage";
 const { createCoverageMap } = coverageLibrary;
+export function assertExecutableCoverage(map, inventory, files) {
+  const executable = {};
+  for (const file of files) {
+    const raw = map[file],
+      ast = inventory[file];
+    if (!raw || !ast) throw new Error(`Missing coverage inventory: ${file}`);
+    const counts = new Map();
+    for (const [key, position] of Object.entries(raw.statementMap)) {
+      if (!Number.isFinite(raw.s[key]) || raw.s[key] < 0)
+        throw new Error(`Incomplete statement coverage: ${file}`);
+      const line = position.start.line;
+      counts.set(line, Math.max(counts.get(line) ?? 0, raw.s[key]));
+    }
+    const statementMap = {},
+      s = {};
+    for (const [key, position] of Object.entries(ast.statementMap)) {
+      const line = position.start.line;
+      if (!Number.isFinite(ast.s[key]) || ast.s[key] < 0 || !counts.has(line))
+        throw new Error(`Incomplete executable coverage: ${file}`);
+      statementMap[key] = position;
+      s[key] = counts.get(line);
+    }
+    executable[file] = { statementMap, s };
+  }
+  return assertCoverage(executable, files);
+}
 export function assertCoverage(map, files) {
   const misses = [];
   let lines = 0;
@@ -58,12 +85,17 @@ export function verifyMap(map) {
       throw new Error(`Stale or missing source-map content: ${name}`);
   }
 }
-async function convert(file, source, functions, map) {
+export function normalizeSourceMap(map) {
+  return { ...map, sourceRoot: "", sources: new TraceMap(map).resolvedSources };
+}
+export async function convertCoverage(file, source, functions, map) {
   if (map) verifyMap(map);
   const converter = v8toIstanbul(
     file,
     0,
-    source ? { source, sourceMap: { sourcemap: map } } : undefined,
+    source
+      ? { source, sourceMap: { sourcemap: normalizeSourceMap(map) } }
+      : undefined,
   );
   await converter.load();
   converter.applyCoverage(functions);
@@ -71,10 +103,12 @@ async function convert(file, source, functions, map) {
 }
 export async function checkCoverage() {
   const map = createCoverageMap();
+  const inventory = createCoverageMap();
   mergeOwned(
-    map,
+    inventory,
     JSON.parse(readFileSync("coverage/unit/coverage-final.json", "utf8")),
   );
+  map.merge(JSON.parse(JSON.stringify(inventory)));
   let browserMapped = 0,
     nodeMapped = 0;
   for (const file of readdirSync("coverage/browser")) {
@@ -91,7 +125,7 @@ export async function checkCoverage() {
         throw new Error(`Missing browser source map: ${compiled}`);
       browserMapped += mergeOwned(
         map,
-        await convert(
+        await convertCoverage(
           compiled,
           entry.source,
           entry.functions,
@@ -110,10 +144,16 @@ export async function checkCoverage() {
         continue;
       const compiled = fileURLToPath(entry.url);
       if (!existsSync(`${compiled}.map`)) continue;
-      verifyMap(JSON.parse(readFileSync(`${compiled}.map`, "utf8")));
+      const sourceMap = JSON.parse(readFileSync(`${compiled}.map`, "utf8"));
+      verifyMap(sourceMap);
       nodeMapped += mergeOwned(
         map,
-        await convert(compiled, undefined, entry.functions),
+        await convertCoverage(
+          compiled,
+          readFileSync(compiled, "utf8"),
+          entry.functions,
+          sourceMap,
+        ),
       );
     }
   }
@@ -131,7 +171,7 @@ export async function checkCoverage() {
   walk("src");
   const raw = map.toJSON();
   writeFileSync("reports/merged-coverage.json", JSON.stringify(raw));
-  const summary = assertCoverage(raw, files);
+  const summary = assertExecutableCoverage(raw, inventory.toJSON(), files);
   const report = {
     ...summary,
     files: files.length,

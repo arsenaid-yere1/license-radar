@@ -11,9 +11,74 @@ const refresh = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 import { InvitationForm } from "@/components/team/invitation-form";
 import { MemberControls } from "@/components/team/member-controls";
+import { InvitationLink } from "@/components/team/invitation-link";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+it("S48 invitation copying confirms the exact link and offers keyboard fallback on rejection", async () => {
+  const writeText = vi
+    .fn()
+    .mockResolvedValueOnce(undefined)
+    .mockRejectedValueOnce(new Error("denied"));
+  vi.stubGlobal("navigator", { clipboard: { writeText } });
+  render(
+    <InvitationLink token={"a".repeat(64)} expiresAt="2030-01-01T00:00:00Z" />,
+  );
+  const expected = `${window.location.origin}/join#token=${"a".repeat(64)}`;
+  expect(
+    (screen.getByLabelText("Invitation link") as HTMLInputElement).value,
+  ).toBe(expected);
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe("Link copied."),
+  );
+  expect(writeText).toHaveBeenLastCalledWith(expected);
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe(
+      "Select the link and copy it using your keyboard.",
+    ),
+  );
+  expect(writeText).toHaveBeenCalledTimes(2);
+  expect(
+    (screen.getByLabelText("Invitation link") as HTMLInputElement).value,
+  ).toBe(expected);
+});
+it("S35 cancelling administrator demotion prevents submission and confirmation preserves target version", async () => {
+  const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+  const action = vi
+    .fn()
+    .mockResolvedValue({ status: "success", message: "Role saved." });
+  render(
+    <MemberControls
+      member={{
+        id: "10000000-0000-4000-8000-000000000001",
+        email: "admin@example.test",
+        role: "administrator",
+        state: "active",
+        version: 3,
+      }}
+      action={action}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText("Role for admin@example.test"), {
+    target: { value: "manager" },
+  });
+  const form = screen
+    .getByRole("button", { name: "Save role" })
+    .closest("form")!;
+  fireEvent.submit(form);
+  expect(confirm).toHaveBeenCalledWith(
+    "Remove this person's administrator role?",
+  );
+  expect(action).not.toHaveBeenCalled();
+  confirm.mockReturnValue(true);
+  fireEvent.submit(form);
+  await waitFor(() => expect(action).toHaveBeenCalledOnce());
+  expect(action.mock.calls[0][1].get("role")).toBe("manager");
+  expect(action.mock.calls[0][1].get("expectedVersion")).toBe("3");
 });
 it("S09 S48 invitation field errors retain values and focus result", async () => {
   const action = vi.fn().mockResolvedValue({

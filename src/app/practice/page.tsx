@@ -45,6 +45,9 @@ export default async function Settings() {
           </p>
         </section>
         <div className="settings-panels">
+          <Link href="/practice/register" className="text-link">
+            Renewal register
+          </Link>
           <section className="panel">
             <span className="saved-label">
               <span aria-hidden="true">●</span> Practice profile saved

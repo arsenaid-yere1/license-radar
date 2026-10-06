@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, and reminder responsibility are live in the hosted pilot.** The renewal register, calendar, and SMS reminders are planned features.
+**Early development: practice setup, staff access, and reminder responsibility are live in the hosted pilot.** The local E2-S1 implementation adds register ownership; dates, calendar, and SMS reminders remain planned features.
 
 Today, users can:
 
@@ -21,6 +21,8 @@ Today, users can:
 - Assign, replace, or explicitly clear one reminder recipient as an administrator or manager.
 - Automatically clear the assignment when the selected member is revoked or becomes a viewer.
 
+The local register is available from **Renewal register** in practice settings. Administrators and managers can add clinicians without logins and create state licenses, DEA registrations, and malpractice policies owned by a clinician or the practice. A practice malpractice policy can cover several clinicians while remaining one record. All active members can read the register; viewers have read-only access. Saves include private audit events and request receipts so an unchanged retry after an uncertain response returns the original creation. Drafts are not retained after leaving or reloading the page. New request keys do not detect similar or duplicate entries. Records display **Dates not entered**; text reminders are not active yet. Editing and archiving come later. This slice has not been deployed.
+
 Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
 
 Recipient assignment records responsibility, with an independent version and private transaction audit. It does not enroll a phone or schedule texts; readiness remains “SMS setup pending.” Existing and new practices start unassigned. Viewers see the selection without a candidate roster.
@@ -29,7 +31,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. The next register story is E2-S1.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership is implemented locally in E2-S1. The next story is E2-S2: authoritative dates and issuer/jurisdiction fields.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -110,7 +112,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 29-layer verification pipeline, including E1-S1 and E1-S2 upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 30-layer verification pipeline, including E1-S1, E1-S2, and E1-S3 upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -132,3 +134,7 @@ Place the checksum-verified Gitleaks binary at `.tools/gitleaks`; versions, chec
 
 - [E1-S3 implementation plan](thoughts/shared/plans/2026-10-05-e1-s3-responsible-reminder-recipient.md).
 - [E1-S3 implementation evidence](thoughts/shared/research/2026-10-05-e1-s3-implementation-evidence.md).
+
+- [E2-S1 executable specification](thoughts/shared/plans/2026-10-06-e2-s1-old-coder-spec.md).
+- [E2-S1 implementation plan](thoughts/shared/plans/2026-10-06-e2-s1-register-ownership.md).
+- [E2-S1 implementation evidence (final verification pending)](thoughts/shared/research/2026-10-06-e2-s1-implementation-evidence.md).

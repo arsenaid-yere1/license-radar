@@ -393,6 +393,302 @@
       "is_nullable": "NO"
     },
     {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "operation",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "clinician_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "credential_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "before_data",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "after_data",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "occurred_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "request_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "operation",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "result",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "data_type": "text",
+      "column_default": "'malpractice_policy'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "data_type": "text",
+      "column_default": "'practice'::text",
+      "is_nullable": "NO"
+    },
+    {
       "table_schema": "public",
       "table_name": "practice_memberships",
       "column_name": "id",
@@ -524,6 +820,33 @@
   "policies": [
     {
       "schemaname": "public",
+      "tablename": "clinicians",
+      "policyname": "clinicians_select",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(practice_id = ( SELECT private.current_practice_id() AS current_practice_id))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "policyname": "credentials_select",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(practice_id = ( SELECT private.current_practice_id() AS current_practice_id))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "policy_coverage",
+      "policyname": "policy_coverage_select",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(practice_id = ( SELECT private.current_practice_id() AS current_practice_id))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
       "tablename": "practice_memberships",
       "policyname": "memberships_self",
       "roles": "{authenticated}",
@@ -598,9 +921,27 @@
     },
     {
       "nspname": "private",
+      "proname": "create_practice_clinician",
+      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_clinician(p_practice_id uuid, p_request_id uuid, p_name text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    payload jsonb;\n    result jsonb;\n    clinician public.clinicians;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_name);\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    payload := pg_catalog.jsonb_build_object('name', normalized);\n    result := private.register_replay(p_practice_id, p_request_id, 'clinician-created', payload);\n    if result is not null then return result; end if;\n    insert into public.clinicians (practice_id, name) values (p_practice_id, normalized)\n    returning * into clinician;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'clinician',\n        pg_catalog.jsonb_build_object('id', clinician.id, 'name', clinician.name,\n            'version', clinician.version));\n    return private.finish_register_create(p_practice_id, p_request_id, 'clinician-created', payload,\n        clinician.id, null, result);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "create_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[])\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered);\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "create_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.create_practice_invitation(p_practice_id uuid, p_email text, p_role text, p_token_digest text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    canonical text;\n    issued timestamptz;\n    result private.practice_invitations;\nbegin\n    perform private.require_administrator(p_practice_id);\n    canonical := private.canonical_invitation_email(p_email);\n    if p_role is null or p_role not in ('administrator','manager','viewer')\n       or p_token_digest is null or p_token_digest !~ '^[0-9a-f]{64}$' then\n        raise exception 'Invalid invitation' using errcode='23514';\n    end if;\n    if exists(select 1 from private.practice_invitations\n              where practice_id=p_practice_id and email=canonical and state='pending') then\n        return '{\"status\":\"invite-exists\"}'::jsonb;\n    end if;\n    issued := pg_catalog.clock_timestamp();\n    insert into private.practice_invitations\n        (practice_id,email,role,token_digest,creator_user_id,issued_at,expires_at)\n    values(p_practice_id,canonical,p_role,p_token_digest,auth.uid(),issued,issued+interval '168 hours')\n    returning * into result;\n    return pg_catalog.jsonb_build_object('status','success','invitation',private.invitation_projection(result));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "credential_projection",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_projection(p_record credentials)\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n    select pg_catalog.jsonb_build_object(\n        'id', p_record.id, 'title', p_record.title, 'type', p_record.type,\n        'owner_kind', p_record.owner_kind, 'owner_clinician_id', p_record.owner_clinician_id,\n        'version', p_record.version,\n        'owner_name', case when p_record.owner_kind = 'practice' then\n            (select name from public.practices where id = p_record.practice_id)\n            else (select name from public.clinicians\n                  where practice_id = p_record.practice_id and id = p_record.owner_clinician_id) end,\n        'covered_clinicians', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('id', c.id, 'name', c.name)\n                order by c.id)\n            from public.policy_coverage pc join public.clinicians c\n                on c.practice_id = pc.practice_id and c.id = pc.clinician_id\n            where pc.practice_id = p_record.practice_id and pc.credential_id = p_record.id\n        ), '[]'::jsonb));\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
     },
     {
       "nspname": "private",
@@ -612,6 +953,12 @@
       "nspname": "private",
       "proname": "ensure_administrator",
       "definition": "CREATE OR REPLACE FUNCTION private.ensure_administrator()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    target uuid;\nbegin\n    if tg_table_name = 'practices' then\n        target := new.id;\n    elsif tg_op = 'DELETE' then\n        target := old.practice_id;\n    else\n        target := new.practice_id;\n    end if;\n    perform 1 from public.practices where id = target for update;\n    if found and not exists (select 1 from public.practice_memberships\n                             where practice_id = target and state = 'active'\n                               and role = 'administrator') then\n        raise exception 'Practice requires an active administrator' using errcode = '23514';\n    end if;\n    if tg_table_name = 'practice_memberships' then\n        if tg_op = 'UPDATE' then\n            if old.practice_id <> new.practice_id then\n                raise exception 'Membership practice is immutable' using errcode = '23514';\n            end if;\n        end if;\n    end if;\n    return null;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "finish_register_create",
+      "definition": "CREATE OR REPLACE FUNCTION private.finish_register_create(p_practice_id uuid, p_request_id uuid, p_operation text, p_payload jsonb, p_clinician_id uuid, p_credential_id uuid, p_result jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n    insert into private.register_audit_events\n        (practice_id, actor_user_id, operation, clinician_id, credential_id, after_data)\n    values (p_practice_id, auth.uid(), p_operation, p_clinician_id, p_credential_id,\n        case when p_operation = 'clinician-created' then p_result->'clinician'\n             else p_result->'credential' end);\n    insert into private.register_create_requests\n        (practice_id, actor_user_id, request_id, operation, payload, result)\n    values (p_practice_id, auth.uid(), p_request_id, p_operation, p_payload, p_result);\n    return p_result;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -640,6 +987,12 @@
     },
     {
       "nspname": "private",
+      "proname": "list_practice_register",
+      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id\n        ), '[]'::jsonb),\n        'credentials', coalesce((\n            select pg_catalog.jsonb_agg(private.credential_projection(c) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id\n        ), '[]'::jsonb));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "list_practice_team",
       "definition": "CREATE OR REPLACE FUNCTION private.list_practice_team(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare result jsonb;\nbegin\n    perform private.require_administrator(p_practice_id);\n    select pg_catalog.jsonb_build_object(\n        'members',coalesce((select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n            'id',m.id,'email',u.email,'role',m.role,'state',m.state,'version',m.version)\n            order by m.created_at,m.id) from public.practice_memberships m\n            join auth.users u on u.id=m.user_id where m.practice_id=p_practice_id),'[]'::jsonb),\n        'invitations',coalesce((select pg_catalog.jsonb_agg(private.invitation_projection(i)\n            order by i.created_at,i.id) from private.practice_invitations i\n            where i.practice_id=p_practice_id),'[]'::jsonb)) into result;\n    return result;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -664,6 +1017,18 @@
     },
     {
       "nspname": "private",
+      "proname": "register_name",
+      "definition": "CREATE OR REPLACE FUNCTION private.register_name(p_value text)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\n    select pg_catalog.btrim(p_value,\n        U&'\\0009\\000A\\000B\\000C\\000D\\0020\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF');\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "register_replay",
+      "definition": "CREATE OR REPLACE FUNCTION private.register_replay(p_practice_id uuid, p_request_id uuid, p_operation text, p_payload jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n    receipt private.register_create_requests;\nbegin\n    select * into receipt from private.register_create_requests\n    where practice_id = p_practice_id and actor_user_id = auth.uid() and request_id = p_request_id;\n    if not found then return null; end if;\n    if receipt.operation <> p_operation or receipt.payload <> p_payload then\n        return '{\"status\":\"request-conflict\"}'::jsonb;\n    end if;\n    return receipt.result;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "reissue_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.reissue_practice_invitation(p_invitation_id uuid, p_expected_version integer, p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select private.mutate_invitation(p_invitation_id,p_expected_version,p_token_digest,true);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -678,6 +1043,12 @@
       "nspname": "private",
       "proname": "require_recipient_member",
       "definition": "CREATE OR REPLACE FUNCTION private.require_recipient_member(p_practice_id uuid, p_edit boolean)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    actor_role text;\nbegin\n    perform 1 from public.practices where id = p_practice_id for update;\n    select role into actor_role from public.practice_memberships\n    where practice_id = p_practice_id and user_id = auth.uid() and state = 'active';\n    if actor_role is null or (p_edit and actor_role not in ('administrator', 'manager')) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\n    return actor_role in ('administrator', 'manager');\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "require_register_member",
+      "definition": "CREATE OR REPLACE FUNCTION private.require_register_member(p_practice_id uuid, p_edit boolean)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    actor_role text;\nbegin\n    perform 1 from public.practices where id = p_practice_id for update;\n    select role into actor_role from public.practice_memberships\n    where practice_id = p_practice_id and user_id = auth.uid() and state = 'active';\n    if p_edit is null or actor_role is null\n       or (p_edit and actor_role not in ('administrator', 'manager')) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -730,6 +1101,18 @@
     },
     {
       "nspname": "public",
+      "proname": "create_practice_clinician",
+      "definition": "CREATE OR REPLACE FUNCTION public.create_practice_clinician(p_practice_id uuid, p_request_id uuid, p_name text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.create_practice_clinician(p_practice_id, p_request_id, p_name);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "create_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION public.create_practice_credential(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[])\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.create_practice_credential(p_practice_id, p_request_id, p_title, p_type,\n        p_owner_kind, p_owner_clinician_id, p_covered_clinician_ids);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "create_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION public.create_practice_invitation(p_practice_id uuid, p_email text, p_role text, p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.create_practice_invitation(p_practice_id,p_email,p_role,p_token_digest);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -738,6 +1121,12 @@
       "nspname": "public",
       "proname": "get_practice_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION public.get_practice_reminder_recipient(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_practice_reminder_recipient(p_practice_id);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "list_practice_register",
+      "definition": "CREATE OR REPLACE FUNCTION public.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.list_practice_register(p_practice_id);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -819,6 +1208,146 @@
     {
       "grantee": "authenticated",
       "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
       "table_name": "practice_memberships",
       "column_name": "created_at",
       "privilege_type": "SELECT"
@@ -2302,6 +2831,1042 @@
     },
     {
       "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "after_data",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "after_data",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "after_data",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "after_data",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "before_data",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "before_data",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "before_data",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "before_data",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "clinician_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "clinician_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "clinician_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "clinician_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "credential_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "credential_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "occurred_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "occurred_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "occurred_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "occurred_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "operation",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "operation",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "operation",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "operation",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_audit_events",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "operation",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "operation",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "operation",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "operation",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "payload",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "payload",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "payload",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "payload",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "request_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "request_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "request_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "request_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "result",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "result",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "result",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_create_requests",
+      "column_name": "result",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
       "table_schema": "public",
       "table_name": "practice_memberships",
       "column_name": "created_at",
@@ -2747,6 +4312,146 @@
       "table_name": "practices",
       "column_name": "version",
       "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "name",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "clinicians",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_clinician_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "owner_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "title",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "type",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "clinician_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "owner_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "policy_coverage",
+      "column_name": "type",
+      "privilege_type": "REFERENCES"
     },
     {
       "grantee": "service_role",
@@ -2885,6 +4590,31 @@
     {
       "nspname": "private",
       "relname": "practice_reminder_settings",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
       "relrowsecurity": true
     },
     {
@@ -3110,6 +4840,210 @@
       "definition": "CHECK ((version > 0))"
     },
     {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_clinician_fkey",
+      "definition": "FOREIGN KEY (practice_id, clinician_id) REFERENCES clinicians(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_credential_fkey",
+      "definition": "FOREIGN KEY (practice_id, credential_id) REFERENCES credentials(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_before_data_check",
+      "definition": "CHECK ((before_data IS NULL))"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_check",
+      "definition": "CHECK ((((operation = 'clinician-created'::text) AND (clinician_id IS NOT NULL) AND (credential_id IS NULL)) OR ((operation = 'credential-created'::text) AND (credential_id IS NOT NULL) AND (clinician_id IS NULL))))"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_operation_check",
+      "definition": "CHECK ((operation = ANY (ARRAY['clinician-created'::text, 'credential-created'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_audit_events",
+      "conname": "register_audit_events_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "conname": "register_create_requests_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "conname": "register_create_requests_operation_check",
+      "definition": "CHECK ((operation = ANY (ARRAY['clinician-created'::text, 'credential-created'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "conname": "register_create_requests_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "conname": "register_create_requests_practice_id_actor_user_id_request__key",
+      "definition": "UNIQUE (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_create_requests",
+      "conname": "register_create_requests_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "conname": "clinicians_name_check",
+      "definition": "CHECK (((name = private.register_name(name)) AND ((char_length(name) >= 1) AND (char_length(name) <= 120))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "conname": "clinicians_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "conname": "clinicians_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "conname": "clinicians_practice_id_id_key",
+      "definition": "UNIQUE (practice_id, id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "clinicians",
+      "conname": "clinicians_version_check",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_owner_fkey",
+      "definition": "FOREIGN KEY (practice_id, owner_clinician_id) REFERENCES clinicians(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_owner_kind_check",
+      "definition": "CHECK ((owner_kind = ANY (ARRAY['clinician'::text, 'practice'::text])))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_owner_shape",
+      "definition": "CHECK ((((owner_kind = 'clinician'::text) AND (owner_clinician_id IS NOT NULL)) OR ((owner_kind = 'practice'::text) AND (owner_clinician_id IS NULL))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_practice_id_id_key",
+      "definition": "UNIQUE (practice_id, id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_practice_id_id_type_owner_kind_key",
+      "definition": "UNIQUE (practice_id, id, type, owner_kind)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_title_check",
+      "definition": "CHECK (((title = private.register_name(title)) AND ((char_length(title) >= 1) AND (char_length(title) <= 120))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_type_check",
+      "definition": "CHECK ((type = ANY (ARRAY['state_license'::text, 'dea_registration'::text, 'malpractice_policy'::text])))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_version_check",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_clinician_fkey",
+      "definition": "FOREIGN KEY (practice_id, clinician_id) REFERENCES clinicians(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_credential_fkey",
+      "definition": "FOREIGN KEY (practice_id, credential_id, type, owner_kind) REFERENCES credentials(practice_id, id, type, owner_kind) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_owner_kind_check",
+      "definition": "CHECK ((owner_kind = 'practice'::text))"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_pkey",
+      "definition": "PRIMARY KEY (practice_id, credential_id, clinician_id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "policy_coverage",
+      "conname": "policy_coverage_type_check",
+      "definition": "CHECK ((type = 'malpractice_policy'::text))"
+    },
+    {
       "nspname": "public",
       "relname": "practice_memberships",
       "conname": "membership_requires_administrator",
@@ -3320,6 +5254,114 @@
       "tablename": "practice_reminder_settings",
       "indexname": "practice_reminder_settings_pkey",
       "indexdef": "CREATE UNIQUE INDEX practice_reminder_settings_pkey ON private.practice_reminder_settings USING btree (practice_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_audit_events",
+      "indexname": "register_audit_actor_idx",
+      "indexdef": "CREATE INDEX register_audit_actor_idx ON private.register_audit_events USING btree (actor_user_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_audit_events",
+      "indexname": "register_audit_clinician_idx",
+      "indexdef": "CREATE INDEX register_audit_clinician_idx ON private.register_audit_events USING btree (practice_id, clinician_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_audit_events",
+      "indexname": "register_audit_credential_idx",
+      "indexdef": "CREATE INDEX register_audit_credential_idx ON private.register_audit_events USING btree (practice_id, credential_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_audit_events",
+      "indexname": "register_audit_events_pkey",
+      "indexdef": "CREATE UNIQUE INDEX register_audit_events_pkey ON private.register_audit_events USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_audit_events",
+      "indexname": "register_audit_practice_idx",
+      "indexdef": "CREATE INDEX register_audit_practice_idx ON private.register_audit_events USING btree (practice_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_create_requests",
+      "indexname": "register_create_requests_actor_idx",
+      "indexdef": "CREATE INDEX register_create_requests_actor_idx ON private.register_create_requests USING btree (actor_user_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_create_requests",
+      "indexname": "register_create_requests_pkey",
+      "indexdef": "CREATE UNIQUE INDEX register_create_requests_pkey ON private.register_create_requests USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_create_requests",
+      "indexname": "register_create_requests_practice_id_actor_user_id_request__key",
+      "indexdef": "CREATE UNIQUE INDEX register_create_requests_practice_id_actor_user_id_request__key ON private.register_create_requests USING btree (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clinicians",
+      "indexname": "clinicians_pkey",
+      "indexdef": "CREATE UNIQUE INDEX clinicians_pkey ON public.clinicians USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clinicians",
+      "indexname": "clinicians_practice_id_id_key",
+      "indexdef": "CREATE UNIQUE INDEX clinicians_practice_id_id_key ON public.clinicians USING btree (practice_id, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clinicians",
+      "indexname": "clinicians_practice_idx",
+      "indexdef": "CREATE INDEX clinicians_practice_idx ON public.clinicians USING btree (practice_id, created_at, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_owner_idx",
+      "indexdef": "CREATE INDEX credentials_owner_idx ON public.credentials USING btree (practice_id, owner_clinician_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_pkey",
+      "indexdef": "CREATE UNIQUE INDEX credentials_pkey ON public.credentials USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_practice_id_id_key",
+      "indexdef": "CREATE UNIQUE INDEX credentials_practice_id_id_key ON public.credentials USING btree (practice_id, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_practice_id_id_type_owner_kind_key",
+      "indexdef": "CREATE UNIQUE INDEX credentials_practice_id_id_type_owner_kind_key ON public.credentials USING btree (practice_id, id, type, owner_kind)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_practice_idx",
+      "indexdef": "CREATE INDEX credentials_practice_idx ON public.credentials USING btree (practice_id, created_at, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "policy_coverage",
+      "indexname": "policy_coverage_clinician_idx",
+      "indexdef": "CREATE INDEX policy_coverage_clinician_idx ON public.policy_coverage USING btree (practice_id, clinician_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "policy_coverage",
+      "indexname": "policy_coverage_pkey",
+      "indexdef": "CREATE UNIQUE INDEX policy_coverage_pkey ON public.policy_coverage USING btree (practice_id, credential_id, clinician_id)"
     },
     {
       "schemaname": "public",

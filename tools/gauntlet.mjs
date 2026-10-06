@@ -16,6 +16,7 @@ const requiredLayers = [
   "sql-lint",
   "access-upgrade",
   "recipient-upgrade",
+  "register-upgrade",
   "replay",
   "schema",
   "database",

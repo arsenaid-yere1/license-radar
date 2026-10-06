@@ -9,6 +9,138 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clinicians: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          practice_id: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          practice_id: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          practice_id?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clinicians_practice_id_fkey";
+            columns: ["practice_id"];
+            isOneToOne: false;
+            referencedRelation: "practices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      credentials: {
+        Row: {
+          created_at: string;
+          id: string;
+          owner_clinician_id: string | null;
+          owner_kind: string;
+          practice_id: string;
+          title: string;
+          type: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          owner_clinician_id?: string | null;
+          owner_kind: string;
+          practice_id: string;
+          title: string;
+          type: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          owner_clinician_id?: string | null;
+          owner_kind?: string;
+          practice_id?: string;
+          title?: string;
+          type?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credentials_owner_fkey";
+            columns: ["practice_id", "owner_clinician_id"];
+            isOneToOne: false;
+            referencedRelation: "clinicians";
+            referencedColumns: ["practice_id", "id"];
+          },
+          {
+            foreignKeyName: "credentials_practice_id_fkey";
+            columns: ["practice_id"];
+            isOneToOne: false;
+            referencedRelation: "practices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      policy_coverage: {
+        Row: {
+          clinician_id: string;
+          credential_id: string;
+          owner_kind: string;
+          practice_id: string;
+          type: string;
+        };
+        Insert: {
+          clinician_id: string;
+          credential_id: string;
+          owner_kind?: string;
+          practice_id: string;
+          type?: string;
+        };
+        Update: {
+          clinician_id?: string;
+          credential_id?: string;
+          owner_kind?: string;
+          practice_id?: string;
+          type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "policy_coverage_clinician_fkey";
+            columns: ["practice_id", "clinician_id"];
+            isOneToOne: false;
+            referencedRelation: "clinicians";
+            referencedColumns: ["practice_id", "id"];
+          },
+          {
+            foreignKeyName: "policy_coverage_credential_fkey";
+            columns: ["practice_id", "credential_id", "type", "owner_kind"];
+            isOneToOne: false;
+            referencedRelation: "credentials";
+            referencedColumns: ["practice_id", "id", "type", "owner_kind"];
+          },
+          {
+            foreignKeyName: "policy_coverage_practice_id_fkey";
+            columns: ["practice_id"];
+            isOneToOne: false;
+            referencedRelation: "practices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       practice_memberships: {
         Row: {
           created_at: string;
@@ -122,6 +254,22 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      create_practice_clinician: {
+        Args: { p_name: string; p_practice_id: string; p_request_id: string };
+        Returns: Json;
+      };
+      create_practice_credential: {
+        Args: {
+          p_covered_clinician_ids: string[];
+          p_owner_clinician_id: string;
+          p_owner_kind: string;
+          p_practice_id: string;
+          p_request_id: string;
+          p_title: string;
+          p_type: string;
+        };
+        Returns: Json;
+      };
       create_practice_invitation: {
         Args: {
           p_email: string;
@@ -132,6 +280,10 @@ export type Database = {
         Returns: Json;
       };
       get_practice_reminder_recipient: {
+        Args: { p_practice_id: string };
+        Returns: Json;
+      };
+      list_practice_register: {
         Args: { p_practice_id: string };
         Returns: Json;
       };

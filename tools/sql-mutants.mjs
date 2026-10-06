@@ -480,6 +480,115 @@ for (const [id, signature, from, to, pattern] of [
     pattern,
     apply: () => functionFault(signature, from, to),
   });
+
+const register = "tests/integration/practice-register.test.ts";
+mutants.push({
+  id: "register-name-normalization",
+  file: register,
+  pattern: "^G09",
+  apply: () =>
+    functionFault(
+      "private.register_name(text)",
+      /pg_catalog.btrim\(p_value,[\s\S]*?\);/,
+      "p_value;",
+    ),
+});
+mutants.push({
+  id: "register-caller-scope",
+  file: register,
+  pattern: "^G10 caller",
+  apply: () =>
+    functionFault(
+      "private.register_replay(uuid,uuid,text,jsonb)",
+      "and actor_user_id = auth.uid()",
+      "",
+    ),
+});
+
+for (const [id, signature, from, to, pattern] of [
+  [
+    "register-editor-role",
+    "private.require_register_member(uuid,boolean)",
+    "actor_role not in ('administrator', 'manager')",
+    "false",
+    "^A01",
+  ],
+  [
+    "register-live-authority",
+    "private.require_register_member(uuid,boolean)",
+    /if p_edit is null or actor_role is null[\s\S]*?then/,
+    "if false then",
+    "^G14",
+  ],
+  [
+    "register-lock",
+    "private.require_register_member(uuid,boolean)",
+    "for update;",
+    ";",
+    "^G15",
+  ],
+  [
+    "register-replay",
+    "private.create_practice_clinician(uuid,uuid,text)",
+    "if result is not null then return result; end if;",
+    "perform 1;",
+    "^G10",
+  ],
+  [
+    "register-conflict",
+    "private.register_replay(uuid,uuid,text,jsonb)",
+    "receipt.operation <> p_operation or receipt.payload <> p_payload",
+    "false",
+    "^G10",
+  ],
+  [
+    "register-canonical-coverage",
+    "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
+    "array_agg(c order by c)",
+    "array_agg(c)",
+    "^G12",
+  ],
+  [
+    "register-owner-reference",
+    "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
+    "where practice_id = p_practice_id and id = p_owner_clinician_id",
+    "where id = p_owner_clinician_id",
+    "^G07",
+  ],
+  [
+    "register-audit",
+    "private.finish_register_create(uuid,uuid,text,jsonb,uuid,uuid,jsonb)",
+    /insert into private.register_audit_events[\s\S]*?end\);/,
+    "perform 1;",
+    "^G10|^G13",
+  ],
+  [
+    "register-receipt",
+    "private.finish_register_create(uuid,uuid,text,jsonb,uuid,uuid,jsonb)",
+    /insert into private.register_create_requests[\s\S]*?p_result\);/,
+    "perform 1;",
+    "^G10|^G13",
+  ],
+])
+  mutants.push({
+    id,
+    file: register,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+for (const table of ["clinicians", "credentials", "policy_coverage"])
+  mutants.push({
+    id: `register-${table}-isolation`,
+    file: register,
+    pattern: "^A01",
+    apply: () =>
+      ddlFault(
+        `alter policy ${table}_select on public.${table} using(true)`,
+        `alter policy ${table}_select on public.${table} using(practice_id=(select private.current_practice_id()))`,
+        `select qual from pg_policies where policyname='${table}_select'`,
+        [{ qual: "true" }],
+      ),
+  });
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

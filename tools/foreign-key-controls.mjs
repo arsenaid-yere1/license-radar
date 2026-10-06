@@ -6,6 +6,7 @@ const files = [
   { path: "supabase/tests/practice_access.test.sql", plan: 16 },
   { path: "supabase/tests/practice_invitations.test.sql", plan: 16 },
   { path: "supabase/tests/practice_recipients.test.sql", plan: 20 },
+  { path: "supabase/tests/practice_register.test.sql", plan: 22 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -145,6 +146,82 @@ cases.push(
     expected: ["R11 anonymous assignment denied"],
   },
 );
+
+for (const [table, constraint, composite] of [
+  ["public.clinicians", "clinicians_practice_id_fkey", false],
+  ["public.credentials", "credentials_practice_id_fkey", false],
+  ["public.credentials", "credentials_owner_fkey", true],
+  ["public.policy_coverage", "policy_coverage_practice_id_fkey", false],
+  ["public.policy_coverage", "policy_coverage_credential_fkey", true],
+  ["public.policy_coverage", "policy_coverage_clinician_fkey", true],
+  [
+    "private.register_create_requests",
+    "register_create_requests_practice_id_fkey",
+    false,
+  ],
+  [
+    "private.register_create_requests",
+    "register_create_requests_actor_user_id_fkey",
+    false,
+  ],
+  [
+    "private.register_audit_events",
+    "register_audit_events_practice_id_fkey",
+    false,
+  ],
+  [
+    "private.register_audit_events",
+    "register_audit_events_actor_user_id_fkey",
+    false,
+  ],
+  ["private.register_audit_events", "register_audit_clinician_fkey", true],
+  ["private.register_audit_events", "register_audit_credential_fkey", true],
+])
+  cases.push({
+    id: constraint,
+    file: files[4],
+    mutation: `alter table ${table} drop constraint ${constraint}`,
+    expected: [
+      "G07 register foreign keys restrict deletion",
+      ...(composite ? ["G07 register composite references"] : []),
+    ],
+  });
+for (const [id, mutation, expected] of [
+  [
+    "register-owner-shape",
+    "alter table public.credentials drop constraint credentials_owner_shape",
+    ["G07 register owner shape constraint"],
+  ],
+  [
+    "register-null-discriminator",
+    "alter table public.policy_coverage alter column type drop not null",
+    [
+      "G08 register discriminator NULL defense",
+      "G08 register NULL discriminator rejected",
+    ],
+  ],
+  [
+    "register-name-check",
+    "alter table public.clinicians drop constraint clinicians_name_check",
+    ["G09 register blank name constraint"],
+  ],
+  [
+    "register-version-check",
+    "alter table public.clinicians drop constraint clinicians_version_check",
+    ["G09 register positive version constraint"],
+  ],
+  [
+    "register-private-grant",
+    "grant select on private.register_audit_events to authenticated",
+    ["A01 register private storage denied"],
+  ],
+  [
+    "register-anonymous-grant",
+    "grant execute on function public.create_practice_clinician(uuid,uuid,text) to anon",
+    ["A01 register anonymous RPC denied"],
+  ],
+])
+  cases.push({ id, file: files[4], mutation, expected });
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });
