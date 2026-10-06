@@ -578,6 +578,78 @@
     },
     {
       "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "data_type": "date",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "data_type": "date",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
       "table_name": "credentials",
       "column_name": "id",
       "data_type": "uuid",
@@ -647,6 +719,22 @@
       "data_type": "timestamp with time zone",
       "column_default": "clock_timestamp()",
       "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
     },
     {
       "table_schema": "public",
@@ -829,6 +917,15 @@
     },
     {
       "schemaname": "public",
+      "tablename": "credential_cycles",
+      "policyname": "credential_cycles_select",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(practice_id = ( SELECT private.current_practice_id() AS current_practice_id))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
       "tablename": "credentials",
       "policyname": "credentials_select",
       "roles": "{authenticated}",
@@ -933,9 +1030,27 @@
     },
     {
       "nspname": "private",
+      "proname": "create_practice_credential_with_details",
+      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential_with_details(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text := nullif(private.register_name(p_issuer), '');\n    jurisdiction text := nullif(private.register_name(p_jurisdiction), '');\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id, issuer, jurisdiction)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id, issuer, jurisdiction)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    update public.credential_cycles cy set end_date = entered_end_date,\n        action_deadline = entered_action_deadline,\n        updated_at = pg_catalog.clock_timestamp()\n    where cy.practice_id = p_practice_id and cy.credential_id = credential.id and cy.cycle_number = 1;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_details_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "create_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.create_practice_invitation(p_practice_id uuid, p_email text, p_role text, p_token_digest text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    canonical text;\n    issued timestamptz;\n    result private.practice_invitations;\nbegin\n    perform private.require_administrator(p_practice_id);\n    canonical := private.canonical_invitation_email(p_email);\n    if p_role is null or p_role not in ('administrator','manager','viewer')\n       or p_token_digest is null or p_token_digest !~ '^[0-9a-f]{64}$' then\n        raise exception 'Invalid invitation' using errcode='23514';\n    end if;\n    if exists(select 1 from private.practice_invitations\n              where practice_id=p_practice_id and email=canonical and state='pending') then\n        return '{\"status\":\"invite-exists\"}'::jsonb;\n    end if;\n    issued := pg_catalog.clock_timestamp();\n    insert into private.practice_invitations\n        (practice_id,email,role,token_digest,creator_user_id,issued_at,expires_at)\n    values(p_practice_id,canonical,p_role,p_token_digest,auth.uid(),issued,issued+interval '168 hours')\n    returning * into result;\n    return pg_catalog.jsonb_build_object('status','success','invitation',private.invitation_projection(result));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "credential_date",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_date(p_value text)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\nbegin\n    if p_value is null or p_value = '' then return null; end if;\n    if char_length(p_value) <> 10 or p_value !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\n       or substring(p_value from 1 for 4)::integer = 0 then\n        raise exception 'invalid credential date' using errcode = '22008';\n    end if;\n    return pg_catalog.make_date(substring(p_value from 1 for 4)::integer,\n        substring(p_value from 6 for 2)::integer, substring(p_value from 9 for 2)::integer);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "credential_details_projection",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_details_projection(p_record credentials)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    cycle public.credential_cycles;\nbegin\n    select * into cycle from public.credential_cycles\n    where practice_id = p_record.practice_id and credential_id = p_record.id and cycle_number = 1;\n    if not found then raise exception 'missing credential cycle'; end if;\n    return private.credential_projection(p_record) || pg_catalog.jsonb_build_object(\n        'issuer', p_record.issuer, 'jurisdiction', p_record.jurisdiction,\n        'current_cycle', pg_catalog.jsonb_build_object('id', cycle.id,\n            'cycle_number', cycle.cycle_number, 'date_revision', cycle.date_revision,\n            'end_date', pg_catalog.to_char(cycle.end_date, 'YYYY-MM-DD'),\n            'action_deadline', pg_catalog.to_char(cycle.action_deadline, 'YYYY-MM-DD')));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
     },
     {
       "nspname": "private",
@@ -969,6 +1084,12 @@
     },
     {
       "nspname": "private",
+      "proname": "initialize_credential_cycle",
+      "definition": "CREATE OR REPLACE FUNCTION private.initialize_credential_cycle()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n    insert into public.credential_cycles (practice_id, credential_id) values (new.practice_id, new.id);\n    return new;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "invalidate_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION private.invalidate_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_reason text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.membership_id = p_membership_id then\n        perform private.change_reminder_recipient(p_practice_id, null, p_reason);\n    end if;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
@@ -988,7 +1109,7 @@
     {
       "nspname": "private",
       "proname": "list_practice_register",
-      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id\n        ), '[]'::jsonb),\n        'credentials', coalesce((\n            select pg_catalog.jsonb_agg(private.credential_projection(c) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id\n        ), '[]'::jsonb));\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id\n        ), '[]'::jsonb),\n        'credentials', coalesce((\n            select pg_catalog.jsonb_agg(private.credential_details_projection(c) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id\n        ), '[]'::jsonb));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1113,6 +1234,12 @@
     },
     {
       "nspname": "public",
+      "proname": "create_practice_credential_with_details",
+      "definition": "CREATE OR REPLACE FUNCTION public.create_practice_credential_with_details(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.create_practice_credential_with_details(p_practice_id, p_request_id, p_title,\n        p_type, p_owner_kind, p_owner_clinician_id, p_covered_clinician_ids,\n        p_issuer, p_jurisdiction, p_end_date, p_action_deadline);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "create_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION public.create_practice_invitation(p_practice_id uuid, p_email text, p_role text, p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.create_practice_invitation(p_practice_id,p_email,p_role,p_token_digest);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -1172,6 +1299,12 @@
       "relname": "practice_invitations",
       "tgname": "audit_invitation",
       "definition": "CREATE TRIGGER audit_invitation AFTER INSERT OR UPDATE ON private.practice_invitations FOR EACH ROW EXECUTE FUNCTION private.audit_invitation()"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "tgname": "initialize_credential_cycle",
+      "definition": "CREATE TRIGGER initialize_credential_cycle AFTER INSERT ON public.credentials FOR EACH ROW EXECUTE FUNCTION private.initialize_credential_cycle()"
     },
     {
       "nspname": "public",
@@ -1250,6 +1383,69 @@
     {
       "grantee": "authenticated",
       "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
       "table_name": "credentials",
       "column_name": "created_at",
       "privilege_type": "SELECT"
@@ -1259,6 +1455,20 @@
       "table_schema": "public",
       "table_name": "credentials",
       "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
       "privilege_type": "SELECT"
     },
     {
@@ -3476,6 +3686,258 @@
     {
       "grantee": "postgres",
       "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
       "table_name": "credentials",
       "column_name": "created_at",
       "privilege_type": "INSERT"
@@ -3527,6 +3989,62 @@
       "table_schema": "public",
       "table_name": "credentials",
       "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
       "privilege_type": "UPDATE"
     },
     {
@@ -4358,6 +4876,69 @@
     {
       "grantee": "service_role",
       "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "action_deadline",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "cycle_number",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "date_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "end_date",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credential_cycles",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
       "table_name": "credentials",
       "column_name": "created_at",
       "privilege_type": "REFERENCES"
@@ -4367,6 +4948,20 @@
       "table_schema": "public",
       "table_name": "credentials",
       "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "issuer",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "jurisdiction",
       "privilege_type": "REFERENCES"
     },
     {
@@ -4605,6 +5200,11 @@
     {
       "nspname": "public",
       "relname": "clinicians",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
       "relrowsecurity": true
     },
     {
@@ -4946,6 +5546,78 @@
       "relname": "clinicians",
       "conname": "clinicians_version_check",
       "definition": "CHECK ((version > 0))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_action_deadline_check",
+      "definition": "CHECK (((action_deadline IS NULL) OR ((action_deadline >= '0001-01-01'::date) AND (action_deadline <= '9999-12-31'::date))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_credential_fkey",
+      "definition": "FOREIGN KEY (practice_id, credential_id) REFERENCES credentials(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_cycle_number_check",
+      "definition": "CHECK ((cycle_number > 0))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_date_revision_check",
+      "definition": "CHECK ((date_revision > 0))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_end_date_check",
+      "definition": "CHECK (((end_date IS NULL) OR ((end_date >= '0001-01-01'::date) AND (end_date <= '9999-12-31'::date))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_order_check",
+      "definition": "CHECK (((end_date IS NULL) OR (action_deadline IS NULL) OR (action_deadline < end_date)))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_practice_id_credential_id_cycle_number_key",
+      "definition": "UNIQUE (practice_id, credential_id, cycle_number)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "credential_cycles",
+      "conname": "credential_cycles_practice_id_id_key",
+      "definition": "UNIQUE (practice_id, id)"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_issuer_check",
+      "definition": "CHECK (((issuer IS NULL) OR ((issuer = private.register_name(issuer)) AND ((char_length(issuer) >= 1) AND (char_length(issuer) <= 120)))))"
+    },
+    {
+      "nspname": "public",
+      "relname": "credentials",
+      "conname": "credentials_jurisdiction_check",
+      "definition": "CHECK (((jurisdiction IS NULL) OR ((jurisdiction = private.register_name(jurisdiction)) AND ((char_length(jurisdiction) >= 1) AND (char_length(jurisdiction) <= 120)))))"
     },
     {
       "nspname": "public",
@@ -5320,6 +5992,30 @@
       "tablename": "clinicians",
       "indexname": "clinicians_practice_idx",
       "indexdef": "CREATE INDEX clinicians_practice_idx ON public.clinicians USING btree (practice_id, created_at, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credential_cycles",
+      "indexname": "credential_cycles_credential_idx",
+      "indexdef": "CREATE INDEX credential_cycles_credential_idx ON public.credential_cycles USING btree (practice_id, credential_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credential_cycles",
+      "indexname": "credential_cycles_pkey",
+      "indexdef": "CREATE UNIQUE INDEX credential_cycles_pkey ON public.credential_cycles USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credential_cycles",
+      "indexname": "credential_cycles_practice_id_credential_id_cycle_number_key",
+      "indexdef": "CREATE UNIQUE INDEX credential_cycles_practice_id_credential_id_cycle_number_key ON public.credential_cycles USING btree (practice_id, credential_id, cycle_number)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credential_cycles",
+      "indexname": "credential_cycles_practice_id_id_key",
+      "indexdef": "CREATE UNIQUE INDEX credential_cycles_practice_id_id_key ON public.credential_cycles USING btree (practice_id, id)"
     },
     {
       "schemaname": "public",

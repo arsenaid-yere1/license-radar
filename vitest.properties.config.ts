@@ -8,6 +8,7 @@ export default defineConfig({
       "src/lib/team/properties.test.ts",
       "src/lib/recipients/properties.test.ts",
       "src/lib/register/properties.test.ts",
+      "src/lib/register/dates.test.ts",
     ],
     sequence: { shuffle: true, seed: 20261004 },
   },

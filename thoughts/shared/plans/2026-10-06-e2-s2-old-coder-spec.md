@@ -93,3 +93,5 @@ The final evidence maps all rows to tests/layers, identifies unavailable/unverif
 ## Revisions
 
 - 2026-10-06 — Initial SPEC before implementation, per “add specs and implement it.” Documents autonomous review limitation, local branch/checkpoint setup, failure model, concrete scenarios, and inherited/future boundaries.
+
+- 2026-10-06 — Executable contract revisions: add nullable canonical input/read fields and cycle snapshots, new detailed RPC binding and save message; preserve exact legacy creation results. New date oracle uses 3,000 cases, ordered/unknown/metadata properties 1,000. Existing focus witness waits for the effect; paragraph selectors account for semantic time children. Fixture-only auth and revocation timestamps corrected. Full negative SQL inventory records the correlated cycle-number/uniqueness failures and isolates trigger metadata while actual API mutants witness initialization failure.

@@ -20,9 +20,7 @@ export function registerMessage(
 ) {
   switch (status) {
     case "success":
-      return clinician
-        ? "Clinician saved."
-        : "Record saved. Dates still need to be entered.";
+      return clinician ? "Clinician saved." : "Record saved.";
     case "invalid":
       return "Check the highlighted fields.";
     case "invalid-reference":

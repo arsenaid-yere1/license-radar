@@ -52,6 +52,15 @@ it("G16 authenticated editors derive authority and bind canonical requests", asy
     owner_name: "Practice",
     version: 1,
     covered_clinicians: [],
+    issuer: null,
+    jurisdiction: null,
+    current_cycle: {
+      id,
+      cycle_number: 1,
+      date_revision: 1,
+      end_date: null,
+      action_deadline: null,
+    },
   };
   for (const ownerKind of ["practice", "clinician"] as const) {
     const c = client({
@@ -74,15 +83,22 @@ it("G16 authenticated editors derive authority and bind canonical requests", asy
         })
       ).status,
     ).toBe("success");
-    expect(c.rpc).toHaveBeenCalledWith("create_practice_credential", {
-      p_practice_id: id,
-      p_request_id: id,
-      p_title: "Policy",
-      p_type: "malpractice_policy",
-      p_owner_kind: ownerKind,
-      p_owner_clinician_id: ownerKind === "clinician" ? id : null,
-      p_covered_clinician_ids: [],
-    });
+    expect(c.rpc).toHaveBeenCalledWith(
+      "create_practice_credential_with_details",
+      {
+        p_practice_id: id,
+        p_request_id: id,
+        p_title: "Policy",
+        p_type: "malpractice_policy",
+        p_owner_kind: ownerKind,
+        p_owner_clinician_id: ownerKind === "clinician" ? id : null,
+        p_covered_clinician_ids: [],
+        p_issuer: null,
+        p_jurisdiction: null,
+        p_end_date: null,
+        p_action_deadline: null,
+      },
+    );
   }
 });
 it("G16 auth outage expiry and live role denial stop creates", async () => {
@@ -194,4 +210,122 @@ it("G17 RPC boundary strips private data and rejects wrong success shapes", asyn
   expect(await createRecord(thrown, id, raw)).toEqual({
     status: "unavailable",
   });
+});
+
+it("D06 D14 binds all detailed values and allowlists database validation errors", async () => {
+  const input = {
+    intent: "credential" as const,
+    requestId: id,
+    title: "License",
+    type: "state_license" as const,
+    ownerKind: "practice" as const,
+    coveredClinicianIds: [],
+    issuer: " Board ",
+    jurisdiction: " CA ",
+    endDate: "2028-02-29",
+    actionDeadline: "2028-02-01",
+  };
+  for (const errors of [
+    { issuer: "Use 1 to 120 characters." },
+    { jurisdiction: "Use 1 to 120 characters." },
+    { endDate: "Enter a valid date (YYYY-MM-DD)." },
+    { actionDeadline: "Enter a valid date (YYYY-MM-DD)." },
+    {
+      actionDeadline: "The action deadline must be earlier than the end date.",
+    },
+  ]) {
+    const c = client({ status: "invalid", errors, secret: "private" });
+    expect(await createRegisterRecord(c, input)).toEqual({
+      status: "invalid",
+      errors,
+    });
+    expect(c.rpc).toHaveBeenCalledExactlyOnceWith(
+      "create_practice_credential_with_details",
+      {
+        p_practice_id: id,
+        p_request_id: id,
+        p_title: "License",
+        p_type: "state_license",
+        p_owner_kind: "practice",
+        p_owner_clinician_id: null,
+        p_covered_clinician_ids: [],
+        p_issuer: "Board",
+        p_jurisdiction: "CA",
+        p_end_date: "2028-02-29",
+        p_action_deadline: "2028-02-01",
+      },
+    );
+  }
+  for (const errors of [
+    { issuer: "SQL secret" },
+    { jurisdiction: 1 },
+    { endDate: "oops" },
+    { actionDeadline: null },
+    "private",
+    null,
+  ])
+    expect(
+      await createRegisterRecord(client({ status: "invalid", errors }), input),
+    ).toEqual({ status: "unavailable" });
+  expect(
+    await createRegisterRecord(
+      client({ status: "invalid", errors: { private: "SQL secret" } }),
+      input,
+    ),
+  ).toEqual({ status: "invalid", errors: {} });
+  const credential = {
+    id,
+    title: "License",
+    type: "state_license",
+    owner_kind: "practice",
+    owner_clinician_id: null,
+    owner_name: "Practice",
+    version: 1,
+    covered_clinicians: [],
+    issuer: "Board",
+    jurisdiction: "CA",
+    current_cycle: {
+      id,
+      cycle_number: 1,
+      date_revision: 1,
+      end_date: "2028-02-29",
+      action_deadline: "2028-02-01",
+    },
+  };
+  expect(
+    await createRegisterRecord(
+      client({
+        status: "success",
+        credential: { ...credential, private: "SQL secret" },
+      }),
+      input,
+    ),
+  ).toEqual({ status: "success", credential });
+  expect(
+    await getRegister(
+      client({ clinicians: [], credentials: [credential] }),
+      id,
+    ),
+  ).toEqual({
+    status: "success",
+    register: { clinicians: [], credentials: [credential] },
+  });
+  for (const patch of [
+    { current_cycle: undefined },
+    { current_cycle: { ...credential.current_cycle, end_date: "infinity" } },
+    { issuer: undefined },
+  ]) {
+    expect(
+      await getRegister(
+        client({ clinicians: [], credentials: [{ ...credential, ...patch }] }),
+        id,
+      ),
+    ).toEqual({ status: "unavailable" });
+    expect(
+      await createRegisterRecord(
+        client({ status: "success", credential: { ...credential, ...patch } }),
+        input,
+      ),
+    ).toEqual({ status: "unavailable" });
+  }
 });

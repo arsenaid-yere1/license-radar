@@ -44,10 +44,63 @@ export type Database = {
           },
         ];
       };
+      credential_cycles: {
+        Row: {
+          action_deadline: string | null;
+          created_at: string;
+          credential_id: string;
+          cycle_number: number;
+          date_revision: number;
+          end_date: string | null;
+          id: string;
+          practice_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          action_deadline?: string | null;
+          created_at?: string;
+          credential_id: string;
+          cycle_number?: number;
+          date_revision?: number;
+          end_date?: string | null;
+          id?: string;
+          practice_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          action_deadline?: string | null;
+          created_at?: string;
+          credential_id?: string;
+          cycle_number?: number;
+          date_revision?: number;
+          end_date?: string | null;
+          id?: string;
+          practice_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "credential_cycles_credential_fkey";
+            columns: ["practice_id", "credential_id"];
+            isOneToOne: false;
+            referencedRelation: "credentials";
+            referencedColumns: ["practice_id", "id"];
+          },
+          {
+            foreignKeyName: "credential_cycles_practice_id_fkey";
+            columns: ["practice_id"];
+            isOneToOne: false;
+            referencedRelation: "practices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       credentials: {
         Row: {
           created_at: string;
           id: string;
+          issuer: string | null;
+          jurisdiction: string | null;
           owner_clinician_id: string | null;
           owner_kind: string;
           practice_id: string;
@@ -59,6 +112,8 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: string;
+          issuer?: string | null;
+          jurisdiction?: string | null;
           owner_clinician_id?: string | null;
           owner_kind: string;
           practice_id: string;
@@ -70,6 +125,8 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: string;
+          issuer?: string | null;
+          jurisdiction?: string | null;
           owner_clinician_id?: string | null;
           owner_kind?: string;
           practice_id?: string;
@@ -261,6 +318,22 @@ export type Database = {
       create_practice_credential: {
         Args: {
           p_covered_clinician_ids: string[];
+          p_owner_clinician_id: string;
+          p_owner_kind: string;
+          p_practice_id: string;
+          p_request_id: string;
+          p_title: string;
+          p_type: string;
+        };
+        Returns: Json;
+      };
+      create_practice_credential_with_details: {
+        Args: {
+          p_action_deadline: string;
+          p_covered_clinician_ids: string[];
+          p_end_date: string;
+          p_issuer: string;
+          p_jurisdiction: string;
           p_owner_clinician_id: string;
           p_owner_kind: string;
           p_practice_id: string;

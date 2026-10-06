@@ -5,6 +5,7 @@ import { assertCoverage } from "./check-coverage.mjs";
 import { assertLocal } from "./local-environment.mjs";
 import {
   assertArtifact,
+  assertSchema,
   assertLayers,
   assertMutant,
 } from "./gauntlet-contract.mjs";
@@ -122,7 +123,12 @@ test("register public tables occur in every filtered catalog section", async () 
     "constraints",
     "indexes",
   ])
-    for (const table of ["clinicians", "credentials", "policy_coverage"])
+    for (const table of [
+      "clinicians",
+      "credentials",
+      "policy_coverage",
+      "credential_cycles",
+    ])
       assert(
         schemaQueries[section].includes(`'${table}'`),
         `${section} omits ${table}`,
@@ -133,6 +139,7 @@ test("register fingerprint contains and detects removal of every table protectio
   const contract = JSON.parse(
     readFileSync("tools/schema-contract.json", "utf8"),
   );
+  assert.doesNotThrow(() => assertSchema(structuredClone(contract), contract));
   for (const section of [
     "columns",
     "policies",
@@ -141,7 +148,12 @@ test("register fingerprint contains and detects removal of every table protectio
     "constraints",
     "indexes",
   ])
-    for (const table of ["clinicians", "credentials", "policy_coverage"]) {
+    for (const table of [
+      "clinicians",
+      "credentials",
+      "policy_coverage",
+      "credential_cycles",
+    ]) {
       const belongs = (row) =>
         [row.table_name, row.tablename, row.relname].includes(table);
       assert(
@@ -157,7 +169,7 @@ test("register fingerprint contains and detects removal of every table protectio
             },
             contract,
           ),
-        /schema/i,
+        { message: "Fresh schema drift from recorded contract" },
       );
     }
 });
@@ -280,4 +292,30 @@ test("executable coverage uses AST statement lines rather than formatting contin
       ),
     /Incomplete/,
   );
+});
+
+test("cycle trigger and detailed RPC fingerprint protections are witnessed", () => {
+  const contract = JSON.parse(
+    readFileSync("tools/schema-contract.json", "utf8"),
+  );
+  for (const [section, name] of [
+    ["triggers", "initialize_credential_cycle"],
+    ["functions", "create_practice_credential_with_details"],
+    ["functions", "credential_date"],
+    ["functions", "credential_details_projection"],
+  ]) {
+    const belongs = (row) => [row.tgname, row.proname].includes(name);
+    assert(contract[section].some(belongs), `${section} missing ${name}`);
+    assert.throws(
+      () =>
+        assertSchema(
+          {
+            ...contract,
+            [section]: contract[section].filter((row) => !belongs(row)),
+          },
+          contract,
+        ),
+      { message: "Fresh schema drift from recorded contract" },
+    );
+  }
 });

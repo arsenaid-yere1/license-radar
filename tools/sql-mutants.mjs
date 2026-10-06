@@ -589,6 +589,105 @@ for (const table of ["clinicians", "credentials", "policy_coverage"])
         [{ qual: "true" }],
       ),
   });
+const dates = "tests/integration/practice-credential-dates.test.ts";
+const detailed =
+  "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "dates-strict-order",
+    detailed,
+    "entered_action_deadline >= entered_end_date",
+    "entered_action_deadline > entered_end_date",
+    "^D03",
+  ],
+  [
+    "dates-lexical-format",
+    "private.credential_date(text)",
+    "char_length(p_value) <> 10 or p_value !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'",
+    "false",
+    "^D03",
+  ],
+  [
+    "dates-initialization",
+    "private.initialize_credential_cycle()",
+    /insert into public.credential_cycles[^;]+;/,
+    "perform 1;",
+    "^D01|^D09",
+  ],
+  [
+    "dates-post-lock-authority",
+    "private.require_register_member(uuid,boolean)",
+    /if p_edit is null or actor_role is null[\s\S]*?then/,
+    "if false then",
+    "^D08",
+  ],
+  [
+    "dates-practice-lock",
+    "private.require_register_member(uuid,boolean)",
+    "for update;",
+    ";",
+    "^D08",
+  ],
+  [
+    "dates-payload-conflict",
+    "private.register_replay(uuid,uuid,text,jsonb)",
+    "receipt.operation <> p_operation or receipt.payload <> p_payload",
+    "false",
+    "^D06|^D09",
+  ],
+  [
+    "dates-end-payload",
+    detailed,
+    "'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD')",
+    "'end_date', null",
+    "^D06",
+  ],
+  [
+    "dates-action-payload",
+    detailed,
+    "'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD')",
+    "'action_deadline', null",
+    "^D06",
+  ],
+  [
+    "dates-final-audit",
+    "private.finish_register_create(uuid,uuid,text,jsonb,uuid,uuid,jsonb)",
+    /insert into private.register_audit_events[\s\S]*?end\);/,
+    "perform 1;",
+    "^D01|^D07",
+  ],
+  [
+    "dates-final-receipt",
+    "private.finish_register_create(uuid,uuid,text,jsonb,uuid,uuid,jsonb)",
+    /insert into private.register_create_requests[\s\S]*?p_result\);/,
+    "perform 1;",
+    "^D06|^D07",
+  ],
+])
+  mutants.push({
+    id,
+    file: dates,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+mutants.push({
+  id: "dates-cycle-isolation",
+  file: dates,
+  pattern: "^A01",
+  apply: () =>
+    ddlFault(
+      "alter policy credential_cycles_select on public.credential_cycles using(true)",
+      "alter policy credential_cycles_select on public.credential_cycles using(practice_id=(select private.current_practice_id()))",
+      "select qual from pg_policies where policyname='credential_cycles_select'",
+      [{ qual: "true" }],
+    ),
+});
+mutants.push({
+  id: "dates-cycle-trigger",
+  file: dates,
+  pattern: "^D01|^D09",
+  apply: () => dropTrigger("public.credentials", "initialize_credential_cycle"),
+});
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

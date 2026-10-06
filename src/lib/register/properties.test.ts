@@ -113,6 +113,10 @@ it("P02 ownership and canonical coverage accept precisely eligible combinations"
               if (result.success)
                 expect(result.data).toEqual({
                   ...raw,
+                  issuer: null,
+                  jurisdiction: null,
+                  endDate: null,
+                  actionDeadline: null,
                   requestId: id.toLowerCase(),
                   ...(ownerClinicianId
                     ? { ownerClinicianId: id.toLowerCase() }
@@ -128,7 +132,14 @@ it("P02 ownership and canonical coverage accept precisely eligible combinations"
   );
   expect(
     registerInputSchema.parse({ ...base, coveredClinicianIds: undefined }),
-  ).toEqual({ ...base, requestId: id.toLowerCase() });
+  ).toEqual({
+    ...base,
+    requestId: id.toLowerCase(),
+    issuer: null,
+    jurisdiction: null,
+    endDate: null,
+    actionDeadline: null,
+  });
   for (const patch of [
     { type: "other" },
     { ownerKind: "other" },
@@ -154,6 +165,15 @@ it("P02 safe projections require coherent ownership and strip private metadata",
     owner_name: "Practice",
     version: 1,
     covered_clinicians: [{ id: clinician.id, name: clinician.name }],
+    issuer: null,
+    jurisdiction: null,
+    current_cycle: {
+      id: other,
+      cycle_number: 1,
+      date_revision: 1,
+      end_date: null,
+      action_deadline: null,
+    },
   };
   expect(
     registerSchema.parse({

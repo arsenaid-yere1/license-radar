@@ -1,4 +1,10 @@
 "use client";
+import {
+  detailLabels,
+  formatCredentialDate,
+  trackingDate,
+} from "@/lib/register/dates";
+import type { Credential } from "@/lib/register/schema";
 import { useState } from "react";
 import { ClinicianForm } from "./clinician-form";
 import { CredentialForm } from "./credential-form";
@@ -98,7 +104,7 @@ export function RegisterPanel({
                             : "No covered clinicians selected"}
                         </p>
                       )}
-                    <span className="saved-label">Dates not entered</span>
+                    <RecordDates record={record} />
                   </article>
                 </li>
               ))}
@@ -116,4 +122,52 @@ function merge<T extends { id: string }>(current: T[], saved: T[]): T[] {
   for (const value of saved)
     if (!merged.has(value.id)) merged.set(value.id, value);
   return Array.from(merged.values());
+}
+
+function RecordDates({ record }: { record: Credential }) {
+  const labels = detailLabels[record.type];
+  const cycle = record.current_cycle;
+  const tracking = trackingDate(
+    cycle.end_date,
+    cycle.action_deadline,
+    record.type,
+  );
+  return (
+    <>
+      {record.issuer && (
+        <p>
+          {labels.issuer}: {record.issuer}
+        </p>
+      )}
+      {record.jurisdiction && (
+        <p>
+          {labels.jurisdiction}: {record.jurisdiction}
+        </p>
+      )}
+      <p>
+        {cycle.end_date ? (
+          <>
+            {labels.end}: <DateText date={cycle.end_date} />
+          </>
+        ) : (
+          `${labels.end} unknown`
+        )}
+      </p>
+      {cycle.action_deadline && (
+        <p>
+          Earlier action deadline: <DateText date={cycle.action_deadline} />
+        </p>
+      )}
+      {tracking ? (
+        <p className="saved-label">
+          Tracking date: <DateText date={tracking.date} /> ({tracking.purpose})
+        </p>
+      ) : (
+        <span className="saved-label">Dates not entered</span>
+      )}
+    </>
+  );
+}
+function DateText({ date }: { date: string }) {
+  return <time dateTime={date}>{formatCredentialDate(date)}</time>;
 }

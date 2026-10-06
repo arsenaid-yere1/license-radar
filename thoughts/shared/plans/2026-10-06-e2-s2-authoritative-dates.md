@@ -2,7 +2,7 @@
 
 Date: 2026-10-06 (America/Los_Angeles).
 Baseline: `93f058bdd31f0a9cbbcdebb8b397a90c6708a478`.
-Status: Ready for implementation after plan verification; implementation has not started.
+Status: Implemented; final source-bound verification in progress.
 Research: `thoughts/shared/research/2026-10-06-e2-s2-authoritative-dates.md`.
 Verification: `thoughts/shared/plans/2026-10-06-e2-s2-authoritative-dates-verification.md`.
 
@@ -233,8 +233,8 @@ AC1–AC12 have named source/test witnesses; each phase passes its exit criteria
 
 ## Implementation progress
 
-- [ ] Phase 1: Database contracts and migration compatibility.
-- [ ] Phase 2: Domain validation, projections, and action boundary.
+- [x] Phase 1: Database contracts and migration compatibility.
+- [x] Phase 2: Domain validation, projections, and action boundary.
 - [ ] Phase 3: Record entry and saved-date presentation.
 - [ ] Phase 4: Upgrade rehearsal, fault controls, and evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.

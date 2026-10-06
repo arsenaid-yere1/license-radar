@@ -64,6 +64,7 @@ async function snapshot(id: string) {
   for (const table of [
     "public.clinicians",
     "public.credentials",
+    "public.credential_cycles",
     "public.policy_coverage",
     "private.register_audit_events",
     "private.register_create_requests",
@@ -178,9 +179,24 @@ it("G05 G06 shared policy identity zero coverage and unsupported coverage", asyn
       .map((x) => ({ id: x.id, name: x.name }))
       .sort((x, y) => x.id.localeCompare(y.id)),
   );
-  expect((await list(a, a.practice.id)).data.credentials).toEqual([
-    r.data.credential,
+  const listed = (await list(a, a.practice.id)).data.credentials;
+  expect(listed).toEqual([
+    {
+      ...r.data.credential,
+      issuer: null,
+      jurisdiction: null,
+      current_cycle: {
+        id: expect.any(String),
+        cycle_number: 1,
+        date_revision: 1,
+        end_date: null,
+        action_deadline: null,
+      },
+    },
   ]);
+  expect(
+    (await snapshot(a.practice.id))["public.credential_cycles"],
+  ).toHaveLength(1);
   expect(
     (await record(a, a.practice.id)).data.credential.covered_clinicians,
   ).toEqual([]);
@@ -344,6 +360,7 @@ it("G13 atomic creation failures roll back entity coverage audit and receipt", a
   for (const table of [
     "public.clinicians",
     "public.credentials",
+    "public.credential_cycles",
     "public.policy_coverage",
     "private.register_audit_events",
     "private.register_create_requests",

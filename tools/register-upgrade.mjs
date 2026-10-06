@@ -192,6 +192,7 @@ try {
   for (const table of [
     "public.clinicians",
     "public.credentials",
+    "public.credential_cycles",
     "public.policy_coverage",
     "private.register_create_requests",
     "private.register_audit_events",
@@ -264,7 +265,7 @@ try {
         ),
         rollback: "full rows/functions/ACLs/constraints/indexes matched",
         backfill:
-          "all five new tables empty; old RPC compatibility and two representative shared policies witnessed",
+          "all six new tables empty; old RPC compatibility and two representative shared policies witnessed",
       },
       null,
       2,

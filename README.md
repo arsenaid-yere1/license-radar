@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, reminder responsibility, and register ownership are live in the hosted pilot.** Dates, calendar, and SMS reminders remain planned features.
+**Early development: practice setup, staff access, reminder responsibility, and register ownership are live in the hosted pilot.** E2-S2 date entry is implemented locally; the hosted pilot remains on E2-S1 until a separate release. Calendar and SMS reminders remain planned features.
 
 Today, users can:
 
@@ -21,7 +21,7 @@ Today, users can:
 - Assign, replace, or explicitly clear one reminder recipient as an administrator or manager.
 - Automatically clear the assignment when the selected member is revoked or becomes a viewer.
 
-The register is available from **Renewal register** in practice settings. Administrators and managers can add clinicians without logins and create state licenses, DEA registrations, and malpractice policies owned by a clinician or the practice. A practice malpractice policy can cover several clinicians while remaining one record. All active members can read the register; viewers have read-only access. Saves include private audit events and request receipts so an unchanged retry after an uncertain response returns the original creation. Drafts are not retained after leaving or reloading the page. New request keys do not detect similar or duplicate entries. Records display **Dates not entered**; text reminders are not active yet. Editing and archiving come later. The E2-S1 release passed all 30 verification layers; its additive production migration preserved all seven historical data sets and matched all nine application catalog sections. See the [production release record](thoughts/shared/handoffs/2026-10-06-e2-s1-production-release.md).
+The register is available from **Renewal register** in practice settings. Administrators and managers can add clinicians without logins and create state licenses, DEA registrations, and malpractice policies owned by a clinician or the practice. A practice malpractice policy can cover several clinicians while remaining one record. All active members can read the register; viewers have read-only access. Saves include private audit events and request receipts so an unchanged retry after an uncertain response returns the original creation. Drafts are not retained after leaving or reloading the page. New request keys do not detect similar or duplicate entries. New records can include an optional issuer, jurisdiction, expiration or coverage end date, and a separate earlier action deadline. Dates are entered by the practice and validated as calendar days; either can remain unknown. The tracking date uses the earlier action deadline when supplied, otherwise the end date. Unknown end dates are flagged, and records with both dates unknown display **Dates not entered**. Type changes clear the date and issuer draft; owner changes preserve it. Text reminders are not active yet. Editing and archiving come later. The E2-S1 release passed all 30 verification layers; its additive production migration preserved all seven historical data sets and matched all nine application catalog sections. See the [production release record](thoughts/shared/handoffs/2026-10-06-e2-s1-production-release.md).
 
 Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
 
@@ -31,7 +31,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership is live in E2-S1. The next story is E2-S2: authoritative dates and issuer/jurisdiction fields.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership is live in E2-S1. E2-S2 date entry is implemented locally. The next story is E2-S3: editing, archiving, and suspected duplicate review, including unsent-job invalidation when that infrastructure exists.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -112,7 +112,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 30-layer verification pipeline, including E1-S1, E1-S2, and E1-S3 upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 31-layer verification pipeline, including practice, recipient, register, and populated E2-S1-to-date-entry upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -139,3 +139,9 @@ Place the checksum-verified Gitleaks binary at `.tools/gitleaks`; versions, chec
 - [E2-S1 implementation plan](thoughts/shared/plans/2026-10-06-e2-s1-register-ownership.md).
 - [E2-S1 implementation evidence — 30 layers passed](thoughts/shared/research/2026-10-06-e2-s1-implementation-evidence.md).
 - [E2-S1 production release](thoughts/shared/handoffs/2026-10-06-e2-s1-production-release.md).
+
+- [E2-S2 executable specification](thoughts/shared/plans/2026-10-06-e2-s2-old-coder-spec.md).
+- [E2-S2 implementation plan](thoughts/shared/plans/2026-10-06-e2-s2-authoritative-dates.md).
+- [E2-S2 implementation evidence](thoughts/shared/research/2026-10-06-e2-s2-implementation-evidence.md).
+
+The E2-S2 migration adds an unknown initial cycle to existing credentials without changing their historical values, timestamps, audits, or retry receipts. Editing those existing dates is E2-S3 work. The original creation API remains compatible, including its historical response shape; new application saves use the detailed creation API.

@@ -9,6 +9,20 @@ import {
 const faults = [
   {
     source: "src/components/register/credential-form.tsx",
+    from: "key={type}",
+    to: 'key="same-type"',
+    file: "tests/unit/register-forms.test.tsx",
+    name: "D11 type switches reset dates and metadata; owner changes preserve the draft",
+  },
+  {
+    source: "src/components/register/register-panel.tsx",
+    from: "cycle.action_deadline,",
+    to: "null,",
+    file: "tests/unit/register-forms.test.tsx",
+    name: "D13 every date purpose and explicit unknown end remain visible for read-only records",
+  },
+  {
+    source: "src/components/register/credential-form.tsx",
     from: "coverage.filter((value) => value !== clinician.id)",
     to: "coverage",
     file: "tests/unit/register-forms.test.tsx",
@@ -103,6 +117,6 @@ export function uiCoverageSensitivity() {
     JSON.stringify(results, null, 2),
   );
   console.log(
-    "3 UI regression cases failed applied behavioral faults; source restored and cases passed again.",
+    `${results.length} UI regression cases failed applied behavioral faults; source restored and cases passed again.`,
   );
 }

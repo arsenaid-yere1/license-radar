@@ -44,7 +44,14 @@ it("G18 parser allows repeated coverage, ignores framework metadata, rejects sca
   });
   f.append("requestId", "another");
   expect(registerInput(f)).toBeNull();
-  for (const key of ["name", "coveredClinicianIds"]) {
+  for (const key of [
+    "name",
+    "coveredClinicianIds",
+    "issuer",
+    "jurisdiction",
+    "endDate",
+    "actionDeadline",
+  ]) {
     const file = form();
     file.set(key, new File(["secret"], "file.txt"));
     expect(registerInput(file)).toBeNull();
@@ -77,7 +84,7 @@ it("G18 actions bind parsed input, exact safe messages and login redirect", asyn
   }
   for (const [entity, message] of [
     ["clinician", "Clinician saved."],
-    ["credential", "Record saved. Dates still need to be entered."],
+    ["credential", "Record saved."],
   ]) {
     mocks.createRegisterRecord.mockResolvedValue({
       status: "success",
@@ -87,9 +94,7 @@ it("G18 actions bind parsed input, exact safe messages and login redirect", asyn
       message,
     );
   }
-  expect(registerMessage("success")).toBe(
-    "Record saved. Dates still need to be entered.",
-  );
+  expect(registerMessage("success")).toBe("Record saved.");
   expect(registerMessage("idle")).toBe(messages.unavailable);
   mocks.createRegisterRecord.mockResolvedValue({ status: "auth-required" });
   await expect(registerAction({ status: "idle" }, form())).rejects.toThrow(
@@ -104,4 +109,13 @@ it("G18 actions bind parsed input, exact safe messages and login redirect", asyn
   expect((await registerAction({ status: "idle" }, form())).status).toBe(
     "unavailable",
   );
+});
+
+it("D14 dates and metadata reject duplicate scalar FormData", () => {
+  for (const key of ["issuer", "jurisdiction", "endDate", "actionDeadline"]) {
+    const f = form();
+    f.append(key, "2028-02-29");
+    f.append(key, "different");
+    expect(registerInput(f)).toBeNull();
+  }
 });

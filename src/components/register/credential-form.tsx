@@ -1,5 +1,6 @@
 "use client";
 import { useId, useState } from "react";
+import { detailLabels } from "@/lib/register/dates";
 import { CreateForm, Field, errorAttributes } from "./create-form";
 import {
   typeLabels,
@@ -21,7 +22,7 @@ export function CredentialForm({
   return (
     <section className="panel">
       <h2>Add a renewal record</h2>
-      <p>Choose who owns the record. Dates will be entered in the next step.</p>
+      <p>Choose who owns the record. Enter dates from your records.</p>
       <CreateForm
         intent="credential"
         requestKey={requestKey}
@@ -92,6 +93,48 @@ function CredentialFields({
           <option value="clinician">A clinician</option>
         </select>
       </Field>
+      <div key={type}>
+        {(["issuer", "jurisdiction"] as const).map((field) => (
+          <Field
+            key={field}
+            id={`${id}-${field}`}
+            label={`${detailLabels[type][field]} (optional)`}
+            error={errors[field]}
+          >
+            <input
+              id={`${id}-${field}`}
+              name={field}
+              {...errorAttributes(`${id}-${field}`, errors[field])}
+            />
+          </Field>
+        ))}
+        <p className="hint">
+          Leave either date blank if it is unknown. An earlier action deadline
+          is the date you need to act, and must be before the expiration or
+          coverage end when both are known.
+        </p>
+        {(["endDate", "actionDeadline"] as const).map((field) => (
+          <Field
+            key={field}
+            id={`${id}-${field}`}
+            label={
+              field === "endDate"
+                ? detailLabels[type].end
+                : "Earlier action deadline"
+            }
+            error={errors[field]}
+          >
+            <input
+              id={`${id}-${field}`}
+              name={field}
+              type="date"
+              min="0001-01-01"
+              max="9999-12-31"
+              {...errorAttributes(`${id}-${field}`, errors[field])}
+            />
+          </Field>
+        ))}
+      </div>
       {owner === "clinician" && (
         <Field
           id={`${id}-person`}

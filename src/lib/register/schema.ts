@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCredentialDate } from "./dates";
 import { versionSchema } from "@/lib/team/schema";
 const uuid = z.uuid().transform((value) => value.toLowerCase());
 const name = z
@@ -9,6 +10,25 @@ const name = z
     (value) => Array.from(value).length >= 1 && Array.from(value).length <= 120,
     "Use 1 to 120 characters.",
   );
+const optionalName = z
+  .string()
+  .trim()
+  .refine((value) => !/[\uD800-\uDFFF\u0000]/u.test(value), "Use valid text.")
+  .refine(
+    (value) => Array.from(value).length <= 120,
+    "Use 1 to 120 characters.",
+  )
+  .nullish()
+  .transform((value) => value || null);
+const date = z
+  .string()
+  .refine(isCredentialDate, "Enter a valid date (YYYY-MM-DD).");
+const optionalDate = z
+  .union([z.literal(""), date])
+  .nullish()
+  .transform((value) => value || null);
+const orderedDates = (end: string | null, action: string | null) =>
+  !end || !action || action < end;
 const type = z.enum([
   "state_license",
   "dea_registration",
@@ -25,6 +45,10 @@ const credentialInput = z
     intent: z.literal("credential"),
     requestId: uuid,
     title: name,
+    issuer: optionalName,
+    jurisdiction: optionalName,
+    endDate: optionalDate,
+    actionDeadline: optionalDate,
     type,
     ownerKind: owner,
     ownerClinicianId: uuid.optional(),
@@ -57,6 +81,10 @@ const credentialInput = z
       message: "Choose each covered clinician once.",
     },
   )
+  .refine((value) => orderedDates(value.endDate, value.actionDeadline), {
+    path: ["actionDeadline"],
+    message: "The action deadline must be earlier than the end date.",
+  })
   .transform((value) => ({
     ...value,
     coveredClinicianIds: value.coveredClinicianIds.sort(),
@@ -79,6 +107,17 @@ export const credentialSchema = z
     owner_name: name,
     version: versionSchema,
     covered_clinicians: z.array(person),
+    issuer: name.nullable(),
+    jurisdiction: name.nullable(),
+    current_cycle: z
+      .object({
+        id: uuid,
+        cycle_number: z.literal(1),
+        date_revision: versionSchema,
+        end_date: date.nullable(),
+        action_deadline: date.nullable(),
+      })
+      .refine((value) => orderedDates(value.end_date, value.action_deadline)),
   })
   .refine(
     (value) =>

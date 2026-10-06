@@ -41,7 +41,9 @@ export async function createRecord(
   const clinician = input.intent === "clinician";
   const reply = await request(
     client,
-    clinician ? "create_practice_clinician" : "create_practice_credential",
+    clinician
+      ? "create_practice_clinician"
+      : "create_practice_credential_with_details",
     {
       p_practice_id: practiceId,
       p_request_id: input.requestId,
@@ -49,6 +51,10 @@ export async function createRecord(
         ? { p_name: input.name }
         : {
             p_title: input.title,
+            p_issuer: input.issuer,
+            p_jurisdiction: input.jurisdiction,
+            p_end_date: input.endDate,
+            p_action_deadline: input.actionDeadline,
             p_type: input.type,
             p_owner_kind: input.ownerKind,
             p_owner_clinician_id: input.ownerClinicianId ?? null,
@@ -60,6 +66,19 @@ export async function createRecord(
   const failure = z
     .object({
       status: z.enum(["invalid", "invalid-reference", "request-conflict"]),
+      errors: z
+        .object({
+          issuer: z.literal("Use 1 to 120 characters.").optional(),
+          jurisdiction: z.literal("Use 1 to 120 characters.").optional(),
+          endDate: z.literal("Enter a valid date (YYYY-MM-DD).").optional(),
+          actionDeadline: z
+            .enum([
+              "Enter a valid date (YYYY-MM-DD).",
+              "The action deadline must be earlier than the end date.",
+            ])
+            .optional(),
+        })
+        .optional(),
     })
     .safeParse(reply.data);
   if (failure.success) return failure.data;

@@ -11,6 +11,7 @@ const configOptions = {
     "src/lib/team/schema.ts",
     "src/lib/recipients/schema.ts",
     "src/lib/register/schema.ts",
+    "src/lib/register/dates.ts",
     "src/lib/register/operations.ts",
     "src/lib/register/repository.ts",
     "src/lib/register/messages.ts",

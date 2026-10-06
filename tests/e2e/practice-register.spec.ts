@@ -25,6 +25,7 @@ async function counts(practice: string) {
   for (const table of [
     "public.clinicians",
     "public.credentials",
+    "public.credential_cycles",
     "public.policy_coverage",
     "private.register_audit_events",
     "private.register_create_requests",
@@ -56,7 +57,7 @@ test("G22 creates multiple records, shared policy once, reload sign-in and keybo
   await page.getByRole("checkbox", { name: /Chen/ }).check();
   await page.getByRole("button", { name: "Add record" }).click();
   await expect(
-    page.getByText("Record saved. Dates still need to be entered.", {
+    page.getByText("Record saved.", {
       exact: true,
     }),
   ).toBeFocused();
@@ -190,6 +191,10 @@ test("G24 response lost after commit retries exact policy without duplicating en
   await addPerson(page, "Chen");
   await page.getByLabel("Record title").fill("Retry policy");
   await page.getByLabel("Record type").selectOption("malpractice_policy");
+  await page.getByLabel("Insurer (optional)").fill(" Insurer ");
+  await page.getByLabel("Coverage jurisdiction (optional)").fill(" CA ");
+  await page.getByLabel("Coverage end date").fill("2028-02-29");
+  await page.getByLabel("Earlier action deadline").fill("2028-02-01");
   await page.getByRole("checkbox", { name: /Rivera/ }).check();
   await page.getByRole("checkbox", { name: /Chen/ }).check();
   const requests: { body: string; contentType: string }[] = [];
@@ -209,6 +214,10 @@ test("G24 response lost after commit retries exact policy without duplicating en
   await expect(page.getByLabel("Record title")).toHaveValue("Retry policy");
   const before = await counts(member.practice_id);
   expect(before["public.credentials"] as unknown[]).toHaveLength(1);
+  expect(before["public.credential_cycles"] as unknown[]).toHaveLength(1);
+  expect((before["public.credentials"] as { issuer: string }[])[0].issuer).toBe(
+    "Insurer",
+  );
   expect(before["public.policy_coverage"] as unknown[]).toHaveLength(2);
   await page.unroute("**/practice/register");
   await page.route("**/practice/register", async (route) => {
@@ -221,11 +230,14 @@ test("G24 response lost after commit retries exact policy without duplicating en
   });
   await page.getByRole("button", { name: "Retry this save" }).click();
   await expect(
-    page.getByText("Record saved. Dates still need to be entered.", {
+    page.getByText("Record saved.", {
       exact: true,
     }),
   ).toBeFocused();
   expect(await counts(member.practice_id)).toEqual(before);
+  await expect(page.getByRole("list", { name: "Saved records" })).toContainText(
+    "Tracking date: Feb 1, 2028 (earlier action deadline)",
+  );
   const payload = async (request: { body: string; contentType: string }) => {
     const fields = await new Response(request.body, {
       headers: { "content-type": request.contentType },

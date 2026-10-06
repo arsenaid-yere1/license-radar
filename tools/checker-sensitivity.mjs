@@ -26,6 +26,18 @@ const mutants = [
     to: "export function assertionFailure(message) { return true;",
     test: "mutation kill requires a behavioral assertion rather than an infrastructure error",
   },
+  {
+    file: "tools/schema-catalog.mjs",
+    from: "'credential_cycles'",
+    to: "'omitted_credential_cycles'",
+    test: "register public tables occur in every filtered catalog section",
+  },
+  {
+    file: "tools/gauntlet-contract.mjs",
+    from: "export function assertSchema(actual, expected) {",
+    to: "export function assertSchema(actual, expected) { return;",
+    test: "register fingerprint contains and detects removal of every table protection",
+  },
   ...[
     [
       "tools/local-environment.mjs",

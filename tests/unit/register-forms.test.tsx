@@ -76,6 +76,15 @@ it("G19 viewer sees saved people and truthful date-pending record without create
     owner_name: "Practice",
     version: 1,
     covered_clinicians: [one, two],
+    issuer: null,
+    jurisdiction: null,
+    current_cycle: {
+      id: one.id,
+      cycle_number: 1 as const,
+      date_revision: 1,
+      end_date: null,
+      action_deadline: null,
+    },
   };
   render(
     <RegisterPanel
@@ -127,7 +136,9 @@ it("G20 validation keeps draft and associates field error; acknowledged success 
     document.getElementById(input.getAttribute("aria-describedby")!)
       ?.textContent,
   ).toBe("Use 1 to 120 characters.");
-  expect(document.activeElement).toBe(screen.getByRole("alert"));
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole("alert")),
+  );
   submit("Add clinician");
   await waitFor(() =>
     expect(screen.getByRole("status").textContent).toBe("Clinician saved."),
@@ -321,4 +332,207 @@ it("G21 coverage field errors stay linked to retained choices", async () => {
     (screen.getByRole("checkbox", { name: /Rivera/ }) as HTMLInputElement)
       .checked,
   ).toBe(true);
+});
+
+it("D11 type switches reset dates and metadata; owner changes preserve the draft", async () => {
+  const action = vi.fn().mockResolvedValue({
+    status: "invalid",
+    message: "Review dates",
+    errors: {
+      actionDeadline: "The action deadline must be earlier than the end date.",
+    },
+  });
+  render(panel(action));
+  for (const [label, value] of [
+    ["Licensing board (optional)", "Board"],
+    ["State or territory (optional)", "CA"],
+    ["Expiration date", "2028-02-29"],
+    ["Earlier action deadline", "2028-03-01"],
+  ])
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  fireEvent.change(screen.getByLabelText("Record owner"), {
+    target: { value: "clinician" },
+  });
+  expect(
+    (screen.getByLabelText("Expiration date") as HTMLInputElement).value,
+  ).toBe("2028-02-29");
+  submit("Add record");
+  await waitFor(() => expect(action).toHaveBeenCalledOnce());
+  expect(action.mock.calls[0][1].get("issuer")).toBe("Board");
+  const field = screen.getByLabelText("Earlier action deadline");
+  expect(field.getAttribute("aria-invalid")).toBe("true");
+  expect(
+    document.getElementById(field.getAttribute("aria-describedby")!)
+      ?.textContent,
+  ).toBe("The action deadline must be earlier than the end date.");
+  expect(
+    (screen.getByLabelText("Expiration date") as HTMLInputElement).value,
+  ).toBe("2028-02-29");
+  fireEvent.change(screen.getByLabelText("Record type"), {
+    target: { value: "malpractice_policy" },
+  });
+  for (const label of [
+    "Insurer (optional)",
+    "Coverage jurisdiction (optional)",
+    "Coverage end date",
+    "Earlier action deadline",
+  ])
+    expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe("");
+  fireEvent.change(screen.getByLabelText("Record type"), {
+    target: { value: "dea_registration" },
+  });
+  expect(screen.getByLabelText("Issuing authority (optional)")).toBeTruthy();
+  expect(
+    screen.getByLabelText("Registration jurisdiction (optional)"),
+  ).toBeTruthy();
+});
+it("D12 uncertain detailed save freezes dates and metadata; success resets and renders returned dates", async () => {
+  const credential = {
+    id: one.id,
+    title: "New policy",
+    type: "malpractice_policy" as const,
+    owner_kind: "practice" as const,
+    owner_clinician_id: null,
+    owner_name: "Practice",
+    version: 1,
+    covered_clinicians: [one, two],
+    issuer: "Insurer",
+    jurisdiction: "CA",
+    current_cycle: {
+      id: two.id,
+      cycle_number: 1 as const,
+      date_revision: 1,
+      end_date: "2028-02-29",
+      action_deadline: "2028-02-01",
+    },
+  };
+  const action = vi
+    .fn()
+    .mockResolvedValueOnce({ status: "unavailable", message: "Retry" })
+    .mockResolvedValue({
+      status: "success",
+      message: "Record saved.",
+      credential,
+    });
+  render(panel(action));
+  fireEvent.change(screen.getByLabelText("Record type"), {
+    target: { value: "malpractice_policy" },
+  });
+  for (const [label, value] of [
+    ["Record title", "New policy"],
+    ["Insurer (optional)", "Insurer"],
+    ["Coverage jurisdiction (optional)", "CA"],
+    ["Coverage end date", "2028-02-29"],
+    ["Earlier action deadline", "2028-02-01"],
+  ])
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  submit("Add record");
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toBe("Retry"),
+  );
+  expect(screen.getByLabelText("Coverage end date").matches(":disabled")).toBe(
+    true,
+  );
+  submit("Retry this save");
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe("Record saved."),
+  );
+  expect(Array.from(action.mock.calls[1][1])).toEqual(
+    Array.from(action.mock.calls[0][1]),
+  );
+  expect(
+    screen.getByText(
+      (_, element) =>
+        element?.tagName === "P" &&
+        element.textContent ===
+          "Tracking date: Feb 1, 2028 (earlier action deadline)",
+    ),
+  ).toBeTruthy();
+  expect(
+    screen.getByText(
+      (_, element) =>
+        element?.tagName === "P" &&
+        element.textContent === "Coverage end date: Feb 29, 2028",
+    ),
+  ).toBeTruthy();
+  expect(screen.getByText("Insurer: Insurer")).toBeTruthy();
+  expect(
+    (screen.getByLabelText("Expiration date") as HTMLInputElement).value,
+  ).toBe("");
+  expect(
+    (screen.getByLabelText("Licensing board (optional)") as HTMLInputElement)
+      .value,
+  ).toBe("");
+});
+it("D13 every date purpose and explicit unknown end remain visible for read-only records", () => {
+  for (const type of [
+    "state_license",
+    "dea_registration",
+    "malpractice_policy",
+  ] as const)
+    for (const dates of [
+      [null, null],
+      ["2026-12-02", null],
+      [null, "2026-11-01"],
+      ["2026-12-02", "2026-11-01"],
+    ]) {
+      const end =
+        type === "malpractice_policy" ? "Coverage end date" : "Expiration date";
+      const credential = {
+        id: one.id,
+        title: "Record",
+        type,
+        owner_kind: "practice" as const,
+        owner_clinician_id: null,
+        owner_name: "Practice",
+        version: 1,
+        covered_clinicians: [],
+        issuer: null,
+        jurisdiction: null,
+        current_cycle: {
+          id: two.id,
+          cycle_number: 1 as const,
+          date_revision: 1,
+          end_date: dates[0],
+          action_deadline: dates[1],
+        },
+      };
+      const view = render(
+        <RegisterPanel
+          register={{ ...register, credentials: [credential] }}
+          canEdit={false}
+          action={vi.fn()}
+          clinicianKey="a"
+          credentialKey="b"
+        />,
+      );
+      expect(
+        screen.queryByText(
+          (_, element) =>
+            element?.tagName === "P" &&
+            element.textContent ===
+              (dates[0] ? `${end}: Dec 2, 2026` : `${end} unknown`),
+        ),
+      ).toBeTruthy();
+      if (dates[1])
+        expect(
+          screen.queryByText(
+            (_, element) =>
+              element?.tagName === "P" &&
+              element.textContent === "Earlier action deadline: Nov 1, 2026",
+          ),
+        ).toBeTruthy();
+      if (!dates[0] && !dates[1])
+        expect(screen.queryByText("Dates not entered")).toBeTruthy();
+      else
+        expect(
+          screen.queryByText(
+            (_, element) =>
+              element?.tagName === "P" &&
+              element.textContent ===
+                `Tracking date: ${dates[1] ? "Nov 1, 2026 (earlier action deadline)" : `Dec 2, 2026 (${type === "malpractice_policy" ? "coverage end" : "expiration"})`}`,
+          ),
+        ).toBeTruthy();
+      view.unmount();
+    }
 });

@@ -457,3 +457,7 @@ fieldset {
     grid-template-columns: 1fr;
   }
 }
+
+.register-list .saved-label {
+  display: block;
+}

@@ -1,5 +1,7 @@
 import { Client } from "pg";
 import { readFileSync, writeFileSync } from "node:fs";
+import { catalog } from "./schema-catalog.mjs";
+import { assertSchema } from "./gauntlet-contract.mjs";
 import { localConfig } from "./local-environment.mjs";
 const files = [
   { path: "supabase/tests/practice_profiles.test.sql", plan: 20 },
@@ -7,6 +9,7 @@ const files = [
   { path: "supabase/tests/practice_invitations.test.sql", plan: 16 },
   { path: "supabase/tests/practice_recipients.test.sql", plan: 20 },
   { path: "supabase/tests/practice_register.test.sql", plan: 22 },
+  { path: "supabase/tests/practice_credential_dates.test.sql", plan: 22 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -222,11 +225,94 @@ for (const [id, mutation, expected] of [
   ],
 ])
   cases.push({ id, file: files[4], mutation, expected });
+for (const [id, mutation, expected] of [
+  [
+    "cycle-practice-fk",
+    "alter table public.credential_cycles drop constraint credential_cycles_practice_id_fkey",
+    ["D10 cycle restrictive foreign keys"],
+  ],
+  [
+    "cycle-credential-fk",
+    "alter table public.credential_cycles drop constraint credential_cycles_credential_fkey",
+    ["D10 cycle restrictive foreign keys", "D10 cycle composite reference"],
+  ],
+  [
+    "cycle-read-grant",
+    "revoke select on public.credential_cycles from authenticated",
+    ["D10 cycle read grant"],
+  ],
+  [
+    "cycle-dml-grant",
+    "grant insert on public.credential_cycles to authenticated",
+    ["D10 cycle DML denied"],
+  ],
+  [
+    "cycle-anonymous-grant",
+    "grant select on public.credential_cycles to anon",
+    ["D10 cycle anonymous denied"],
+  ],
+  [
+    "cycle-rpc-anonymous",
+    "grant execute on function public.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text) to anon",
+    ["D10 detailed anonymous denied"],
+  ],
+  [
+    "cycle-revision",
+    "alter table public.credential_cycles drop constraint credential_cycles_date_revision_check",
+    ["D10 positive date revision"],
+  ],
+  [
+    "cycle-number",
+    "alter table public.credential_cycles drop constraint credential_cycles_cycle_number_check",
+    ["D10 positive cycle number", "D10 initial cycle uniqueness"],
+  ],
+  [
+    "cycle-end-range",
+    "alter table public.credential_cycles drop constraint credential_cycles_end_date_check",
+    ["D10 end date range"],
+  ],
+  [
+    "cycle-action-range",
+    "alter table public.credential_cycles drop constraint credential_cycles_action_deadline_check",
+    ["D10 action date range"],
+  ],
+  [
+    "cycle-order",
+    "alter table public.credential_cycles drop constraint credential_cycles_order_check",
+    ["D10 strict earlier ordering"],
+  ],
+  [
+    "cycle-uniqueness",
+    "alter table public.credential_cycles drop constraint credential_cycles_practice_id_credential_id_cycle_number_key",
+    ["D10 initial cycle uniqueness"],
+  ],
+  [
+    "credential-issuer",
+    "alter table public.credentials drop constraint credentials_issuer_check",
+    ["D10 issuer constraint"],
+  ],
+  [
+    "credential-jurisdiction",
+    "alter table public.credentials drop constraint credentials_jurisdiction_check",
+    ["D10 jurisdiction constraint"],
+  ],
+])
+  cases.push({ id, file: files[5], mutation, expected });
+// Removing initialization intentionally makes detailed-create fail. Run the exact
+// metadata TAP prefix here; the API mutant independently exercises that failure.
+cases.push({
+  id: "cycle-trigger",
+  file: { ...files[5], plan: 10 },
+  metadataOnly: true,
+  mutation: "drop trigger initialize_credential_cycle on public.credentials",
+  expected: ["D10 initial cycle trigger"],
+});
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });
   await db.connect();
   try {
+    const beforeSchema = await catalog(db);
     const before = (
       await db.query(
         "select oid,conname,pg_get_constraintdef(oid) definition from pg_constraint where connamespace in ('public'::regnamespace,'private'::regnamespace) order by oid",
@@ -234,9 +320,14 @@ for (const item of cases) {
     ).rows;
     await db.query("begin");
     if (item.mutation) await db.query(item.mutation);
-    const sql = readFileSync(item.file.path, "utf8")
+    let sql = readFileSync(item.file.path, "utf8")
       .replace(/^begin;\n/, "")
       .replace(/rollback;\s*$/, "");
+    if (item.metadataOnly)
+      sql =
+        sql
+          .slice(0, sql.indexOf("insert into auth.users"))
+          .replace("plan(22)", "plan(10)") + "select finish from finish();";
     const rows = await db.query(sql);
     const messages = rows
       .flatMap((r) => r.rows.flatMap((row) => Object.values(row)))
@@ -264,6 +355,7 @@ for (const item of cases) {
         "select oid,conname,pg_get_constraintdef(oid) definition from pg_constraint where connamespace in ('public'::regnamespace,'private'::regnamespace) order by oid",
       )
     ).rows;
+    assertSchema(await catalog(db), beforeSchema);
     if (JSON.stringify(before) !== JSON.stringify(restored))
       throw new Error("Constraint restore failed");
   } finally {
