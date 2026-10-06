@@ -750,13 +750,26 @@ it("S23 invitation that expires while queued cannot join after lock release", as
       }),
     );
     await waitForBlockedRpc("accept_practice_invitation");
-    const delay = (
-      await db.query(
-        "select greatest(0,extract(epoch from expires_at-clock_timestamp())*1000)::float8 ms from private.practice_invitations where id=$1",
-        [link.invitation.id],
-      )
-    ).rows[0].ms;
-    await new Promise((resolve) => setTimeout(resolve, delay + 50));
+    expect(
+      (
+        await db.query(
+          "select bool_or(a.xact_start < i.expires_at) started_before_expiry from pg_stat_activity a cross join private.practice_invitations i where i.id=$1 and a.wait_event_type='Lock' and a.query like '%accept_practice_invitation%'",
+          [link.invitation.id],
+        )
+      ).rows[0].started_before_expiry,
+    ).toBe(true);
+    let expired = false;
+    for (let attempt = 0; attempt < 200; attempt++) {
+      expired = (
+        await db.query(
+          "select clock_timestamp() >= expires_at expired from private.practice_invitations where id=$1",
+          [link.invitation.id],
+        )
+      ).rows[0].expired;
+      if (expired) break;
+      await db.query("select pg_sleep(0.025)");
+    }
+    expect(expired).toBe(true);
     await db.query("commit");
   } finally {
     await db.query("rollback");
