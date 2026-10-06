@@ -225,7 +225,7 @@ AC1–AC12 have named source/test witnesses, the final diff is reviewed, all req
 - [x] Phase 1: Persistence and real authorization contracts.
 - [x] Phase 2: Typed operations/actions and unit/property checks.
 - [x] Phase 3: Register/forms and production-local browser checks.
-- [ ] Phase 4: Upgrade/controls, full verification, and implementation evidence.
+- [x] Phase 4: Upgrade/controls, full verification, and implementation evidence.
 - [ ] User-confirmed manual acceptance (separate from automated completion).
 
-The implementation and targeted/inherited preflight checks are recorded in `thoughts/shared/research/2026-10-06-e2-s1-implementation-evidence.md`. Phase 4 remains open because `npm run gauntlet` requires a clean committed implementation source; local checkpoint approval is pending. The source-state gate was not bypassed. Coverage investigation corrected bundled source identities and mixed raw-V8/AST line granularity, retained complete owned executable-line coverage, and added persisted checker/UI fault controls. No production changes or push occurred.
+All four implementation phases are complete. The clean committed checkpoint `888c1a773cf02cc7a523f90ec66323921967ee4e` passed all 30 required layers in run `16c41735-1e89-4e92-8502-1ee799bb0fd1`; final counts, commands, failed-run repairs, and assurance limits are recorded in `thoughts/shared/research/2026-10-06-e2-s1-implementation-evidence.md`. The source-state gate and existing thresholds remain intact. The later explicit “push to prod” request authorized the required checkpoints and coordinated production rollout. User-confirmed manual acceptance remains separate and unchecked.

@@ -1,4 +1,4 @@
-# E2-S1 implementation evidence — final verification pending
+# E2-S1 implementation evidence — 30 layers passed
 
 Date: 2026-10-06 (America/Los_Angeles).
 SPEC: `thoughts/shared/plans/2026-10-06-e2-s1-old-coder-spec.md`.
@@ -11,7 +11,7 @@ Tier: 3. Spec approval: **not obtained (autonomous run)** under “create specs 
 
 Clinicians remain separate from authorized staff. The three supported renewal types can belong to a clinician or practice; practice malpractice can cover several clinicians through one credential identity. All active members read; administrators/managers create. The immutable caller-scoped request receipt, entity/coverage, and private actor/time audit are transactional. The UI preserves uncertain submissions for exact-key retries, shows date entry pending, and says texts are inactive.
 
-No deployment, hosted migration/reset, remote push/merge, external messages, new dependency, date/cycle/calendar/job/provider send, editing/archive, or duplicate detection is included. Existing E1-S3 production remains unchanged. The next story is E2-S2.
+The ownership slice includes no new dependency, date/cycle/calendar/job/provider send, editing/archive, or duplicate detection. The subsequent explicit “push to prod” request authorized checkpoints, remote push, the additive hosted migration, and deployment; hosted rollout is documented separately. No hosted reset or external message is authorized by that release. The next story is E2-S2.
 
 ## Initial RED and verification repairs
 
@@ -68,17 +68,62 @@ Scenario IDs below refer to the SPEC; several test-title prefixes are grouped di
 | N05 | AC12 | Schema, UI, capability review: no dates/cycles/jobs/provider sends; single credential identity does not prove future SMS dispatch behavior. |
 | N06 | Scope | Capability/dependency/secret checks; no new packages; UI request uses cryptographic UUID and authenticated Supabase RPC only. |
 | N07–N08 | AC11 | Dedicated exact-project/endpoint/fixture guards, schema/type fingerprints, test/layer inventories, restored faults and final source hash. |
-| N09 | Scope | Local branch only; no deployment/push/merge/external messages. |
+| N09 | Original scope / subsequent authorization | Implementation used the local branch. The later explicit production request authorized checkpoints, push, migration, and deployment; no external messages or hosted reset. |
 
 Fixed examples and generated invariants share `src/lib/register/properties.test.ts` rather than duplicating them in a separate schema test file. Both the full unit suite and independent property mutation configuration execute that file.
 
 ## Final-source run
 
-Pending. Reproducible entry point: `PATH="$PWD/.tools/node/bin:$PATH" npm run gauntlet`, using the 30-layer inventory in `tools/layers.json` and independent required list in `tools/gauntlet.mjs`. Final SHA/hash/run ID, actual counts and layer results will be recorded only after the complete current-source run. Do not treat intermediate passes above as final evidence.
+**All 30 required layers passed** in one clean source-bound run.
 
-The initial pipeline attempt stopped at `tools/source-state.mjs` with **`Error: Untested dirty source inputs:`** before executing any layer or clearing reports. The subsequent explicit **“push to prod”** request authorized the required checkpoints and release. Checkpoint `42dedff` was committed and its complete run exposed the artifact-retention defect documented above. Vercel built that archive without switching the public domain; production migration and promotion remain gated on a fresh passing 30-layer run. The clean-source gate remains intact; Phase 4 remains unchecked until that run completes.
+- Checkpoint: `888c1a773cf02cc7a523f90ec66323921967ee4e`.
+- Source SHA-256: `0e0efe8603d7a0be07af55c85ae6d0748d8fe973fd0dd277a3fed800a75565d5`, 167 tracked non-thoughts inputs.
+- Run: `16c41735-1e89-4e92-8502-1ee799bb0fd1`.
+- Started: 2026-10-06T21:49:12.556Z; finished: 2026-10-06T22:06:01.666Z.
+- Runtime: Node 24.21.0, pinned local tools and dedicated guarded fixture stack.
+- Reproduce with `export PATH="$PWD/.tools/node/bin:$PATH"`, then `npm run gauntlet`; browser cache and seeds are set by the pipeline.
+- Final source-state comparison passed; source faults and database faults were restored. No threshold or required layer was removed.
 
-### Preflight observations — not a final 30-layer result
+| Layer | Command | Result |
+| --- | --- | --- |
+| `checker-controls` | `npm run test:controls` | Passed |
+| `checker-sensitivity` | `node tools/checker-sensitivity.mjs` | Passed |
+| `types` | `npm run typecheck` | Passed |
+| `lint` | `npm run lint` | Passed |
+| `format` | `npm run format:check` | Passed |
+| `sql-lint` | `.venv-gauntlet/bin/sqlfluff lint supabase/migrations supabase/tests` | Passed |
+| `access-upgrade` | `node tools/access-upgrade.mjs` | Passed |
+| `recipient-upgrade` | `node tools/recipient-upgrade.mjs` | Passed |
+| `register-upgrade` | `node tools/register-upgrade.mjs` | Passed |
+| `replay` | `npm run db:reset` | Passed |
+| `schema` | `node tools/schema-fingerprint.mjs` | Passed |
+| `database` | `npm run test:db` | Passed |
+| `integration` | `npm run test:integration` | Passed |
+| `unit-coverage` | `npm run test:coverage` | Passed |
+| `mutation` | `npm run mutation` | Passed |
+| `mutation-properties` | `npm run mutation:properties` | Passed |
+| `sql-mutants` | `node tools/sql-mutants.mjs` | Passed |
+| `schema-restored` | `node tools/schema-fingerprint.mjs` | Passed |
+| `generated-types` | `node tools/check-generated-types.mjs` | Passed |
+| `build` | `npm run build` | Passed |
+| `browser` | `npm run test:e2e` | Passed |
+| `access-adversarial` | `node tools/access-adversarial.mjs` | Passed |
+| `coverage` | `node tools/check-coverage.mjs` | Passed |
+| `suite-health-unit` | `npm run test -- --sequence.seed=20261017` | Passed |
+| `suite-health-integration` | `npm run test:integration -- --sequence.seed=20261017` | Passed |
+| `suite-health-browser` | `node tools/shuffle-browser.mjs` | Passed |
+| `capabilities` | `node tools/check-capabilities.mjs` | Passed |
+| `supply-chain` | `node tools/supply-chain.mjs` | Passed |
+| `secrets-history` | `.tools/gitleaks git . --redact --no-banner --ignore-gitleaks-allow --report-format json --report-path reports/secrets-history.json` | Passed |
+| `secrets-assets` | `.tools/gitleaks dir .next/static --redact --no-banner --ignore-gitleaks-allow --report-format json --report-path reports/secrets-assets.json` | Passed |
+
+Final counts: 204 unit tests / 26 files; 77 API tests / 7 files, repeated successfully in shuffled order; 94 SQL assertions / 5 files and 41 applied FK/index/invariant/grant faults; 34 checker controls; 21 removed checker defenses and three actual UI faults caught and restored. Application mutation: 1139 generated, 528 killed, 611 compile errors, 100% score; property mutation: 238 generated, 152 killed, 86 compile errors, 100% score. All 58 actual SQL/API faults were applied, executed, killed, and restored, including transaction-start expiry. Ten named adversarial cases passed; the independent strict-input property and nine administrator browser cases failed real faults and passed after restoration.
+
+The full browser inventory passed 28/28 with zero skipped, flaky, or unexpected cases. All 28 discovered cases passed again individually in shuffled order with fresh contexts. Combined owned executable coverage: 692/692 lines across 54 files; 613 browser and 460 Node remappings. Reported branches: 1143/1317 (86.78%); no 100% branch-coverage claim. Capability, dependency, Git-history secret, and built-asset secret gates passed.
+
+The initial dirty-source stop and two subsequent failed runs are historical repair evidence above. The user's later **“push to prod”** request authorized all required checkpoints and release actions. The passing checkpoint is the exact committed archive staged on Vercel; hosted rollout evidence is recorded separately in the production handoff.
+
+### Preflight observations — historical, separate from the final run
 
 These are separate local invocations, not one final source-bound pipeline run. Pinned runtime: Node 24.21.0; when chaining commands, first `export PATH="$PWD/.tools/node/bin:$PATH"`. Browser runs also set `PLAYWRIGHT_BROWSERS_PATH="$PWD/.browser-cache"`. Tool versions remain pinned in repository manifests and the existing local verification setup.
 
@@ -99,10 +144,10 @@ These are separate local invocations, not one final source-bound pipeline run. P
 | `node tools/check-generated-types.mjs` | Tracked public TypeScript database types matched local generation. |
 | `git diff --check` | Passed; main-agent scoped source/diff review completed. |
 
-Earlier preflight observations: all three upgrade rehearsals passed, including the new seven-table register rehearsal; the application mutation gate reached 100% (1139 generated: 528 killed, 611 compile errors), property-only mutation reached 100% (238 generated: 152 killed, 86 compile errors), and 58 applied SQL faults were killed with schema restoration. These are **intermediate results**, requiring another full final pipeline run. Earlier supply-chain/capability/secret checks also passed but remain pending final source-bound reruns. No final 30/30 result, implementation SHA, or gauntlet run ID is asserted.
+Earlier preflight observations: all three upgrade rehearsals passed, including the new seven-table register rehearsal; the application mutation gate reached 100% (1139 generated: 528 killed, 611 compile errors), property-only mutation reached 100% (238 generated: 152 killed, 86 compile errors), and 58 applied SQL faults were killed with schema restoration. These intermediate observations preceded and are superseded by the source-bound final run above, including fresh supply-chain/capability/secret checks.
 
 ## Inspection and limits
 
 The main agent reviewed the SQL grant/helper/lock order and the scoped diff. A populated 375px screenshot was inspected: clinician/credential cards, owner/coverage labels, pending dates, focused button, navigation and no visible clipping. Automated keyboard/Axe checks are separate from that visual inspection. User-confirmed desktop/mobile acceptance remains unchecked.
 
-No capacity/SLA benchmark, exhaustive browser/Unicode guarantee, real legal-validity assessment, production migration/provider delivery, independent verifier, or later date/calendar/SMS behavior is claimed. Pilot lists aggregate completely; pagination is later scope. Reload discards unsaved drafts and reads persisted records; a manually reconstructed new request can duplicate a similarly named entry.
+No capacity/SLA benchmark, exhaustive browser/Unicode guarantee, real legal-validity assessment, provider delivery, independent verifier, or later date/calendar/SMS behavior is claimed. Pilot lists aggregate completely; pagination is later scope. Reload discards unsaved drafts and reads persisted records; a manually reconstructed new request can duplicate a similarly named entry.
