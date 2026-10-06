@@ -488,8 +488,17 @@ it("A01 D10 cycles and detailed RPC enforce tenant role and private grants", asy
   expect((await anon.from("credential_cycles").select("*")).error?.code).toBe(
     "42501",
   );
-  for (const actor of [b, v, { client: anon } as Actor])
+  for (const actor of [b, v, { client: anon } as Actor]) {
     expect((await create(actor, a.practice.id)).error?.code).toBe("42501");
+    expect(
+      (
+        await create(actor, a.practice.id, {
+          p_issuer: "x".repeat(121),
+          p_end_date: "bad",
+        })
+      ).error?.code,
+    ).toBe("42501");
+  }
   for (const actor of [a, v]) {
     expect(
       (

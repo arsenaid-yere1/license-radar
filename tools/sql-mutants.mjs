@@ -594,6 +594,13 @@ const detailed =
   "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)";
 for (const [id, signature, from, to, pattern] of [
   [
+    "dates-checked-entry",
+    detailed,
+    "perform private.require_register_member(p_practice_id, true);",
+    "perform 1;",
+    "^A01",
+  ],
+  [
     "dates-strict-order",
     detailed,
     "entered_action_deadline >= entered_end_date",

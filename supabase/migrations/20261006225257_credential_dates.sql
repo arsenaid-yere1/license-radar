@@ -120,8 +120,8 @@ create function private.create_practice_credential_with_details(
 language plpgsql volatile security definer set search_path = '' as $$
 declare
     normalized text;
-    issuer text := nullif(private.register_name(p_issuer), '');
-    jurisdiction text := nullif(private.register_name(p_jurisdiction), '');
+    issuer text;
+    jurisdiction text;
     entered_end_date date;
     entered_action_deadline date;
     covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);
@@ -131,6 +131,8 @@ declare
 begin
     perform private.require_register_member(p_practice_id, true);
     normalized := private.register_name(p_title);
+    issuer := nullif(private.register_name(p_issuer), '');
+    jurisdiction := nullif(private.register_name(p_jurisdiction), '');
     if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120
        or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy')
        or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')
