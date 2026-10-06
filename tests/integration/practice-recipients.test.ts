@@ -71,7 +71,7 @@ async function blocked(name: string) {
     if (result.rowCount) return;
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
-  expect.fail("Expected witnessed lock wait");
+  expect(false, "Expected witnessed lock wait").toBe(true);
 }
 it("R01 R02 R03 recipient role matrix, tenant targets and minimal projection", async () => {
   const a = await practice(),
@@ -567,12 +567,13 @@ it("R07 practice lock is acquired before recipient state or actor projection", a
     await db.query("select 1 from public.practices where id=$1 for update", [
       a.practice.id,
     ]);
-    const late = Promise.resolve(set(m, a.practice.id, m.member.id, 1));
-    await blocked("set_practice_reminder_recipient");
+    const late = Promise.resolve(get(m, a.practice.id));
+    await blocked("get_practice_reminder_recipient");
     await db.query("commit");
     expect((await late).data).toMatchObject({
-      status: "success",
-      recipient: { version: 2 },
+      version: 1,
+      selected: null,
+      canEdit: true,
     });
   } finally {
     await db.query("rollback");
