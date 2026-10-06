@@ -1,6 +1,6 @@
 # E1-S3 recipient foundation implementation evidence
 
-Status: local implementation complete; final 29-layer verification pending. Production release and user-confirmed acceptance are separate.
+Status: recipient foundation implemented and verified locally; all 29 required verification layers passed. Production release, user-confirmed acceptance, and the original E2/E4 SMS integration gate remain separate.
 
 ## Behavior and ownership
 
@@ -44,3 +44,27 @@ SMS readiness remains false. Original rule 9 (cancel former unsent jobs and crea
 Final review added client-side handling for action transport exceptions. A lost response keeps the proposed selection, reports that the save could not be confirmed, disables repeat submission, and requires reload to reconcile committed state. The initial gauntlet controller was stopped before the SQL fault campaign, then restarted from the updated local checkpoint.
 
 The practice-lock fault initially survived because settings and foreign-key locks masked the setter’s wait. The final independent witness holds only the practice lock and invokes the read operation (no foreign-key writes), proving the shared helper itself waits before projection. A failed witness uses a behavioral assertion, preserving the fault checker’s distinction between test failures and infrastructure errors.
+
+
+## Final current-source verification
+
+`npm run gauntlet` passed **29/29** layers. Run ID: `427c847b-8580-4f0b-bcd6-4a4a3b4cf6c5`. Tested source commit: `6bb56868c3de30da07c344c782a9b9c2435fc6f1`. Source hash: `bd653514897363b23681baddc7107796744a008da819abb2f9e8ac6abb2cb238`. Started 2026-10-06 01:13:48 UTC; finished 01:29:09 UTC. No application source changed during that run. Subsequent changes record documentation only.
+
+| Command/check | Final result |
+| --- | --- |
+| `npm run test:controls`; checker sensitivity | 28 checker controls passed; deliberate checker failures detected |
+| `npm run typecheck`, `npm run lint`, `npm run format:check`; SQLFluff lint | Passed |
+| `node tools/access-upgrade.mjs`, `node tools/recipient-upgrade.mjs`, `npm run db:reset` | Both guarded upgrade rehearsals and fresh replay passed |
+| Recipient E1-S2 history snapshot | Exactly preserved 2 practices, 4 memberships, 6 invitations, 4 profile audits, and 17 access events; full catalog rollback matched; 2 null/version-one settings, zero fabricated recipient events |
+| Schema fingerprint and `node tools/check-generated-types.mjs` | Reviewed schema and fresh public types matched; schema restored after faults |
+| `npm run test:db` | 72 SQL assertions; 23 applied FK/index/invariant/grant controls detected and rolled back |
+| `npm run test:integration` | 63 tests passed; also passed after restored faults and with shuffled seed |
+| `npm run test:coverage`, `npm test` with shuffled seed | 181 unit tests passed |
+| `npm run mutation`, `npm run mutation:properties` | Both unchanged 100% thresholds passed; no surviving or timed-out mutants (compiler-rejected mutations separately recorded) |
+| `node tools/sql-mutants.mjs` | All 44 actually applied SQL/API faults caught and independently restored; full restored integration suite passed |
+| `npm run build`, `npm run test:e2e`, `node tools/shuffle-browser.mjs` | Production build passed; all 24 browser scenarios passed normally and in recorded shuffled order, with no skips |
+| `node tools/access-adversarial.mjs` | Deliberate browser authorization faults caught; compiled source restored |
+| `node tools/check-coverage.mjs` | 2,442/2,442 executable lines across 44 application files; browser and real Node maps verified; branch coverage reported separately at 88.17% |
+| Capability/dependency/secret layers | Passed; zero runtime advisories, five classified development findings, zero Python advisories; Git history and built static assets secret scans passed; token-bearing artifact controls passed |
+
+Ignored `reports/gauntlet.json` and per-layer logs contain the raw local run record. The durable evidence above distinguishes automated success from agent visual observation and pending user acceptance. No threshold or required layer was removed. The final diff was reviewed against the baseline; original migrations and unrelated application behaviors remain intact.

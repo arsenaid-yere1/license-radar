@@ -1,7 +1,7 @@
 # E1-S3: Responsible Reminder Recipient Implementation Plan
 
 Date: 2026-10-05
-Status: Approved by “proceed with implementation”; implementation in progress on `codex/e1-s3-recipient`.
+Status: Recipient foundation implemented and locally verified on `codex/e1-s3-recipient`; original SMS rule-9 criterion remains deferred.
 Baseline: `aeedf1cff3aba58218046483955a05b506c0b90c`.
 Research: `thoughts/shared/research/2026-10-05-e1-s3-recipient-assignment.md`.
 
@@ -227,9 +227,14 @@ Foundation completion requires AC1–AC10, current-source evidence for all requi
 
 - [x] Phase 1: Persistence, real API/SQL contracts, and generated types.
 - [x] Phase 2: Typed domain/actions and unit/property verification.
-- [ ] Phase 3: Recipient panel and production browser verification.
-- [ ] Phase 4: Upgrade/control tooling, full verification, and documentation.
+- [x] Phase 3: Recipient panel and production browser verification.
+- [x] Phase 4: Upgrade/control tooling, full verification, and documentation.
 - [ ] User-confirmed manual acceptance.
 - [ ] Future E2/E4 original rule-9 integration gate.
 
-Implementation checkpoint: database replay, 72 SQL assertions/23 applied controls, full API regression (62 tests before the additional lock witness), domain/UI unit checks (180), property mutation (100%), production build and three targeted recipient browser scenarios passed. E1-S2 upgrade preserved all five historical tables and full schema rollback. The final full gauntlet, inherited browser suites, and SQL fault campaign remain in progress. User manual acceptance and the future SMS gate remain unchecked.
+Historical implementation checkpoint: database replay, 72 SQL assertions/23 applied controls, full API regression (62 tests before the additional lock witness), domain/UI unit checks (180), property mutation (100%), production build and three targeted recipient browser scenarios passed. E1-S2 upgrade preserved all five historical tables and full schema rollback. The final full gauntlet, inherited browser suites, and SQL fault campaign remain in progress. User manual acceptance and the future SMS gate remain unchecked.
+
+
+Final verification: `npm run gauntlet` passed all 29 required layers at source commit `6bb56868c3de30da07c344c782a9b9c2435fc6f1` (run `427c847b-8580-4f0b-bcd6-4a4a3b4cf6c5`, finished 2026-10-06 01:29:09 UTC). This includes 181 unit tests, 63 integration tests, 72 SQL assertions/23 applied schema controls, 44 caught/restored SQL/API faults, both 100% mutation gates, 24 production browser tests plus a recorded shuffled rerun, complete 2,442-line application coverage, upgraded history/rollback/replay, generated types, dependency checks, and secret scans. Evidence: `thoughts/shared/research/2026-10-05-e1-s3-implementation-evidence.md`.
+
+The complete diff was reviewed. Agent inspection confirmed mobile rendering; user-confirmed manual acceptance stays unchecked. Production was not changed. E2/E4 SMS integration remains future work rather than a completed original-story acceptance claim.
