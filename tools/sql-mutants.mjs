@@ -415,6 +415,71 @@ const mutants = [
       ),
   },
 ];
+const recipients = "tests/integration/practice-recipients.test.ts";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "recipient-role",
+    "private.require_recipient_member(uuid,boolean)",
+    "actor_role not in ('administrator', 'manager')",
+    "false",
+    "^R01",
+  ],
+  [
+    "recipient-tenant",
+    "private.set_practice_reminder_recipient(uuid,uuid,integer)",
+    "and practice_id = p_practice_id",
+    "",
+    "^R01",
+  ],
+  [
+    "recipient-version",
+    "private.set_practice_reminder_recipient(uuid,uuid,integer)",
+    "settings.version <> p_expected_version",
+    "false",
+    "^R04|^R06",
+  ],
+  [
+    "recipient-live-authority",
+    "private.require_recipient_member(uuid,boolean)",
+    "if actor_role is null or",
+    "if false and actor_role is null or",
+    "^R07",
+  ],
+  [
+    "recipient-lock",
+    "private.require_recipient_member(uuid,boolean)",
+    "for update;",
+    ";",
+    "^R07",
+  ],
+  [
+    "recipient-invalidation",
+    "private.mutate_member(uuid,integer,text,boolean)",
+    "if p_revoke or p_role = 'viewer' then",
+    "if false then",
+    "^R05|^R08",
+  ],
+  [
+    "recipient-audit",
+    "private.change_reminder_recipient(uuid,uuid,text)",
+    "insert into private.practice_recipient_events",
+    "return; insert into private.practice_recipient_events",
+    "^R04|^R08",
+  ],
+  [
+    "recipient-initialization",
+    "private.create_practice(text,text)",
+    "insert into private.practice_reminder_settings (practice_id) values (result.id);",
+    "perform 1;",
+    "^R10",
+  ],
+])
+  mutants.push({
+    id,
+    file: recipients,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

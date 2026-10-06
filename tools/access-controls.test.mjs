@@ -225,3 +225,29 @@ test("browser mutation requires every named assertion failure", () => {
       /inventory|behavioral/,
     );
 });
+test("transactional catalog captures every schema section including function bodies and ACLs", async () => {
+  const { catalog, schemaQueries } = await import("./schema-catalog.mjs");
+  const calls = [];
+  const result = await catalog({
+    query: async (sql) => {
+      calls.push(sql);
+      return { rows: [{ definition: sql }] };
+    },
+  });
+  assert.equal(calls.length, 9);
+  assert.deepEqual(Object.keys(result), [
+    "columns",
+    "policies",
+    "functions",
+    "triggers",
+    "grants",
+    "rls",
+    "constraints",
+    "indexes",
+    "schemas",
+  ]);
+  for (const [key, sql] of Object.entries(schemaQueries))
+    assert.deepEqual(result[key], [{ definition: sql }]);
+  assert.match(schemaQueries.functions, /pg_get_functiondef/);
+  assert.match(schemaQueries.functions, /proacl/);
+});

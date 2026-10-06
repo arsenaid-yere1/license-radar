@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
+import { getRecipient } from "@/lib/recipients/repository";
 import { getTeam } from "@/lib/team/repository";
 import { Shell } from "@/components/shell";
 import { SignOutForm } from "@/components/auth/sign-out-form";
@@ -19,6 +20,9 @@ export default async function PracticeTeam() {
   if (result.status === "forbidden") redirect("/practice");
   if (result.status !== "success")
     throw new Error("We could not complete this request. Try again.");
+  const recipient = await getRecipient(client, access.access.practice.id);
+  if (recipient.status !== "success")
+    throw new Error("We could not complete this request. Try again.");
   return (
     <Shell action={<SignOutForm />}>
       <div className="team-heading">
@@ -33,7 +37,11 @@ export default async function PracticeTeam() {
           Practice settings
         </Link>
       </div>
-      <TeamPanel team={result.team} action={teamAction} />
+      <TeamPanel
+        team={result.team}
+        action={teamAction}
+        recipientId={recipient.recipient.selected?.id}
+      />
     </Shell>
   );
 }

@@ -6,6 +6,7 @@ export default defineConfig({
     include: [
       "src/lib/practice/properties.test.ts",
       "src/lib/team/properties.test.ts",
+      "src/lib/recipients/properties.test.ts",
     ],
     sequence: { shuffle: true, seed: 20261004 },
   },

@@ -400,3 +400,9 @@ fieldset {
     width: 100%;
   }
 }
+
+.settings-panels {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}

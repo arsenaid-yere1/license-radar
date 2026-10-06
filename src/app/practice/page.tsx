@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
+import { getRecipient } from "@/lib/recipients/repository";
+import { RecipientPanel } from "@/components/recipients/recipient-panel";
+import { recipientAction } from "./recipient-actions";
 import { roleLabels } from "@/lib/team/schema";
 import Link from "next/link";
 import { getSupportedTimezones } from "@/lib/practice/timezones";
@@ -16,6 +19,9 @@ export default async function Settings() {
     throw new Error("We could not complete this request. Try again.");
   if (!result.access) redirect("/onboarding/practice");
   const { practice, role } = result.access;
+  const recipient = await getRecipient(client, practice.id);
+  if (recipient.status !== "success")
+    throw new Error("We could not complete this request. Try again.");
   return (
     <Shell action={<SignOutForm />}>
       <div className="split-layout">
@@ -38,39 +44,45 @@ export default async function Settings() {
             Your renewal calendar will build on this profile.
           </p>
         </section>
-        <section className="panel">
-          <span className="saved-label">
-            <span aria-hidden="true">●</span> Practice profile saved
-          </span>
-          <h2>{practice.name}</h2>
-          <p>
-            {role === "administrator"
-              ? "Manage your practice name and local time."
-              : "Your shared practice profile."}
-          </p>
-          {role === "administrator" ? (
-            <>
-              <PracticeForm
-                practice={practice}
-                action={updatePracticeAction}
-                timezones={getSupportedTimezones()}
-              />
-              <Link href="/practice/team" className="text-link">
-                Manage team
-              </Link>
-            </>
-          ) : (
-            <>
-              <dl>
-                <dt>Practice timezone</dt>
-                <dd>{practice.timezone}</dd>
-              </dl>
-              <p className="hint">
-                An administrator can update these settings.
-              </p>
-            </>
-          )}
-        </section>
+        <div className="settings-panels">
+          <section className="panel">
+            <span className="saved-label">
+              <span aria-hidden="true">●</span> Practice profile saved
+            </span>
+            <h2>{practice.name}</h2>
+            <p>
+              {role === "administrator"
+                ? "Manage your practice name and local time."
+                : "Your shared practice profile."}
+            </p>
+            {role === "administrator" ? (
+              <>
+                <PracticeForm
+                  practice={practice}
+                  action={updatePracticeAction}
+                  timezones={getSupportedTimezones()}
+                />
+                <Link href="/practice/team" className="text-link">
+                  Manage team
+                </Link>
+              </>
+            ) : (
+              <>
+                <dl>
+                  <dt>Practice timezone</dt>
+                  <dd>{practice.timezone}</dd>
+                </dl>
+                <p className="hint">
+                  An administrator can update these settings.
+                </p>
+              </>
+            )}
+          </section>
+          <RecipientPanel
+            recipient={recipient.recipient}
+            action={recipientAction}
+          />
+        </div>
       </div>
     </Shell>
   );

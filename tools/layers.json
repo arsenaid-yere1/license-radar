@@ -35,6 +35,11 @@
     "args": ["tools/access-upgrade.mjs"]
   },
   {
+    "id": "recipient-upgrade",
+    "command": "node",
+    "args": ["tools/recipient-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]

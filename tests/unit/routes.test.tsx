@@ -3,8 +3,14 @@ import { it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 const boundary = vi.hoisted(() => ({
   requireUser: vi.fn(),
+  getRecipient: vi.fn(),
+  getTeam: vi.fn(),
   getCurrentPractice: vi.fn(),
   getPracticeAccess: vi.fn(),
+}));
+vi.mock("@/lib/team/repository", () => ({ getTeam: boundary.getTeam }));
+vi.mock("@/lib/recipients/repository", () => ({
+  getRecipient: boundary.getRecipient,
 }));
 vi.mock("@/lib/auth/require-user", () => ({
   requireUser: boundary.requireUser,
@@ -19,6 +25,7 @@ vi.mock("@/components/auth/email-code-form", () => ({
   EmailCodeForm: () => <div>Code form</div>,
 }));
 vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
   redirect: (url: string) => {
     throw new Error(`REDIRECT:${url}`);
   },
@@ -26,11 +33,22 @@ vi.mock("next/navigation", () => ({
 import Home from "@/app/page";
 import Setup from "@/app/onboarding/practice/page";
 import Settings from "@/app/practice/page";
+import PracticeTeam from "@/app/practice/team/page";
 import Login from "@/app/login/page";
 import ErrorPage from "@/app/error";
 import Layout from "@/app/layout";
 beforeEach(() => {
   vi.resetAllMocks();
+  boundary.getRecipient.mockResolvedValue({
+    status: "success",
+    recipient: {
+      version: 1,
+      selected: null,
+      readiness: "no-recipient",
+      ready: false,
+      canEdit: false,
+    },
+  });
   boundary.requireUser.mockResolvedValue({
     client: {},
     user: { email: "fixture@example.test" },
@@ -128,3 +146,42 @@ it.each([
     expect(screen.getByText("UTC")).toBeTruthy();
   },
 );
+
+it("R18 recipient read failure never fabricates an empty recipient", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { practice: { id: "own" }, role: "manager" },
+  });
+  boundary.getRecipient.mockResolvedValue({ status: "unavailable" });
+  await expect(Settings()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+});
+
+it("R18 team route reads current recipient only for administrator and fails closed on outage", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { practice: { id: "own", name: "Cedar" }, role: "administrator" },
+  });
+  boundary.getTeam.mockResolvedValue({
+    status: "success",
+    team: { members: [], invitations: [] },
+  });
+  boundary.getRecipient.mockResolvedValue({ status: "unavailable" });
+  await expect(PracticeTeam()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+  boundary.getRecipient.mockResolvedValue({
+    status: "success",
+    recipient: {
+      version: 1,
+      selected: null,
+      canEdit: true,
+      candidates: [],
+      readiness: "no-recipient",
+      ready: false,
+    },
+  });
+  render(await PracticeTeam());
+  expect(screen.getByRole("heading", { name: "Practice team" })).toBeTruthy();
+});

@@ -79,12 +79,20 @@ function RevokeControl({
 export function MemberControls({
   member,
   action,
+  recipient = false,
 }: {
+  recipient?: boolean;
   member: Member;
   action: TeamAction;
 }) {
   return member.state === "active" ? (
     <div className="member-controls">
+      {recipient && (
+        <p className="hint">
+          This person is the reminder recipient. Revoking access or changing
+          their role to Viewer will clear the assignment.
+        </p>
+      )}
       <RoleControl member={member} action={action} />
       <RevokeControl member={member} action={action} />
     </div>

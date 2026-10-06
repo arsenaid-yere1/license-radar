@@ -5,6 +5,7 @@ const files = [
   { path: "supabase/tests/practice_profiles.test.sql", plan: 20 },
   { path: "supabase/tests/practice_access.test.sql", plan: 16 },
   { path: "supabase/tests/practice_invitations.test.sql", plan: 16 },
+  { path: "supabase/tests/practice_recipients.test.sql", plan: 20 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -85,6 +86,63 @@ cases.push(
     mutation:
       "grant execute on function public.accept_practice_invitation(text) to anon",
     expected: ["S33 anonymous accept denied"],
+  },
+);
+for (const [table, constraint, composite] of [
+  [
+    "private.practice_reminder_settings",
+    "practice_reminder_settings_practice_id_fkey",
+    false,
+  ],
+  [
+    "private.practice_reminder_settings",
+    "practice_reminder_settings_member_fkey",
+    true,
+  ],
+  [
+    "private.practice_recipient_events",
+    "practice_recipient_events_practice_id_fkey",
+    false,
+  ],
+  [
+    "private.practice_recipient_events",
+    "practice_recipient_events_actor_user_id_fkey",
+    false,
+  ],
+  [
+    "private.practice_recipient_events",
+    "practice_recipient_events_before_fkey",
+    true,
+  ],
+  [
+    "private.practice_recipient_events",
+    "practice_recipient_events_after_fkey",
+    true,
+  ],
+])
+  cases.push({
+    id: constraint,
+    file: files[3],
+    mutation: `alter table ${table} drop constraint ${constraint}`,
+    expected: [
+      "R12 recipient foreign keys restrict deletion",
+      ...(composite ? ["R12 composite tenant references"] : []),
+    ],
+  });
+cases.push(
+  {
+    id: "recipient-private-grant",
+    file: files[3],
+    mutation:
+      "grant select on private.practice_recipient_events to authenticated",
+    expected: ["R11 recipient audit denied"],
+  },
+  {
+    id: "recipient-anonymous-rpc",
+    file: files[3],
+    mutation:
+      "grant execute on function public.set_practice_reminder_recipient(uuid,uuid,integer) to anon",
+    expected: ["R11 anonymous assignment denied"],
   },
 );
 const reports = [];

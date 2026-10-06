@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup and staff access are implemented.** The renewal register, calendar, and SMS reminders are planned features.
+**Early development: practice setup, staff access, and reminder responsibility are implemented locally.** The renewal register, calendar, and SMS reminders are planned features.
 
 Today, users can:
 
@@ -18,14 +18,18 @@ Today, users can:
 - Copy staff invitation links valid for seven elapsed days; staff verify their email and explicitly accept.
 - Assign administrator, office manager, or viewer roles and revoke access while retaining an active administrator.
 - Cancel invitations or reissue a fresh link when the original response is lost.
+- Assign, replace, or explicitly clear one reminder recipient as an administrator or manager.
+- Automatically clear the assignment when the selected member is revoked or becomes a viewer.
 
 Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
+
+Recipient assignment records responsibility, with an independent version and private transaction audit. It does not enroll a phone or schedule texts; readiness remains “SMS setup pending.” Existing and new practices start unassigned. Viewers see the selection without a candidate roster.
 
 The reminder preview in practice settings is an **example**, not a scheduled notification. The hosted pilot is available at [license-radar.vercel.app](https://license-radar.vercel.app), using Vercel and the existing hosted Supabase project. Email-code sign-in uses the configured Resend SMTP provider. The original pilot setup used Resend’s test sender, which delivers only to the Resend account address; onboarding other staff requires a verified sending domain. Invitation links are shared manually.
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. The next story, E1-S3, assigns reminder recipients.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is implemented locally; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. The next register story is E2-S1.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -106,7 +110,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 28-layer verification pipeline, including upgrade/rollback rehearsal and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 29-layer verification pipeline, including E1-S1 and E1-S2 upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -125,3 +129,6 @@ Place the checksum-verified Gitleaks binary at `.tools/gitleaks`; versions, chec
 - [E1-S2 executable specification](thoughts/shared/plans/2026-10-05-e1-s2-old-coder-spec.md).
 - [E1-S2 implementation evidence](thoughts/shared/research/2026-10-05-e1-s2-old-coder-evidence.md).
 - [Project verification report](thoughts/shared/research/2026-10-03-e1-s1-project-verification.md) — results tied to the tested source, recovery regression, and verification boundaries.
+
+- [E1-S3 implementation plan](thoughts/shared/plans/2026-10-05-e1-s3-responsible-reminder-recipient.md).
+- [E1-S3 implementation evidence](thoughts/shared/research/2026-10-05-e1-s3-implementation-evidence.md).

@@ -273,6 +273,126 @@
       "is_nullable": "NO"
     },
     {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "operation",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_version",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_version",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "reason",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "occurred_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "version",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
       "table_schema": "public",
       "table_name": "practice_memberships",
       "column_name": "id",
@@ -466,8 +586,14 @@
     },
     {
       "nspname": "private",
+      "proname": "change_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION private.change_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_reason text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.membership_id is not distinct from p_membership_id then return; end if;\n    update private.practice_reminder_settings set membership_id = p_membership_id,\n        version = version + 1, updated_at = pg_catalog.clock_timestamp() where practice_id = p_practice_id;\n    insert into private.practice_recipient_events\n        (practice_id, actor_user_id, operation, before_membership_id, after_membership_id,\n         before_version, after_version, reason)\n    values (p_practice_id, auth.uid(),\n        case when p_reason is not null then 'member-invalidated'\n             when settings.membership_id is null then 'assigned'\n             when p_membership_id is null then 'cleared' else 'replaced' end,\n        settings.membership_id, p_membership_id, settings.version, settings.version + 1, p_reason);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "create_practice",
-      "definition": "CREATE OR REPLACE FUNCTION private.create_practice(p_name text, p_timezone text)\n RETURNS practices\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    result public.practices;\n    actor uuid := auth.uid();\nbegin\n    if actor is null or not exists (select 1 from auth.users\n                                   where id = actor and email_confirmed_at is not null) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\n    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(actor::text, 0));\n    select p.* into result from public.practices as p\n    join public.practice_memberships as m on m.practice_id = p.id\n    where m.user_id = actor and m.state = 'active';\n    if found then return result; end if;\n    insert into public.practices (name, timezone) values (p_name, p_timezone)\n    returning * into result;\n    insert into public.practice_memberships (practice_id, user_id, role)\n    values (result.id, actor, 'administrator');\n    return result;\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.create_practice(p_name text, p_timezone text)\n RETURNS practices\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    result public.practices;\n    actor uuid := auth.uid();\nbegin\n    if actor is null or not exists (select 1 from auth.users\n                                   where id = actor and email_confirmed_at is not null) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\n    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(actor::text, 0));\n    select p.* into result from public.practices as p\n    join public.practice_memberships as m on m.practice_id = p.id\n    where m.user_id = actor and m.state = 'active';\n    if found then return result; end if;\n    insert into public.practices (name, timezone) values (p_name, p_timezone)\n    returning * into result;\n    insert into public.practice_memberships (practice_id, user_id, role)\n    values (result.id, actor, 'administrator');\n    insert into private.practice_reminder_settings (practice_id) values (result.id);\n    return result;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -486,6 +612,18 @@
       "nspname": "private",
       "proname": "ensure_administrator",
       "definition": "CREATE OR REPLACE FUNCTION private.ensure_administrator()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    target uuid;\nbegin\n    if tg_table_name = 'practices' then\n        target := new.id;\n    elsif tg_op = 'DELETE' then\n        target := old.practice_id;\n    else\n        target := new.practice_id;\n    end if;\n    perform 1 from public.practices where id = target for update;\n    if found and not exists (select 1 from public.practice_memberships\n                             where practice_id = target and state = 'active'\n                               and role = 'administrator') then\n        raise exception 'Practice requires an active administrator' using errcode = '23514';\n    end if;\n    if tg_table_name = 'practice_memberships' then\n        if tg_op = 'UPDATE' then\n            if old.practice_id <> new.practice_id then\n                raise exception 'Membership practice is immutable' using errcode = '23514';\n            end if;\n        end if;\n    end if;\n    return null;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "get_practice_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION private.get_practice_reminder_recipient(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    can_edit boolean;\n    settings private.practice_reminder_settings;\n    selected jsonb;\n    readiness text;\n    result jsonb;\nbegin\n    can_edit := private.require_recipient_member(p_practice_id, false);\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    select pg_catalog.jsonb_build_object('id', m.id, 'email', u.email, 'role', m.role, 'state', m.state)\n    into selected from public.practice_memberships m join auth.users u on u.id = m.user_id\n    where m.practice_id = p_practice_id and m.id = settings.membership_id;\n    readiness := case when settings.membership_id is null then 'no-recipient'\n        when selected->>'state' = 'active' and selected->>'role' in ('administrator', 'manager')\n            then 'sms-setup-pending' else 'member-unavailable' end;\n    result := pg_catalog.jsonb_build_object('version', settings.version, 'selected', selected,\n        'readiness', readiness, 'ready', false, 'canEdit', can_edit);\n    if can_edit then\n        result := result || pg_catalog.jsonb_build_object('candidates', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', m.id, 'email', u.email, 'role', m.role, 'state', m.state) order by m.created_at, m.id)\n            from public.practice_memberships m join auth.users u on u.id = m.user_id\n            where m.practice_id = p_practice_id and m.state = 'active'\n                and m.role in ('administrator', 'manager')\n        ), '[]'::jsonb));\n    end if;\n    return result;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "invalidate_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION private.invalidate_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_reason text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.membership_id = p_membership_id then\n        perform private.change_reminder_recipient(p_practice_id, null, p_reason);\n    end if;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -515,7 +653,7 @@
     {
       "nspname": "private",
       "proname": "mutate_member",
-      "definition": "CREATE OR REPLACE FUNCTION private.mutate_member(p_membership_id uuid, p_expected_version integer, p_role text, p_revoke boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    member public.practice_memberships;\nbegin\n    select * into member from public.practice_memberships where id=p_membership_id;\n    perform private.require_administrator(member.practice_id);\n    select * into member from public.practice_memberships where id=p_membership_id for update;\n    if p_expected_version is null or p_expected_version < 1 or\n       (not p_revoke and (p_role is null or p_role not in ('administrator','manager','viewer'))) then\n        raise exception 'Invalid member input' using errcode='23514';\n    end if;\n    if p_revoke and member.state='revoked' then return '{\"status\":\"success\"}'::jsonb; end if;\n    if member.version <> p_expected_version or member.state <> 'active' then return '{\"status\":\"conflict\"}'::jsonb; end if;\n    if member.role='administrator' and (p_revoke or p_role <> 'administrator')\n       and (select count(*) from public.practice_memberships where practice_id=member.practice_id\n            and role='administrator' and state='active') <= 1 then return '{\"status\":\"last-administrator\"}'::jsonb; end if;\n    if not p_revoke and member.role=p_role then return '{\"status\":\"success\"}'::jsonb; end if;\n    if p_revoke then\n        update public.practice_memberships set state='revoked',revoked_at=pg_catalog.clock_timestamp(),\n            version=version+1,updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    else\n        update public.practice_memberships set role=p_role,version=version+1,\n            updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    end if;\n    return '{\"status\":\"success\"}'::jsonb;\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.mutate_member(p_membership_id uuid, p_expected_version integer, p_role text, p_revoke boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    member public.practice_memberships;\nbegin\n    select * into member from public.practice_memberships where id=p_membership_id;\n    perform private.require_administrator(member.practice_id);\n    select * into member from public.practice_memberships where id=p_membership_id for update;\n    if p_expected_version is null or p_expected_version < 1 or\n       (not p_revoke and (p_role is null or p_role not in ('administrator','manager','viewer'))) then\n        raise exception 'Invalid member input' using errcode='23514';\n    end if;\n    if p_revoke and member.state='revoked' then return '{\"status\":\"success\"}'::jsonb; end if;\n    if member.version <> p_expected_version or member.state <> 'active' then return '{\"status\":\"conflict\"}'::jsonb; end if;\n    if member.role='administrator' and (p_revoke or p_role <> 'administrator')\n       and (select count(*) from public.practice_memberships where practice_id=member.practice_id\n            and role='administrator' and state='active') <= 1 then return '{\"status\":\"last-administrator\"}'::jsonb; end if;\n    if not p_revoke and member.role=p_role then return '{\"status\":\"success\"}'::jsonb; end if;\n    if p_revoke then\n        update public.practice_memberships set state='revoked',revoked_at=pg_catalog.clock_timestamp(),\n            version=version+1,updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    else\n        update public.practice_memberships set role=p_role,version=version+1,\n            updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    end if;\n    if p_revoke or p_role = 'viewer' then\n        perform private.invalidate_reminder_recipient(member.practice_id, p_membership_id,\n            case when p_revoke then 'revoked' else 'role-viewer' end);\n    end if;\n    return '{\"status\":\"success\"}'::jsonb;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -538,8 +676,20 @@
     },
     {
       "nspname": "private",
+      "proname": "require_recipient_member",
+      "definition": "CREATE OR REPLACE FUNCTION private.require_recipient_member(p_practice_id uuid, p_edit boolean)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    actor_role text;\nbegin\n    perform 1 from public.practices where id = p_practice_id for update;\n    select role into actor_role from public.practice_memberships\n    where practice_id = p_practice_id and user_id = auth.uid() and state = 'active';\n    if actor_role is null or (p_edit and actor_role not in ('administrator', 'manager')) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\n    return actor_role in ('administrator', 'manager');\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "revoke_practice_member",
       "definition": "CREATE OR REPLACE FUNCTION private.revoke_practice_member(p_membership_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select private.mutate_member(p_membership_id,p_expected_version,null,true);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "set_practice_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION private.set_practice_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    perform private.require_recipient_member(p_practice_id, true);\n    if p_expected_version is null or p_expected_version < 1 then\n        raise exception 'Invalid version' using errcode = '23514';\n    end if;\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.version <> p_expected_version then return '{\"status\":\"conflict\"}'::jsonb; end if;\n    if p_membership_id is not null and not exists (\n        select 1 from public.practice_memberships where id = p_membership_id and practice_id = p_practice_id\n            and state = 'active' and role in ('administrator', 'manager')\n    ) then return '{\"status\":\"invalid-recipient\"}'::jsonb; end if;\n    perform private.change_reminder_recipient(p_practice_id, p_membership_id, null);\n    return pg_catalog.jsonb_build_object('status', 'success',\n        'recipient', private.get_practice_reminder_recipient(p_practice_id));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -586,6 +736,12 @@
     },
     {
       "nspname": "public",
+      "proname": "get_practice_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_practice_reminder_recipient(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_practice_reminder_recipient(p_practice_id);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "list_practice_team",
       "definition": "CREATE OR REPLACE FUNCTION public.list_practice_team(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.list_practice_team(p_practice_id);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -606,6 +762,12 @@
       "nspname": "public",
       "proname": "revoke_practice_member",
       "definition": "CREATE OR REPLACE FUNCTION public.revoke_practice_member(p_membership_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.revoke_practice_member(p_membership_id,p_expected_version);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "set_practice_reminder_recipient",
+      "definition": "CREATE OR REPLACE FUNCTION public.set_practice_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.set_practice_reminder_recipient(p_practice_id, p_membership_id, p_expected_version);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1720,6 +1882,426 @@
     },
     {
       "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "after_version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "before_version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "occurred_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "occurred_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "occurred_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "occurred_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "operation",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "operation",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "operation",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "operation",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "reason",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "reason",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "reason",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_recipient_events",
+      "column_name": "reason",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "updated_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "updated_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "updated_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_reminder_settings",
+      "column_name": "version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
       "table_schema": "public",
       "table_name": "practice_memberships",
       "column_name": "created_at",
@@ -2296,6 +2878,16 @@
       "relrowsecurity": true
     },
     {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_reminder_settings",
+      "relrowsecurity": true
+    },
+    {
       "nspname": "public",
       "relname": "practice_memberships",
       "relrowsecurity": true
@@ -2428,6 +3020,96 @@
       "definition": "CHECK ((version > 0))"
     },
     {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_after_fkey",
+      "definition": "FOREIGN KEY (practice_id, after_membership_id) REFERENCES practice_memberships(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_before_fkey",
+      "definition": "FOREIGN KEY (practice_id, before_membership_id) REFERENCES practice_memberships(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_before_version_check",
+      "definition": "CHECK ((before_version > 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_check",
+      "definition": "CHECK ((after_version = (before_version + 1)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_check1",
+      "definition": "CHECK (((operation = 'member-invalidated'::text) = (reason IS NOT NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_check2",
+      "definition": "CHECK ((((operation = 'assigned'::text) AND (before_membership_id IS NULL) AND (after_membership_id IS NOT NULL)) OR ((operation = 'replaced'::text) AND (before_membership_id IS NOT NULL) AND (after_membership_id IS NOT NULL) AND (before_membership_id <> after_membership_id)) OR ((operation = ANY (ARRAY['cleared'::text, 'member-invalidated'::text])) AND (before_membership_id IS NOT NULL) AND (after_membership_id IS NULL))))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_operation_check",
+      "definition": "CHECK ((operation = ANY (ARRAY['assigned'::text, 'replaced'::text, 'cleared'::text, 'member-invalidated'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_recipient_events",
+      "conname": "practice_recipient_events_reason_check",
+      "definition": "CHECK ((reason = ANY (ARRAY['revoked'::text, 'role-viewer'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_reminder_settings",
+      "conname": "practice_reminder_settings_member_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id) REFERENCES practice_memberships(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_reminder_settings",
+      "conname": "practice_reminder_settings_pkey",
+      "definition": "PRIMARY KEY (practice_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_reminder_settings",
+      "conname": "practice_reminder_settings_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_reminder_settings",
+      "conname": "practice_reminder_settings_version_check",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
       "nspname": "public",
       "relname": "practice_memberships",
       "conname": "membership_requires_administrator",
@@ -2450,6 +3132,12 @@
       "relname": "practice_memberships",
       "conname": "practice_memberships_practice_id_fkey",
       "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "public",
+      "relname": "practice_memberships",
+      "conname": "practice_memberships_practice_id_id_key",
+      "definition": "UNIQUE (practice_id, id)"
     },
     {
       "nspname": "public",
@@ -2592,6 +3280,48 @@
       "indexdef": "CREATE UNIQUE INDEX practice_invitations_token_digest_key ON private.practice_invitations USING btree (token_digest)"
     },
     {
+      "schemaname": "private",
+      "tablename": "practice_recipient_events",
+      "indexname": "practice_recipient_events_actor_idx",
+      "indexdef": "CREATE INDEX practice_recipient_events_actor_idx ON private.practice_recipient_events USING btree (actor_user_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_recipient_events",
+      "indexname": "practice_recipient_events_after_idx",
+      "indexdef": "CREATE INDEX practice_recipient_events_after_idx ON private.practice_recipient_events USING btree (after_membership_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_recipient_events",
+      "indexname": "practice_recipient_events_before_idx",
+      "indexdef": "CREATE INDEX practice_recipient_events_before_idx ON private.practice_recipient_events USING btree (before_membership_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_recipient_events",
+      "indexname": "practice_recipient_events_pkey",
+      "indexdef": "CREATE UNIQUE INDEX practice_recipient_events_pkey ON private.practice_recipient_events USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_recipient_events",
+      "indexname": "practice_recipient_events_practice_idx",
+      "indexdef": "CREATE INDEX practice_recipient_events_practice_idx ON private.practice_recipient_events USING btree (practice_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_reminder_settings",
+      "indexname": "practice_reminder_settings_member_idx",
+      "indexdef": "CREATE INDEX practice_reminder_settings_member_idx ON private.practice_reminder_settings USING btree (membership_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "practice_reminder_settings",
+      "indexname": "practice_reminder_settings_pkey",
+      "indexdef": "CREATE UNIQUE INDEX practice_reminder_settings_pkey ON private.practice_reminder_settings USING btree (practice_id)"
+    },
+    {
       "schemaname": "public",
       "tablename": "practice_memberships",
       "indexname": "practice_memberships_one_active_user",
@@ -2602,6 +3332,12 @@
       "tablename": "practice_memberships",
       "indexname": "practice_memberships_pkey",
       "indexdef": "CREATE UNIQUE INDEX practice_memberships_pkey ON public.practice_memberships USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "practice_memberships",
+      "indexname": "practice_memberships_practice_id_id_key",
+      "indexdef": "CREATE UNIQUE INDEX practice_memberships_practice_id_id_key ON public.practice_memberships USING btree (practice_id, id)"
     },
     {
       "schemaname": "public",

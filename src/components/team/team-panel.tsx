@@ -64,7 +64,9 @@ function PendingInvitation({
 export function TeamPanel({
   team,
   action,
+  recipientId,
 }: {
+  recipientId?: string;
   team: Team;
   action: TeamAction;
 }) {
@@ -82,7 +84,11 @@ export function TeamPanel({
             <p className="hint">
               {roleLabels[member.role]} · {member.state}
             </p>
-            <MemberControls member={member} action={action} />
+            <MemberControls
+              member={member}
+              action={action}
+              recipient={member.id === recipientId}
+            />
           </article>
         ))}
       </section>

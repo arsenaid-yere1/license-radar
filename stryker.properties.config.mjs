@@ -4,6 +4,7 @@ const configOptions = {
   mutate: [
     "src/lib/practice/schema.ts",
     "src/lib/team/schema.ts",
+    "src/lib/recipients/schema.ts",
     "src/lib/team/invitations.ts",
   ],
   vitest: { configFile: "vitest.properties.config.ts" },

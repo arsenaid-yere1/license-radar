@@ -131,6 +131,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_practice_reminder_recipient: {
+        Args: { p_practice_id: string };
+        Returns: Json;
+      };
       list_practice_team: { Args: { p_practice_id: string }; Returns: Json };
       preview_practice_invitation: {
         Args: { p_token_digest: string };
@@ -146,6 +150,14 @@ export type Database = {
       };
       revoke_practice_member: {
         Args: { p_expected_version: number; p_membership_id: string };
+        Returns: Json;
+      };
+      set_practice_reminder_recipient: {
+        Args: {
+          p_expected_version: number;
+          p_membership_id: string;
+          p_practice_id: string;
+        };
         Returns: Json;
       };
       update_practice: {
