@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, and reminder responsibility are implemented locally.** The renewal register, calendar, and SMS reminders are planned features.
+**Early development: practice setup, staff access, and reminder responsibility are live in the hosted pilot.** The renewal register, calendar, and SMS reminders are planned features.
 
 Today, users can:
 
@@ -29,7 +29,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is implemented locally; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. The next register story is E2-S1.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. The next register story is E2-S1.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
