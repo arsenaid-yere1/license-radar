@@ -42,7 +42,7 @@ function RecipientControl({
   const router = useRouter();
   const [state, submit, pending] = useActionState<RecipientState, FormData>(
     async (previous, form) => {
-      const next = await action(previous, form);
+      const next = await safeRecipientAction(action, previous, form);
       if (next.status === "success" && next.recipient) {
         setCommitted(next.recipient);
         setChoice(next.recipient.selected?.id ?? "");
@@ -180,4 +180,19 @@ function RecipientFeedback({
       )}
     </>
   );
+}
+
+async function safeRecipientAction(
+  action: RecipientAction,
+  previous: RecipientState,
+  form: FormData,
+): Promise<RecipientState> {
+  try {
+    return await action(previous, form);
+  } catch {
+    return {
+      status: "conflict",
+      message: "We could not confirm this save. Reload before saving again.",
+    };
+  }
 }

@@ -221,3 +221,26 @@ it("R19 authoritative newer assignment replaces a draft on refresh", () => {
       .value,
   ).toBe(two.id);
 });
+it("R19 a lost action response retains choice and requires explicit reload", async () => {
+  render(
+    <RecipientPanel
+      recipient={recipient}
+      action={vi.fn().mockRejectedValue(new Error("private transport error"))}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText("Proposed reminder recipient"), {
+    target: { value: two.id },
+  });
+  submit();
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toBe(
+      "We could not confirm this save. Reload before saving again.",
+    ),
+  );
+  expect(
+    (screen.getByLabelText("Proposed reminder recipient") as HTMLSelectElement)
+      .value,
+  ).toBe(two.id);
+  expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole("link", { name: "Reload recipient" })).toBeTruthy();
+});

@@ -22,7 +22,7 @@ This is one Next.js application. Routes/actions own navigation and verified requ
 | AC6 private atomic audit | R04 exact actor/IDs/versions/reason/time; R08 assignment/replacement/clear/invalidation audit faults; R11 SQL grants; R12 event shape |
 | AC7 access invalidation/rejoin | R05 eligible transition, viewer demotion, revoke and rejoin; R08 atomic access/membership/recipient rollback; R09 missing settings fails even unselected invalidation; R22 team explanation/demotion |
 | AC8 post-wait live checks | R07 independent practice-only lock witness, candidate demotion/revoke, revoked editor, and assignment-before-demotion, all with separate sessions and observed wait |
-| AC9 recovery/version state | R13/R15–R17 strict values/duplicates/files/forged fields/outages/malformed responses; R19 panel retained choice/pending/newest version; R21 conflict; R23 real storage failure and blocked pending action; R24 candidate invalidation recovery |
+| AC9 recovery/version state | R13/R15–R17 strict values/duplicates/files/forged fields/outages/malformed responses; R19 panel retained choice/pending/newest version; R21 conflict; R23 real storage failure and blocked pending action; R24 candidate invalidation recovery; R25 deliberately lost browser response after successful database commit |
 | AC10 UI/accessibility/regression | R20 clear confirmation; R21 keyboard, axe and 375px overflow; R22 roles; R23 foreign-Origin rejection; inherited profile/team/join browser suite |
 
 ## Verification workflow
@@ -40,3 +40,5 @@ Minor plan adjustment: extracted the existing catalog queries unchanged into `to
 Agent visual inspection of the local mobile screenshot is distinct from user acceptance. Automated keyboard/axe/overflow checks do not claim user-confirmed manual testing.
 
 SMS readiness remains false. Original rule 9 (cancel former unsent jobs and create eligible in-window catch-up jobs) remains a mandatory E2/E4 gate, detailed in the approved plan. The foundation does not complete that original SMS criterion. Production migration/deployment and real recipient changes remain separately authorized work.
+
+Final review added client-side handling for action transport exceptions. A lost response keeps the proposed selection, reports that the save could not be confirmed, disables repeat submission, and requires reload to reconcile committed state. The initial gauntlet controller was stopped before the SQL fault campaign, then restarted from the updated local checkpoint.

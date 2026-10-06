@@ -389,3 +389,45 @@ test("R24 candidate invalidated after picker load rejects safely without losing 
     db.release();
   }
 });
+test("R25 lost response after commit requires reload and preserves the proposed recipient", async ({
+  page,
+}) => {
+  await setup(page);
+  const member = (
+    await pool.query(
+      "select * from public.practice_memberships order by created_at desc limit 1",
+    )
+  ).rows[0];
+  await page.getByLabel("Proposed reminder recipient").selectOption(member.id);
+  await page.route("**/practice", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    await route.fetch();
+    await route.abort("failed");
+  });
+  await page.getByRole("button", { name: "Save recipient" }).click();
+  await expect(page.locator("p[role=alert]")).toHaveText(
+    "We could not confirm this save. Reload before saving again.",
+  );
+  await expect(page.getByLabel("Proposed reminder recipient")).toHaveValue(
+    member.id,
+  );
+  await expect(
+    page.getByRole("button", { name: "Save recipient" }),
+  ).toBeDisabled();
+  expect(
+    (
+      await pool.query(
+        "select membership_id,version from private.practice_reminder_settings where practice_id=$1",
+        [member.practice_id],
+      )
+    ).rows,
+  ).toEqual([{ membership_id: member.id, version: 2 }]);
+  await page.unroute("**/practice");
+  await page.getByRole("link", { name: "Reload recipient" }).click();
+  await expect(
+    page.getByRole("button", { name: "Save recipient" }),
+  ).toBeEnabled();
+  await expect(page.getByLabel("Proposed reminder recipient")).toHaveValue(
+    member.id,
+  );
+});
