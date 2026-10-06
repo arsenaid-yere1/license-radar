@@ -3,11 +3,29 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { assertCoverage } from "./check-coverage.mjs";
 import { assertLocal } from "./local-environment.mjs";
-import { assertLayers, assertMutant } from "./gauntlet-contract.mjs";
+import {
+  assertArtifact,
+  assertLayers,
+  assertMutant,
+} from "./gauntlet-contract.mjs";
 const fixtures = JSON.parse(
   readFileSync("tests/fixtures/gauntlet-controls/controls.json", "utf8"),
 );
 const covered = fixtures.covered;
+test("UI fault evidence retains assertion classification without invitation-bearing diagnostics", async () => {
+  const { mutationFailureEvidence } =
+    await import("./ui-coverage-sensitivity.mjs");
+  const token = "fixture-invitation-capability";
+  const evidence = mutationFailureEvidence([
+    `AssertionError: expected status; DOM includes /join#token=${token}`,
+    `unexpected transport failure ${token}`,
+  ]);
+  assert.doesNotThrow(() => assertArtifact(JSON.stringify(evidence), [token]));
+  assert.deepEqual(evidence, [
+    { assertionFailure: true },
+    { assertionFailure: false },
+  ]);
+});
 test("coverage accepts executed source", () =>
   assert.doesNotThrow(() => assertCoverage(covered, ["src/example.ts"])));
 test("missing coverage hard failure", () =>

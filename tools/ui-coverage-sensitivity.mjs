@@ -29,6 +29,11 @@ const faults = [
     name: "S35 cancelling administrator demotion prevents submission and confirmation preserves target version",
   },
 ];
+export function mutationFailureEvidence(messages) {
+  return messages.map((message) => ({
+    assertionFailure: assertionFailure(message),
+  }));
+}
 function execute(fault) {
   const output = "reports/ui-coverage-sensitivity-run.json";
   rmSync(output, { force: true });
@@ -82,7 +87,7 @@ export function uiCoverageSensitivity() {
         exitCode: result.run.status,
         applied: true,
         killed: true,
-        failures: result.failures,
+        failures: mutationFailureEvidence(result.failures),
       });
     } finally {
       writeFileSync(fault.source, original);
