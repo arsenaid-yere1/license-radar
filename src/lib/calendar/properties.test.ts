@@ -357,3 +357,57 @@ it("CP02 exact query round trips and invalid scalar rejection never broaden filt
     { ...defaults, jurisdiction: "unknown" },
   );
 });
+
+it("CP01 undated order follows title then credential identity independent of insertion order", () => {
+  fc.assert(
+    fc.property(
+      fc.uniqueArray(
+        fc.record({
+          title: fc.constantFrom("A", "Z", "É", "Same"),
+          number: fc.integer({ min: 1, max: 9999 }),
+        }),
+        { minLength: 2, maxLength: 20, selector: (r) => r.number },
+      ),
+      (inputs) => {
+        const credentials: MaintenanceRegister["credentials"] = inputs.map(
+          ({ title, number }) => ({
+            id: id(number),
+            title,
+            type: "state_license",
+            owner_kind: "practice",
+            owner_clinician_id: null,
+            owner_name: "Practice",
+            version: 1,
+            covered_clinicians: [],
+            issuer: null,
+            jurisdiction: null,
+            archived_at: null,
+            suspected_duplicate_ids: [],
+            current_cycle: {
+              id: id(number + 10000),
+              cycle_number: 1,
+              date_revision: 1,
+              end_date: null,
+              action_deadline: null,
+            },
+          }),
+        );
+        const expected = [...credentials].sort((a, b) => {
+          if (a.title !== b.title) return a.title < b.title ? -1 : 1;
+          return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        const before = structuredClone(credentials);
+        for (const month of ["0001-01", "2028-02", "9999-12"]) {
+          expect(
+            projectCalendar(
+              { clinicians: [], credentials },
+              { month, invalidFilters: false, notices: [] },
+            ),
+          ).toEqual({ events: [], undated: expected });
+        }
+        expect(credentials).toEqual(before);
+      },
+    ),
+    options,
+  );
+});
