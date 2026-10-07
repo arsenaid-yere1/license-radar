@@ -15,7 +15,7 @@ const faults = [
     name: "D11 type switches reset dates and metadata; owner changes preserve the draft",
   },
   {
-    source: "src/components/register/register-panel.tsx",
+    source: "src/components/register/record-dates.tsx",
     from: "cycle.action_deadline,",
     to: "null,",
     file: "tests/unit/register-forms.test.tsx",
