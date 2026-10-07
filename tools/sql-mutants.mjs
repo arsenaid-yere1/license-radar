@@ -695,6 +695,195 @@ mutants.push({
   pattern: "^D01|^D09",
   apply: () => dropTrigger("public.credentials", "initialize_credential_cycle"),
 });
+
+const maintenance = "tests/integration/practice-register-maintenance.test.ts";
+const change =
+  "private.apply_credential_change(uuid,uuid,uuid,integer,uuid,integer,jsonb)";
+const finishChange =
+  "private.finish_register_change(uuid,uuid,uuid,text,jsonb,jsonb,jsonb)";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "maintenance-version-freshness",
+    change,
+    "credential.version <> p_expected_version",
+    "false",
+    "^M04",
+  ],
+  [
+    "maintenance-cycle-freshness",
+    change,
+    "cycle.id <> p_expected_cycle_id",
+    "false",
+    "^M04",
+  ],
+  [
+    "maintenance-revision-freshness",
+    change,
+    "cycle.date_revision <> p_expected_date_revision",
+    "false",
+    "^M04",
+  ],
+  [
+    "maintenance-replay",
+    change,
+    "if result is not null then return result; end if;",
+    "perform 1;",
+    "^M06|^M05",
+  ],
+  [
+    "maintenance-payload-conflict",
+    "private.register_change_replay(uuid,uuid,text,jsonb)",
+    "receipt.operation <> p_operation or receipt.payload <> p_payload",
+    "false",
+    "^M06",
+  ],
+  [
+    "maintenance-caller-scope",
+    "private.register_change_replay(uuid,uuid,text,jsonb)",
+    "and actor_user_id = auth.uid()",
+    "",
+    "^M06",
+  ],
+  [
+    "maintenance-audit",
+    finishChange,
+    /insert into private.register_audit_events[\s\S]*?p_result->'credential'\);/,
+    "perform 1;",
+    "^M01|^M07",
+  ],
+  [
+    "maintenance-receipt",
+    finishChange,
+    /insert into private.register_change_requests[\s\S]*?p_payload, p_result\);/,
+    "perform 1;",
+    "^M06|^M07",
+  ],
+  [
+    "maintenance-noop-audit",
+    finishChange,
+    "if (p_result->>'changed')::boolean then",
+    "if true then",
+    "^M01 M03",
+  ],
+  [
+    "maintenance-noop-write",
+    change,
+    "changed := date_changed or",
+    "changed := true or",
+    "^M01 M03",
+  ],
+  [
+    "maintenance-date-revision",
+    change,
+    "date_revision = date_revision + 1",
+    "date_revision = date_revision",
+    "^M01 M02",
+  ],
+  [
+    "maintenance-date-guard",
+    change,
+    "if date_changed then",
+    "if true then",
+    "^M01 M03",
+  ],
+  [
+    "maintenance-archive-version",
+    change,
+    "version = version + 1",
+    "version = version",
+    "^M05",
+  ],
+  [
+    "maintenance-archive-state",
+    change,
+    "archived_at = pg_catalog.clock_timestamp()",
+    "archived_at = null",
+    "^M05",
+  ],
+  [
+    "maintenance-legacy-active",
+    "private.list_practice_register(uuid)",
+    "and c.archived_at is null",
+    "",
+    "^M05",
+  ],
+  [
+    "maintenance-list-active",
+    "private.list_practice_register_with_maintenance(uuid,boolean)",
+    "and (p_include_archived or c.archived_at is null)",
+    "",
+    "^M05",
+  ],
+  [
+    "maintenance-duplicate-tenant",
+    "private.credential_duplicate_ids(public.credentials)",
+    "c.practice_id = p_record.practice_id and",
+    "",
+    "^M10",
+  ],
+  [
+    "maintenance-duplicate-owner",
+    "private.credential_duplicate_ids(public.credentials)",
+    /and c.owner_kind = p_record.owner_kind\s+and c.owner_clinician_id is not distinct from p_record.owner_clinician_id/,
+    "",
+    "^M10",
+  ],
+  [
+    "maintenance-duplicate-archive",
+    "private.credential_duplicate_ids(public.credentials)",
+    "p_record.archived_at is null and c.archived_at is null",
+    "true",
+    "^M10",
+  ],
+  [
+    "maintenance-duplicate-order",
+    "private.credential_duplicate_ids(public.credentials)",
+    "jsonb_agg(c.id order by c.id)",
+    "jsonb_agg(c.id order by c.id desc)",
+    "^M10",
+  ],
+  [
+    "maintenance-duplicate-ascii",
+    "private.duplicate_text(text)",
+    "'abcdefghijklmnopqrstuvwxyz'",
+    "'ABCDEFGHIJKLMNOPQRSTUVWXYZ'",
+    "^M10",
+  ],
+  [
+    "maintenance-update-entry",
+    "private.update_practice_credential(uuid,uuid,uuid,integer,uuid,integer,text,text,text,uuid,uuid[],text,text,text,text)",
+    "perform private.require_register_member(p_practice_id, true);",
+    "perform 1;",
+    "^M08 M09",
+  ],
+  [
+    "maintenance-archive-entry",
+    "private.archive_practice_credential(uuid,uuid,uuid,integer,uuid,integer)",
+    "perform private.require_register_member(p_practice_id, true);",
+    "perform 1;",
+    "^M08 M09",
+  ],
+  [
+    "maintenance-live-authority",
+    "private.require_register_member(uuid,boolean)",
+    /if p_edit is null or actor_role is null[\s\S]*?then/,
+    "if false then",
+    "^M08 queued",
+  ],
+  [
+    "maintenance-practice-lock",
+    "private.require_register_member(uuid,boolean)",
+    "for update;",
+    ";",
+    "^M08 queued",
+  ],
+])
+  mutants.push({
+    id,
+    file: maintenance,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

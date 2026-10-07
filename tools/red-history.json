@@ -231,5 +231,65 @@
         "restoredCasesPassed": true
       }
     ]
+  },
+  "e2s3": {
+    "approval": "not obtained (autonomous run)",
+    "specCommit": "fbb6617",
+    "runs": [
+      {
+        "report": "maintenance-red-api.json",
+        "phase": "before maintenance RPCs",
+        "observedFailedTests": 12,
+        "names": [
+          "M01 M02 corrections of every type owner and dates retain one initial cycle",
+          "M01 M03 coverage replacement precedes discriminator change and normalized no-op changes no business rows",
+          "M04 stale tokens conflict with safe current values and concurrent edits have one winner",
+          "M05 archive preserves cycle coverage and histories, hides legacy active reads, and prohibits new changes",
+          "M06 caller scoped replay precedes freshness and survives later edit archive and historical creation",
+          "M07 every mutation write stage fails atomically then exact key retry succeeds",
+          "M08 queued valid edits wait, demotion revocation and replay deny after the practice lock",
+          "M08 M09 M11 tenant roles direct writes helpers and foreign references deny safely",
+          "M10 duplicate matching is advisory reciprocal sorted active tenant scoped and excludes owner type metadata boundaries",
+          "M11 malformed SQL inputs and all inherited date ownership boundaries reject without writes",
+          "M15 missing cycle fails reads and mutations without fabricating dates or history",
+          "M17 integer exhaustion conflicts only for needed increments"
+        ]
+      },
+      {
+        "report": "maintenance-red-unit.json",
+        "phase": "before maintenance domain",
+        "observedFailedTests": 7,
+        "names": [
+          "M11 canonical maintenance schema retains authored rules and strict tokens",
+          "M11 live editor authority binds all canonical update and archive arguments",
+          "M08 authentication failures and current roles stop invalid payloads before writes",
+          "M11 invalid input and malformed replies never invent successful state",
+          "M04 M11 safe maintenance replies strip secrets and preserve every acknowledged outcome",
+          "M10 M15 maintenance read requires coherent archive and duplicate data without private fields",
+          "M11 FormData rejects forged scalar structure and keeps exact tokens"
+        ]
+      },
+      {
+        "report": "maintenance-red-forms.json",
+        "phase": "before maintenance interface",
+        "observedFailedTests": 4,
+        "names": [
+          "M12 prefilled edits cancel without writes and confirm a populated type reset",
+          "M12 definite errors retain draft and conflict requires explicit replacement and fresh tokens",
+          "M13 uncertain and pending freeze exact payload cancellation intent and view; retry confirms without stale resurrection",
+          "M10 M14 duplicates come from authoritative reads and viewers see archived inventory without controls"
+        ]
+      },
+      {
+        "report": "maintenance-red-route-action.json",
+        "phase": "before maintenance action and read route",
+        "observedFailedTests": 3,
+        "names": [
+          "M11 maintenance action preserves safe feedback and redirects outside catches",
+          "G19 register guards missing access and outages without fabricated empty state",
+          "M14 archived view is explicit and malformed query selects active"
+        ]
+      }
+    ]
   }
 }

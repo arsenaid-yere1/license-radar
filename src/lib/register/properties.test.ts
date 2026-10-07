@@ -1,6 +1,9 @@
 import { expect, it } from "vitest";
 import fc from "fast-check";
 import {
+  maintenanceInputSchema,
+  maintenanceCredentialSchema,
+  maintenanceRegisterSchema,
   registerInputSchema,
   registerSchema,
   clinicianSchema,
@@ -315,6 +318,234 @@ it("P01 exact boundary and discriminant error locate a malformed intent", () => 
     intent: "forged",
     requestId: id,
     name: "Rivera",
+  });
+  expect(parsed.success).toBe(false);
+  if (!parsed.success) expect(parsed.error.issues[0].path).toEqual(["intent"]);
+});
+
+it("P05 maintenance tokens and full authored combinations have canonical round trips", () => {
+  fc.assert(
+    fc.property(
+      fc.integer({ min: 1, max: 2147483647 }),
+      fc.boolean(),
+      fc.shuffledSubarray([id, other]),
+      (version, stringTokens, coverage) => {
+        const tokens = {
+          requestId: id,
+          id: other,
+          expectedCycleId: id,
+          expectedVersion: stringTokens ? String(version) : version,
+          expectedDateRevision: stringTokens ? String(version) : version,
+        };
+        const archive = { ...tokens, intent: "archive" };
+        expect(maintenanceInputSchema.parse(archive)).toEqual({
+          ...archive,
+          requestId: id.toLowerCase(),
+          expectedCycleId: id.toLowerCase(),
+          expectedVersion: version,
+          expectedDateRevision: version,
+        });
+        for (const type of [
+          "state_license",
+          "dea_registration",
+          "malpractice_policy",
+        ])
+          for (const ownerKind of ["practice", "clinician"]) {
+            const raw = {
+              ...base,
+              ...tokens,
+              intent: "update",
+              type,
+              ownerKind,
+              coveredClinicianIds: coverage,
+              ...(ownerKind === "clinician" ? { ownerClinicianId: id } : {}),
+            };
+            const parsed = maintenanceInputSchema.safeParse(raw);
+            expect(parsed.success).toBe(
+              !coverage.length ||
+                (type === "malpractice_policy" && ownerKind === "practice"),
+            );
+            if (parsed.success) {
+              expect(parsed.data).toEqual({
+                ...raw,
+                requestId: id.toLowerCase(),
+                expectedCycleId: id.toLowerCase(),
+                expectedVersion: version,
+                expectedDateRevision: version,
+                ...(ownerKind === "clinician"
+                  ? { ownerClinicianId: id.toLowerCase() }
+                  : {}),
+                issuer: null,
+                jurisdiction: null,
+                endDate: null,
+                actionDeadline: null,
+                coveredClinicianIds: coverage
+                  .map((x) => x.toLowerCase())
+                  .sort(),
+              });
+              expect(maintenanceInputSchema.parse(parsed.data)).toEqual(
+                parsed.data,
+              );
+            }
+          }
+      },
+    ),
+    { seed: 20261007, numRuns: 1000 },
+  );
+  const raw = {
+    ...base,
+    intent: "update",
+    id: other,
+    expectedVersion: 1,
+    expectedCycleId: id,
+    expectedDateRevision: 1,
+  };
+  for (const field of ["expectedVersion", "expectedDateRevision"])
+    for (const value of [
+      "",
+      "01",
+      " 1",
+      "1 ",
+      "+1",
+      "1.0",
+      "1e2",
+      "0",
+      "-1",
+      "2147483648",
+      null,
+      undefined,
+      0,
+      -1,
+      1.1,
+      2147483648,
+    ])
+      expect(
+        maintenanceInputSchema.safeParse({ ...raw, [field]: value }).success,
+      ).toBe(false);
+  for (const field of [
+    "practiceId",
+    "actor",
+    "archived_at",
+    "version",
+    "dateRevision",
+    "effectiveDate",
+  ])
+    expect(
+      maintenanceInputSchema.safeParse({ ...raw, [field]: id }).success,
+    ).toBe(false);
+  expect(
+    maintenanceInputSchema.parse({ ...raw, coveredClinicianIds: undefined }),
+  ).toEqual({
+    ...raw,
+    requestId: id.toLowerCase(),
+    expectedCycleId: id.toLowerCase(),
+    coveredClinicianIds: [],
+    issuer: null,
+    jurisdiction: null,
+    endDate: null,
+    actionDeadline: null,
+  });
+  for (const [field, message, value] of [
+    [
+      "ownerClinicianId",
+      "Choose a clinician for clinician ownership only.",
+      { ownerKind: "clinician" },
+    ],
+    [
+      "coveredClinicianIds",
+      "Choose each covered clinician once.",
+      { coveredClinicianIds: [id, id] },
+    ],
+    [
+      "coveredClinicianIds",
+      "Coverage is available only for a practice-owned malpractice policy.",
+      { type: "state_license", coveredClinicianIds: [id] },
+    ],
+    [
+      "actionDeadline",
+      "The action deadline must be earlier than the end date.",
+      { endDate: "2028-02-29", actionDeadline: "2028-02-29" },
+    ],
+  ] as const) {
+    const parsed = maintenanceInputSchema.safeParse({ ...raw, ...value });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success)
+      expect(parsed.error.issues).toContainEqual(
+        expect.objectContaining({ path: [field], message }),
+      );
+  }
+});
+it("P05 maintained projection requires valid archived timestamps and unique nonself active candidates", () => {
+  const record = {
+    id: other,
+    title: "Policy",
+    type: "state_license",
+    owner_kind: "practice",
+    owner_clinician_id: null,
+    owner_name: "Practice",
+    version: 1,
+    covered_clinicians: [],
+    issuer: null,
+    jurisdiction: null,
+    current_cycle: {
+      id: other,
+      cycle_number: 1,
+      date_revision: 1,
+      end_date: null,
+      action_deadline: null,
+    },
+    archived_at: null,
+  };
+  expect(
+    maintenanceCredentialSchema.parse({ ...record, secret: "private" }),
+  ).toEqual(record);
+  for (const archived_at of [undefined, "bad", 123, "2026-13-01T00:00:00Z"])
+    expect(
+      maintenanceCredentialSchema.safeParse({ ...record, archived_at }).success,
+    ).toBe(false);
+  for (const archived_at of [
+    null,
+    "2026-10-07T00:00:00Z",
+    "2026-10-07T00:00:00+00:00",
+  ])
+    for (const suspected_duplicate_ids of [
+      [],
+      [id],
+      [other],
+      [id, id.toLowerCase()],
+      ["bad"],
+    ]) {
+      const result = maintenanceRegisterSchema.safeParse({
+        clinicians: [],
+        credentials: [{ ...record, archived_at, suspected_duplicate_ids }],
+      });
+      const allowed =
+        !suspected_duplicate_ids.includes(other) &&
+        new Set(suspected_duplicate_ids.map((x) => x.toLowerCase())).size ===
+          suspected_duplicate_ids.length &&
+        !suspected_duplicate_ids.includes("bad") &&
+        (!archived_at || !suspected_duplicate_ids.length);
+      expect(result.success).toBe(allowed);
+      if (result.success)
+        expect(result.data).toEqual({
+          clinicians: [],
+          credentials: [
+            {
+              ...record,
+              archived_at,
+              suspected_duplicate_ids: suspected_duplicate_ids.map((x) =>
+                x.toLowerCase(),
+              ),
+            },
+          ],
+        });
+    }
+});
+
+it("P05 invalid maintenance intent identifies the discriminant for useful feedback", () => {
+  const parsed = maintenanceInputSchema.safeParse({
+    intent: "forged",
+    requestId: id,
   });
   expect(parsed.success).toBe(false);
   if (!parsed.success) expect(parsed.error.issues[0].path).toEqual(["intent"]);

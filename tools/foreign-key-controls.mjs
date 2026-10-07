@@ -10,6 +10,7 @@ const files = [
   { path: "supabase/tests/practice_recipients.test.sql", plan: 20 },
   { path: "supabase/tests/practice_register.test.sql", plan: 22 },
   { path: "supabase/tests/practice_credential_dates.test.sql", plan: 22 },
+  { path: "supabase/tests/practice_register_maintenance.test.sql", plan: 27 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -307,6 +308,140 @@ cases.push({
   mutation: "drop trigger initialize_credential_cycle on public.credentials",
   expected: ["D10 initial cycle trigger"],
 });
+
+for (const [id, mutation, expected] of [
+  [
+    "change-receipt-rls",
+    "alter table private.register_change_requests disable row level security",
+    ["M09 change receipt RLS"],
+  ],
+  [
+    "change-receipt-auth-grant",
+    "grant select on private.register_change_requests to authenticated",
+    ["M09 change receipt private denied"],
+  ],
+  [
+    "change-receipt-anon-grant",
+    "grant select on private.register_change_requests to anon",
+    ["M09 change receipt anonymous denied"],
+  ],
+  [
+    "change-caller-unique",
+    "alter table private.register_change_requests drop constraint register_change_requests_practice_id_actor_user_id_request__key",
+    [
+      "M09 change caller request uniqueness",
+      "M09 SQL duplicate mutation receipt rejected",
+    ],
+  ],
+  [
+    "change-before-shape",
+    "alter table private.register_audit_events drop constraint register_audit_events_before_data_check",
+    [
+      "M09 SQL update requires before data",
+      "M09 SQL creation still requires null before data",
+    ],
+  ],
+  [
+    "change-active-index",
+    "drop index public.credentials_active_practice_idx",
+    ["M09 active partial index"],
+  ],
+  [
+    "change-audit-op",
+    "alter table private.register_audit_events drop constraint register_audit_events_operation_check",
+    ["M09 audit maintenance operations"],
+  ],
+  [
+    "change-projection-grant",
+    "grant execute on function private.credential_maintenance_projection(public.credentials) to authenticated",
+    ["M09 maintenance projection private"],
+  ],
+  [
+    "change-duplicate-grant",
+    "grant execute on function private.credential_duplicate_ids(public.credentials) to authenticated",
+    ["M09 duplicate helpers private"],
+  ],
+  [
+    "change-normalize-grant",
+    "grant execute on function private.duplicate_text(text) to authenticated",
+    ["M09 duplicate helpers private"],
+  ],
+  [
+    "change-replay-grant",
+    "grant execute on function private.register_change_replay(uuid,uuid,text,jsonb) to authenticated",
+    ["M09 change replay private"],
+  ],
+  [
+    "change-finish-grant",
+    "grant execute on function private.finish_register_change(uuid,uuid,uuid,text,jsonb,jsonb,jsonb) to authenticated",
+    ["M09 change finish private"],
+  ],
+  [
+    "change-apply-grant",
+    "grant execute on function private.apply_credential_change(uuid,uuid,uuid,integer,uuid,integer,jsonb) to authenticated",
+    ["M09 change finish private"],
+  ],
+  [
+    "change-values-grant",
+    "grant execute on function private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text) to authenticated",
+    ["M09 change finish private"],
+  ],
+  [
+    "change-archive-anon",
+    "grant execute on function public.archive_practice_credential(uuid,uuid,uuid,integer,uuid,integer) to anon",
+    ["M09 archive anonymous denied"],
+  ],
+  [
+    "change-update-anon",
+    "grant execute on function public.update_practice_credential(uuid,uuid,uuid,integer,uuid,integer,text,text,text,uuid,uuid[],text,text,text,text) to anon",
+    ["M09 update anonymous denied"],
+  ],
+  [
+    "change-archive-definer",
+    "alter function public.archive_practice_credential(uuid,uuid,uuid,integer,uuid,integer) security definer",
+    ["M09 archive invoker wrapper"],
+  ],
+  [
+    "change-update-definer",
+    "alter function public.update_practice_credential(uuid,uuid,uuid,integer,uuid,integer,text,text,text,uuid,uuid[],text,text,text,text) security definer",
+    ["M09 update invoker wrapper"],
+  ],
+  [
+    "change-list-definer",
+    "alter function public.list_practice_register_with_maintenance(uuid,boolean) security definer",
+    ["M09 list invoker wrapper"],
+  ],
+  [
+    "change-archive-entry",
+    "revoke execute on function public.archive_practice_credential(uuid,uuid,uuid,integer,uuid,integer) from authenticated",
+    ["M09 editor entry grants"],
+  ],
+  [
+    "change-update-entry",
+    "revoke execute on function public.update_practice_credential(uuid,uuid,uuid,integer,uuid,integer,text,text,text,uuid,uuid[],text,text,text,text) from authenticated",
+    ["M09 editor entry grants"],
+  ],
+  [
+    "change-credential-dml",
+    "grant update on public.credentials to authenticated",
+    ["M09 credential DML denied"],
+  ],
+])
+  cases.push({ id, file: files[6], mutation, expected });
+for (const [constraint, composite] of [
+  ["register_change_requests_practice_id_fkey", false],
+  ["register_change_requests_actor_user_id_fkey", false],
+  ["register_change_credential_fkey", true],
+])
+  cases.push({
+    id: constraint,
+    file: files[6],
+    mutation: `alter table private.register_change_requests drop constraint ${constraint}`,
+    expected: [
+      "M09 change restrictive foreign keys",
+      ...(composite ? ["M09 change composite reference"] : []),
+    ],
+  });
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });

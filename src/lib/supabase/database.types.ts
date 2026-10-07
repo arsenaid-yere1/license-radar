@@ -97,6 +97,7 @@ export type Database = {
       };
       credentials: {
         Row: {
+          archived_at: string | null;
           created_at: string;
           id: string;
           issuer: string | null;
@@ -110,6 +111,7 @@ export type Database = {
           version: number;
         };
         Insert: {
+          archived_at?: string | null;
           created_at?: string;
           id?: string;
           issuer?: string | null;
@@ -123,6 +125,7 @@ export type Database = {
           version?: number;
         };
         Update: {
+          archived_at?: string | null;
           created_at?: string;
           id?: string;
           issuer?: string | null;
@@ -281,6 +284,17 @@ export type Database = {
         Args: { p_token_digest: string };
         Returns: Json;
       };
+      archive_practice_credential: {
+        Args: {
+          p_credential_id: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
       cancel_practice_invitation: {
         Args: { p_expected_version: number; p_invitation_id: string };
         Returns: Json;
@@ -360,6 +374,10 @@ export type Database = {
         Args: { p_practice_id: string };
         Returns: Json;
       };
+      list_practice_register_with_maintenance: {
+        Args: { p_include_archived: boolean; p_practice_id: string };
+        Returns: Json;
+      };
       list_practice_team: { Args: { p_practice_id: string }; Returns: Json };
       preview_practice_invitation: {
         Args: { p_token_digest: string };
@@ -407,6 +425,26 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      update_practice_credential: {
+        Args: {
+          p_action_deadline: string;
+          p_covered_clinician_ids: string[];
+          p_credential_id: string;
+          p_end_date: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_version: number;
+          p_issuer: string;
+          p_jurisdiction: string;
+          p_owner_clinician_id: string;
+          p_owner_kind: string;
+          p_practice_id: string;
+          p_request_id: string;
+          p_title: string;
+          p_type: string;
+        };
+        Returns: Json;
       };
     };
     Enums: {

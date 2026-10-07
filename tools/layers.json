@@ -50,6 +50,11 @@
     "args": ["tools/credential-dates-upgrade.mjs"]
   },
   {
+    "id": "register-maintenance-upgrade",
+    "command": "node",
+    "args": ["tools/register-maintenance-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]

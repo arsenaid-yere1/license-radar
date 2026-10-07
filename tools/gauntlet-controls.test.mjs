@@ -319,3 +319,78 @@ test("cycle trigger and detailed RPC fingerprint protections are witnessed", () 
     );
   }
 });
+
+test("maintenance fingerprint detects removed receipt storage archive field and every helper", () => {
+  const contract = JSON.parse(
+    readFileSync("tools/schema-contract.json", "utf8"),
+  );
+  for (const section of [
+    "columns",
+    "grants",
+    "rls",
+    "constraints",
+    "indexes",
+  ]) {
+    const belongs = (row) =>
+      [row.table_name, row.tablename, row.relname].includes(
+        "register_change_requests",
+      );
+    assert(
+      contract[section].some(belongs),
+      `${section} omits new private receipts`,
+    );
+    assert.throws(
+      () =>
+        assertSchema(
+          {
+            ...contract,
+            [section]: contract[section].filter((row) => !belongs(row)),
+          },
+          contract,
+        ),
+      /Fresh schema drift/,
+    );
+  }
+  const archived = (row) =>
+    row.table_name === "credentials" && row.column_name === "archived_at";
+  assert(contract.columns.some(archived));
+  assert.throws(
+    () =>
+      assertSchema(
+        {
+          ...contract,
+          columns: contract.columns.filter((row) => !archived(row)),
+        },
+        contract,
+      ),
+    /Fresh schema drift/,
+  );
+  for (const name of [
+    "credential_maintenance_projection",
+    "duplicate_text",
+    "credential_duplicate_ids",
+    "credential_change_values",
+    "register_change_replay",
+    "finish_register_change",
+    "apply_credential_change",
+    "update_practice_credential",
+    "archive_practice_credential",
+    "list_practice_register_with_maintenance",
+  ]) {
+    assert(
+      contract.functions.some((row) => row.proname === name),
+      name,
+    );
+    assert.throws(
+      () =>
+        assertSchema(
+          {
+            ...contract,
+            functions: contract.functions.filter((row) => row.proname !== name),
+          },
+          contract,
+        ),
+      /Fresh schema drift/,
+    );
+  }
+});

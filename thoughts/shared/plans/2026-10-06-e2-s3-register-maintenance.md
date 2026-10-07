@@ -2,7 +2,7 @@
 
 Date: 2026-10-06 (America/Los_Angeles).
 Baseline: `27b728b4578a96d526e7fd25cf8f385284856e3c`.
-Status: Planned; implementation has not started.
+Status: Implemented locally; final fresh verification in progress.
 Research: `thoughts/shared/research/2026-10-06-e2-s3-register-maintenance.md`.
 Verification: `thoughts/shared/plans/2026-10-06-e2-s3-register-maintenance-verification.md`.
 
@@ -206,8 +206,8 @@ AC1–AC12 have executable witnesses, each phase passes its exit criteria, all 3
 
 ## Implementation progress
 
-- [ ] Phase 1: Database maintenance contracts.
-- [ ] Phase 2: Domain validation and server actions.
+- [x] Phase 1: Database maintenance contracts.
+- [x] Phase 2: Domain validation and server actions.
 - [ ] Phase 3: Editing, archive confirmation, and review UI.
 - [ ] Phase 4: Upgrade, fault controls, and final evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.

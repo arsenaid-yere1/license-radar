@@ -42,7 +42,6 @@ export const typeLabels = {
 } as const;
 const credentialInput = z
   .strictObject({
-    intent: z.literal("credential"),
     requestId: uuid,
     title: name,
     issuer: optionalName,
@@ -84,7 +83,9 @@ const credentialInput = z
   .refine((value) => orderedDates(value.endDate, value.actionDeadline), {
     path: ["actionDeadline"],
     message: "The action deadline must be earlier than the end date.",
-  })
+  });
+const sortedCredentialInput = credentialInput
+  .safeExtend({ intent: z.literal("credential") })
   .transform((value) => ({
     ...value,
     coveredClinicianIds: value.coveredClinicianIds.sort(),
@@ -92,7 +93,7 @@ const credentialInput = z
 export const registerInputSchema = z.lazy(() =>
   z.discriminatedUnion("intent", [
     z.strictObject({ intent: z.literal("clinician"), requestId: uuid, name }),
-    credentialInput,
+    sortedCredentialInput,
   ]),
 );
 const person = z.object({ id: uuid, name });
@@ -160,3 +161,78 @@ export type RegisterAction = (
   state: RegisterState,
   form: FormData,
 ) => Promise<RegisterState>;
+
+const expectedVersion = z.preprocess(
+  (value) =>
+    typeof value === "string" && /^[1-9][0-9]*$/.test(value)
+      ? Number(value)
+      : value,
+  versionSchema,
+);
+const changeTokens = {
+  requestId: uuid,
+  id: uuid,
+  expectedVersion,
+  expectedCycleId: uuid,
+  expectedDateRevision: expectedVersion,
+};
+const maintenanceUpdateInput = credentialInput
+  .safeExtend({ ...changeTokens, intent: z.literal("update") })
+  .transform((value) => ({
+    ...value,
+    coveredClinicianIds: value.coveredClinicianIds.sort(),
+  }));
+const maintenanceArchiveInput = z.strictObject({
+  ...changeTokens,
+  intent: z.literal("archive"),
+});
+export const maintenanceInputSchema = z.lazy(() =>
+  z.discriminatedUnion("intent", [
+    maintenanceUpdateInput,
+    maintenanceArchiveInput,
+  ]),
+);
+export const maintenanceCredentialSchema = credentialSchema.safeExtend({
+  archived_at: z.iso.datetime({ offset: true }).nullable(),
+});
+const listedCredential = maintenanceCredentialSchema
+  .safeExtend({ suspected_duplicate_ids: z.array(uuid) })
+  .refine(
+    (value) =>
+      !value.suspected_duplicate_ids.includes(value.id) &&
+      new Set(value.suspected_duplicate_ids).size ===
+        value.suspected_duplicate_ids.length &&
+      (!value.archived_at || value.suspected_duplicate_ids.length === 0),
+  );
+export const maintenanceRegisterSchema = z.object({
+  clinicians: z.array(clinicianSchema),
+  credentials: z.array(listedCredential),
+});
+export type MaintenanceInput = z.infer<typeof maintenanceInputSchema>;
+export type MaintenanceCredential = z.infer<typeof maintenanceCredentialSchema>;
+export type MaintenanceRegister = z.infer<typeof maintenanceRegisterSchema>;
+export type MaintenanceResult =
+  | { status: "success"; changed: boolean; credential: MaintenanceCredential }
+  | { status: "conflict"; credential: MaintenanceCredential }
+  | { status: "invalid"; errors?: Record<string, string> }
+  | {
+      status:
+        | "invalid-reference"
+        | "request-conflict"
+        | "archived"
+        | "not-found"
+        | "forbidden"
+        | "unavailable"
+        | "auth-required";
+    };
+export type MaintenanceState = {
+  status: "idle" | MaintenanceResult["status"];
+  message?: string;
+  errors?: Record<string, string>;
+  credential?: MaintenanceCredential;
+  changed?: boolean;
+};
+export type MaintenanceAction = (
+  state: MaintenanceState,
+  form: FormData,
+) => Promise<MaintenanceState>;

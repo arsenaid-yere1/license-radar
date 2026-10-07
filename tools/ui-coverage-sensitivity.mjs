@@ -8,9 +8,9 @@ import {
 } from "./gauntlet-contract.mjs";
 const faults = [
   {
-    source: "src/components/register/credential-form.tsx",
-    from: "key={type}",
-    to: 'key="same-type"',
+    source: "src/components/register/credential-fields.tsx",
+    from: "setDetails({",
+    to: "void ({",
     file: "tests/unit/register-forms.test.tsx",
     name: "D11 type switches reset dates and metadata; owner changes preserve the draft",
   },
@@ -22,7 +22,7 @@ const faults = [
     name: "D13 every date purpose and explicit unknown end remain visible for read-only records",
   },
   {
-    source: "src/components/register/credential-form.tsx",
+    source: "src/components/register/credential-fields.tsx",
     from: "coverage.filter((value) => value !== clinician.id)",
     to: "coverage",
     file: "tests/unit/register-forms.test.tsx",
@@ -41,6 +41,35 @@ const faults = [
     to: "false",
     file: "tests/unit/team-forms.test.tsx",
     name: "S35 cancelling administrator demotion prevents submission and confirmation preserves target version",
+  },
+
+  {
+    source: "src/components/register/register-panel.tsx",
+    from: "merged.get(value.id)!.version < value.version",
+    to: "false",
+    file: "tests/unit/register-maintenance-forms.test.tsx",
+    name: "M13 uncertain and pending freeze exact payload cancellation intent and view; retry confirms without stale resurrection",
+  },
+  {
+    source: "src/components/register/register-panel.tsx",
+    from: "Boolean(record.archived_at) === archivedView",
+    to: "true",
+    file: "tests/unit/register-maintenance-forms.test.tsx",
+    name: "M13 uncertain and pending freeze exact payload cancellation intent and view; retry confirms without stale resurrection",
+  },
+  {
+    source: "src/components/register/edit-record-form.tsx",
+    from: "const payload = frozen.current ?? form;",
+    to: "const payload = form;",
+    file: "tests/unit/register-maintenance-forms.test.tsx",
+    name: "M13 exact edit retry cannot replace a newer authoritative record with a historical receipt",
+  },
+  {
+    source: "src/components/register/edit-record-form.tsx",
+    from: '"conflict",',
+    to: '"ignored-conflict",',
+    file: "tests/unit/register-maintenance-forms.test.tsx",
+    name: "M12 definite errors retain draft and conflict requires explicit replacement and fresh tokens",
   },
 ];
 export function mutationFailureEvidence(messages) {

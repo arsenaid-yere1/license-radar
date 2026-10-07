@@ -4,13 +4,13 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 const boundary = vi.hoisted(() => ({
   requireUser: vi.fn(),
   getRecipient: vi.fn(),
-  getRegister: vi.fn(),
+  getMaintenanceRegister: vi.fn(),
   getTeam: vi.fn(),
   getCurrentPractice: vi.fn(),
   getPracticeAccess: vi.fn(),
 }));
 vi.mock("@/lib/register/repository", () => ({
-  getRegister: boundary.getRegister,
+  getMaintenanceRegister: boundary.getMaintenanceRegister,
 }));
 vi.mock("@/lib/team/repository", () => ({ getTeam: boundary.getTeam }));
 vi.mock("@/lib/recipients/repository", () => ({
@@ -198,22 +198,22 @@ it("R18 team route reads current recipient only for administrator and fails clos
 
 it("G19 register guards missing access and outages without fabricated empty state", async () => {
   boundary.getPracticeAccess.mockResolvedValue({ status: "unavailable" });
-  await expect(PracticeRegister()).rejects.toThrow(
+  await expect(PracticeRegister({})).rejects.toThrow(
     "We could not complete this request. Try again.",
   );
   boundary.getPracticeAccess.mockResolvedValue({
     status: "success",
     access: null,
   });
-  await expect(PracticeRegister()).rejects.toThrow(
+  await expect(PracticeRegister({})).rejects.toThrow(
     "REDIRECT:/onboarding/practice",
   );
   boundary.getPracticeAccess.mockResolvedValue({
     status: "success",
     access: { role: "viewer", practice: { id: "own", name: "Cedar" } },
   });
-  boundary.getRegister.mockResolvedValue({ status: "unavailable" });
-  await expect(PracticeRegister()).rejects.toThrow(
+  boundary.getMaintenanceRegister.mockResolvedValue({ status: "unavailable" });
+  await expect(PracticeRegister({})).rejects.toThrow(
     "We could not complete this request. Try again.",
   );
   for (const role of ["administrator", "manager", "viewer"]) {
@@ -221,12 +221,16 @@ it("G19 register guards missing access and outages without fabricated empty stat
       status: "success",
       access: { role, practice: { id: "own", name: "Cedar" } },
     });
-    boundary.getRegister.mockResolvedValue({
+    boundary.getMaintenanceRegister.mockResolvedValue({
       status: "success",
       register: { clinicians: [], credentials: [] },
     });
-    const view = render(await PracticeRegister());
-    expect(boundary.getRegister).toHaveBeenLastCalledWith({}, "own");
+    const view = render(await PracticeRegister({}));
+    expect(boundary.getMaintenanceRegister).toHaveBeenLastCalledWith(
+      {},
+      "own",
+      false,
+    );
     expect(
       screen.getByRole("heading", { name: "Your renewal register." }),
     ).toBeTruthy();
@@ -240,5 +244,39 @@ it("G19 register guards missing access and outages without fabricated empty stat
         .getAttribute("href"),
     ).toBe("/practice");
     view.unmount();
+  }
+});
+
+it("M14 archived view is explicit and malformed query selects active", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { role: "viewer", practice: { id: "own", name: "Practice" } },
+  });
+  boundary.getMaintenanceRegister.mockResolvedValue({
+    status: "success",
+    register: { clinicians: [], credentials: [] },
+  });
+  for (const view of [
+    "archived",
+    "active",
+    ["archived", "active"],
+    undefined,
+  ]) {
+    const v = render(
+      await PracticeRegister({ searchParams: Promise.resolve({ view }) }),
+    );
+    expect(boundary.getMaintenanceRegister).toHaveBeenLastCalledWith(
+      {},
+      "own",
+      view === "archived",
+    );
+    expect(
+      screen.getByText(
+        view === "archived"
+          ? "No archived records."
+          : "No renewal records added yet.",
+      ),
+    ).toBeTruthy();
+    v.unmount();
   }
 });

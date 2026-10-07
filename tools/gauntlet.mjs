@@ -18,6 +18,7 @@ const requiredLayers = [
   "recipient-upgrade",
   "register-upgrade",
   "credential-dates-upgrade",
+  "register-maintenance-upgrade",
   "replay",
   "schema",
   "database",

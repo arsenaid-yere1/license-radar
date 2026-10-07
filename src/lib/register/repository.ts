@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
+  maintenanceCredentialSchema,
+  maintenanceRegisterSchema,
+  type MaintenanceInput,
+  type MaintenanceResult,
   clinicianSchema,
   credentialSchema,
   registerSchema,
@@ -87,5 +91,90 @@ export async function createRecord(
       ? z.object({ status: z.literal("success"), clinician: clinicianSchema })
       : z.object({ status: z.literal("success"), credential: credentialSchema })
   ).safeParse(reply.data);
+  return parsed.success ? parsed.data : { status: "unavailable" };
+}
+
+export async function getMaintenanceRegister(
+  client: SupabaseClient,
+  practiceId: string,
+  includeArchived = false,
+) {
+  const reply = await request(
+    client,
+    "list_practice_register_with_maintenance",
+    { p_practice_id: practiceId, p_include_archived: includeArchived },
+  );
+  if (reply.status !== "reply") return reply;
+  const parsed = maintenanceRegisterSchema.safeParse(reply.data);
+  return parsed.success
+    ? ({ status: "success", register: parsed.data } as const)
+    : ({ status: "unavailable" } as const);
+}
+export async function changeRecord(
+  client: SupabaseClient,
+  practiceId: string,
+  input: MaintenanceInput,
+): Promise<MaintenanceResult> {
+  const reply = await request(
+    client,
+    input.intent === "update"
+      ? "update_practice_credential"
+      : "archive_practice_credential",
+    {
+      p_practice_id: practiceId,
+      p_request_id: input.requestId,
+      p_credential_id: input.id,
+      p_expected_version: input.expectedVersion,
+      p_expected_cycle_id: input.expectedCycleId,
+      p_expected_date_revision: input.expectedDateRevision,
+      ...(input.intent === "update"
+        ? {
+            p_title: input.title,
+            p_type: input.type,
+            p_owner_kind: input.ownerKind,
+            p_owner_clinician_id: input.ownerClinicianId ?? null,
+            p_covered_clinician_ids: input.coveredClinicianIds,
+            p_issuer: input.issuer,
+            p_jurisdiction: input.jurisdiction,
+            p_end_date: input.endDate,
+            p_action_deadline: input.actionDeadline,
+          }
+        : {}),
+    },
+  );
+  if (reply.status !== "reply") return reply;
+  const errors = z.object({
+    issuer: z.literal("Use 1 to 120 characters.").optional(),
+    jurisdiction: z.literal("Use 1 to 120 characters.").optional(),
+    endDate: z.literal("Enter a valid date (YYYY-MM-DD).").optional(),
+    actionDeadline: z
+      .enum([
+        "Enter a valid date (YYYY-MM-DD).",
+        "The action deadline must be earlier than the end date.",
+      ])
+      .optional(),
+  });
+  const parsed = z
+    .discriminatedUnion("status", [
+      z.object({
+        status: z.literal("success"),
+        changed: z.boolean(),
+        credential: maintenanceCredentialSchema,
+      }),
+      z.object({
+        status: z.literal("conflict"),
+        credential: maintenanceCredentialSchema,
+      }),
+      z.object({ status: z.literal("invalid"), errors: errors.optional() }),
+      z.object({
+        status: z.enum([
+          "invalid-reference",
+          "request-conflict",
+          "archived",
+          "not-found",
+        ]),
+      }),
+    ])
+    .safeParse(reply.data);
   return parsed.success ? parsed.data : { status: "unavailable" };
 }

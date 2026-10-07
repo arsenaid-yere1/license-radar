@@ -466,6 +466,78 @@
     },
     {
       "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "request_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "credential_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "operation",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "result",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
       "table_name": "register_create_requests",
       "column_name": "id",
       "data_type": "uuid",
@@ -733,6 +805,14 @@
       "table_name": "credentials",
       "column_name": "jurisdiction",
       "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
+      "data_type": "timestamp with time zone",
       "column_default": null,
       "is_nullable": "YES"
     },
@@ -970,6 +1050,18 @@
     },
     {
       "nspname": "private",
+      "proname": "apply_credential_change",
+      "definition": "CREATE OR REPLACE FUNCTION private.apply_credential_change(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer, p_values jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n    credential public.credentials;\n    cycle public.credential_cycles;\n    operation text := case when p_values is null then 'credential-archived' else 'credential-updated' end;\n    payload jsonb;\n    result jsonb;\n    before_data jsonb;\n    covered uuid[];\n    old_covered uuid[];\n    date_changed boolean;\n    changed boolean;\nbegin\n    if p_request_id is null or p_credential_id is null or p_expected_cycle_id is null\n       or p_expected_version is null or p_expected_version < 1\n       or p_expected_date_revision is null or p_expected_date_revision < 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if p_values ? 'status' then return p_values; end if;\n    payload := pg_catalog.jsonb_build_object('contract_version', 1, 'operation', operation,\n        'credential_id', p_credential_id, 'expected_version', p_expected_version,\n        'expected_cycle_id', p_expected_cycle_id, 'expected_date_revision', p_expected_date_revision,\n        'values', p_values);\n    result := private.register_change_replay(p_practice_id, p_request_id, operation, payload);\n    if result is not null then return result; end if;\n    select * into credential from public.credentials\n    where practice_id = p_practice_id and id = p_credential_id;\n    if not found then return '{\"status\":\"not-found\"}'::jsonb; end if;\n    select * into cycle from public.credential_cycles\n    where practice_id = p_practice_id and credential_id = credential.id and cycle_number = 1;\n    if not found then raise exception 'missing credential cycle'; end if;\n    if credential.archived_at is not null then return '{\"status\":\"archived\"}'::jsonb; end if;\n    before_data := private.credential_maintenance_projection(credential);\n    if credential.version <> p_expected_version or cycle.id <> p_expected_cycle_id\n       or cycle.date_revision <> p_expected_date_revision then\n        return pg_catalog.jsonb_build_object('status', 'conflict', 'credential', before_data);\n    end if;\n    changed := true;\n    date_changed := false;\n    if p_values is not null then\n        select coalesce(array_agg(x::uuid order by x::uuid), '{}'::uuid[]) into covered\n        from pg_catalog.jsonb_array_elements_text(p_values->'covered_clinician_ids') x;\n        if ((p_values->>'owner_clinician_id') is not null and not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id\n                and id = (p_values->>'owner_clinician_id')::uuid\n        )) or exists (select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n        select coalesce(array_agg(clinician_id order by clinician_id), '{}'::uuid[]) into old_covered\n        from public.policy_coverage where practice_id = p_practice_id and credential_id = credential.id;\n        date_changed := cycle.end_date is distinct from (p_values->>'end_date')::date\n            or cycle.action_deadline is distinct from (p_values->>'action_deadline')::date;\n        changed := date_changed or credential.title is distinct from p_values->>'title'\n            or credential.type is distinct from p_values->>'type'\n            or credential.owner_kind is distinct from p_values->>'owner_kind'\n            or credential.owner_clinician_id is distinct from (p_values->>'owner_clinician_id')::uuid\n            or credential.issuer is distinct from p_values->>'issuer'\n            or credential.jurisdiction is distinct from p_values->>'jurisdiction'\n            or old_covered is distinct from covered;\n    end if;\n    if changed and (credential.version = 2147483647 or (date_changed and cycle.date_revision = 2147483647)) then\n        return pg_catalog.jsonb_build_object('status', 'conflict', 'credential', before_data);\n    end if;\n    if changed then\n        if p_values is null then\n            update public.credentials set archived_at = pg_catalog.clock_timestamp(),\n                version = version + 1, updated_at = pg_catalog.clock_timestamp()\n            where practice_id = p_practice_id and id = credential.id returning * into credential;\n        else\n            delete from public.policy_coverage where practice_id = p_practice_id and credential_id = credential.id;\n            update public.credentials set title = p_values->>'title', type = p_values->>'type',\n                owner_kind = p_values->>'owner_kind', owner_clinician_id = (p_values->>'owner_clinician_id')::uuid,\n                issuer = p_values->>'issuer', jurisdiction = p_values->>'jurisdiction',\n                version = version + 1, updated_at = pg_catalog.clock_timestamp()\n            where practice_id = p_practice_id and id = credential.id returning * into credential;\n            insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n            select p_practice_id, credential.id, x from unnest(covered) x;\n            if date_changed then\n                update public.credential_cycles set end_date = (p_values->>'end_date')::date,\n                    action_deadline = (p_values->>'action_deadline')::date,\n                    date_revision = date_revision + 1, updated_at = pg_catalog.clock_timestamp()\n                where practice_id = p_practice_id and id = cycle.id;\n            end if;\n        end if;\n    end if;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'changed', changed,\n        'credential', private.credential_maintenance_projection(credential));\n    return private.finish_register_change(p_practice_id, p_request_id, credential.id, operation,\n        payload, before_data, result);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "archive_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION private.archive_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    return private.apply_credential_change(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision, null);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "audit_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.audit_invitation()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    insert into private.practice_access_events\n        (practice_id,actor_user_id,invitation_id,membership_id,operation,\n         before_role,after_role,before_state,after_state)\n    values (new.practice_id,auth.uid(),new.id,\n            (select id from public.practice_memberships\n             where practice_id=new.practice_id and user_id=new.accepted_user_id),\n            case when tg_op='INSERT' then 'invitation_created'\n                 when new.state='accepted' then 'invitation_accepted'\n                 when new.state='canceled' then 'invitation_canceled'\n                 else 'invitation_reissued' end,\n            case when tg_op='UPDATE' then old.role end,new.role,\n            case when tg_op='UPDATE' then old.state end,new.state);\n    return new;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
@@ -1042,6 +1134,12 @@
     },
     {
       "nspname": "private",
+      "proname": "credential_change_values",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_change_values(p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text;\n    jurisdiction text;\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\nbegin\n    normalized := private.register_name(p_title);\n    issuer := nullif(private.register_name(p_issuer), '');\n    jurisdiction := nullif(private.register_name(p_jurisdiction), '');\n    if normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    return payload;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "credential_date",
       "definition": "CREATE OR REPLACE FUNCTION private.credential_date(p_value text)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\nbegin\n    if p_value is null or p_value = '' then return null; end if;\n    if char_length(p_value) <> 10 or p_value !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'\n       or substring(p_value from 1 for 4)::integer = 0 then\n        raise exception 'invalid credential date' using errcode = '22008';\n    end if;\n    return pg_catalog.make_date(substring(p_value from 1 for 4)::integer,\n        substring(p_value from 6 for 2)::integer, substring(p_value from 9 for 2)::integer);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
@@ -1050,6 +1148,18 @@
       "nspname": "private",
       "proname": "credential_details_projection",
       "definition": "CREATE OR REPLACE FUNCTION private.credential_details_projection(p_record credentials)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    cycle public.credential_cycles;\nbegin\n    select * into cycle from public.credential_cycles\n    where practice_id = p_record.practice_id and credential_id = p_record.id and cycle_number = 1;\n    if not found then raise exception 'missing credential cycle'; end if;\n    return private.credential_projection(p_record) || pg_catalog.jsonb_build_object(\n        'issuer', p_record.issuer, 'jurisdiction', p_record.jurisdiction,\n        'current_cycle', pg_catalog.jsonb_build_object('id', cycle.id,\n            'cycle_number', cycle.cycle_number, 'date_revision', cycle.date_revision,\n            'end_date', pg_catalog.to_char(cycle.end_date, 'YYYY-MM-DD'),\n            'action_deadline', pg_catalog.to_char(cycle.action_deadline, 'YYYY-MM-DD')));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "credential_duplicate_ids",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_duplicate_ids(p_record credentials)\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n    select coalesce(pg_catalog.jsonb_agg(c.id order by c.id), '[]'::jsonb)\n    from public.credentials c\n    where p_record.archived_at is null and c.archived_at is null\n        and c.practice_id = p_record.practice_id and c.id <> p_record.id\n        and c.type = p_record.type and c.owner_kind = p_record.owner_kind\n        and c.owner_clinician_id is not distinct from p_record.owner_clinician_id\n        and private.duplicate_text(c.title) = private.duplicate_text(p_record.title)\n        and private.duplicate_text(c.issuer) is not distinct from private.duplicate_text(p_record.issuer)\n        and private.duplicate_text(c.jurisdiction) is not distinct from private.duplicate_text(p_record.jurisdiction);\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "credential_maintenance_projection",
+      "definition": "CREATE OR REPLACE FUNCTION private.credential_maintenance_projection(p_record credentials)\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n    select private.credential_details_projection(p_record)\n        || pg_catalog.jsonb_build_object('archived_at', p_record.archived_at);\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -1066,8 +1176,20 @@
     },
     {
       "nspname": "private",
+      "proname": "duplicate_text",
+      "definition": "CREATE OR REPLACE FUNCTION private.duplicate_text(p_value text)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\n    select pg_catalog.translate(private.register_name(p_value),\n        'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz');\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "ensure_administrator",
       "definition": "CREATE OR REPLACE FUNCTION private.ensure_administrator()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    target uuid;\nbegin\n    if tg_table_name = 'practices' then\n        target := new.id;\n    elsif tg_op = 'DELETE' then\n        target := old.practice_id;\n    else\n        target := new.practice_id;\n    end if;\n    perform 1 from public.practices where id = target for update;\n    if found and not exists (select 1 from public.practice_memberships\n                             where practice_id = target and state = 'active'\n                               and role = 'administrator') then\n        raise exception 'Practice requires an active administrator' using errcode = '23514';\n    end if;\n    if tg_table_name = 'practice_memberships' then\n        if tg_op = 'UPDATE' then\n            if old.practice_id <> new.practice_id then\n                raise exception 'Membership practice is immutable' using errcode = '23514';\n            end if;\n        end if;\n    end if;\n    return null;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "finish_register_change",
+      "definition": "CREATE OR REPLACE FUNCTION private.finish_register_change(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_operation text, p_payload jsonb, p_before jsonb, p_result jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n    if (p_result->>'changed')::boolean then\n        insert into private.register_audit_events\n            (practice_id, actor_user_id, operation, credential_id, before_data, after_data)\n        values (p_practice_id, auth.uid(), p_operation, p_credential_id, p_before, p_result->'credential');\n    end if;\n    insert into private.register_change_requests\n        (practice_id, actor_user_id, request_id, credential_id, operation, payload, result)\n    values (p_practice_id, auth.uid(), p_request_id, p_credential_id, p_operation, p_payload, p_result);\n    return p_result;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -1109,7 +1231,13 @@
     {
       "nspname": "private",
       "proname": "list_practice_register",
-      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id\n        ), '[]'::jsonb),\n        'credentials', coalesce((\n            select pg_catalog.jsonb_agg(private.credential_details_projection(c) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id\n        ), '[]'::jsonb));\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n            'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id), '[]'::jsonb),\n        'credentials', coalesce((select pg_catalog.jsonb_agg(\n            private.credential_details_projection(c) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id and c.archived_at is null), '[]'::jsonb));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "list_practice_register_with_maintenance",
+      "definition": "CREATE OR REPLACE FUNCTION private.list_practice_register_with_maintenance(p_practice_id uuid, p_include_archived boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, false);\n    if p_include_archived is null then return '{\"status\":\"invalid\"}'::jsonb; end if;\n    return pg_catalog.jsonb_build_object(\n        'clinicians', coalesce((select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n            'id', id, 'name', name, 'version', version) order by created_at, id)\n            from public.clinicians where practice_id = p_practice_id), '[]'::jsonb),\n        'credentials', coalesce((select pg_catalog.jsonb_agg(\n            private.credential_maintenance_projection(c) || pg_catalog.jsonb_build_object(\n                'suspected_duplicate_ids', private.credential_duplicate_ids(c)) order by c.created_at, c.id)\n            from public.credentials c where c.practice_id = p_practice_id\n                and (p_include_archived or c.archived_at is null)), '[]'::jsonb));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1135,6 +1263,12 @@
       "proname": "preview_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.preview_practice_invitation(p_token_digest text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    invitation private.practice_invitations;\n    invited_role text;\nbegin\n    invitation := private.invitation_for_actor(p_token_digest);\n    if invitation.id is null then return '{\"status\":\"invalid-invitation\"}'::jsonb; end if;\n    invited_role := invitation.role;\n    if invitation.state='accepted' then\n        select role into invited_role from public.practice_memberships\n        where practice_id=invitation.practice_id and user_id=auth.uid() and state='active';\n    end if;\n    return pg_catalog.jsonb_build_object('status','success','name',\n        (select name from public.practices where id=invitation.practice_id),\n        'role',invited_role,'expires_at',invitation.expires_at);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "register_change_replay",
+      "definition": "CREATE OR REPLACE FUNCTION private.register_change_replay(p_practice_id uuid, p_request_id uuid, p_operation text, p_payload jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare receipt private.register_change_requests;\nbegin\n    select * into receipt from private.register_change_requests\n    where practice_id = p_practice_id and actor_user_id = auth.uid() and request_id = p_request_id;\n    if not found then return null; end if;\n    if receipt.operation <> p_operation or receipt.payload <> p_payload then\n        return '{\"status\":\"request-conflict\"}'::jsonb;\n    end if;\n    return receipt.result;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
     },
     {
       "nspname": "private",
@@ -1192,6 +1326,12 @@
     },
     {
       "nspname": "private",
+      "proname": "update_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION private.update_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    return private.apply_credential_change(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision, private.credential_change_values(p_title, p_type, p_owner_kind, p_owner_clinician_id, p_covered_clinician_ids, p_issuer, p_jurisdiction, p_end_date, p_action_deadline));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "validate_practice",
       "definition": "CREATE OR REPLACE FUNCTION private.validate_practice()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    -- The ECMAScript trim set; PostgreSQL char_length counts Unicode code points.\n    new.name := pg_catalog.regexp_replace(new.name,\n        U&'^[\\0009-\\000d\\0020\\00a0\\1680\\2000-\\200a\\2028\\2029\\202f\\205f\\3000\\feff]+|[\\0009-\\000d\\0020\\00a0\\1680\\2000-\\200a\\2028\\2029\\202f\\205f\\3000\\feff]+$',\n        '', 'g');\n    if new.timezone <> all(array[\n            'UTC',\n            'Africa/Abidjan',\n            'Africa/Accra',\n            'Africa/Addis_Ababa',\n            'Africa/Algiers',\n            'Africa/Asmera',\n            'Africa/Bamako',\n            'Africa/Bangui',\n            'Africa/Banjul',\n            'Africa/Bissau',\n            'Africa/Blantyre',\n            'Africa/Brazzaville',\n            'Africa/Bujumbura',\n            'Africa/Cairo',\n            'Africa/Casablanca',\n            'Africa/Ceuta',\n            'Africa/Conakry',\n            'Africa/Dakar',\n            'Africa/Dar_es_Salaam',\n            'Africa/Djibouti',\n            'Africa/Douala',\n            'Africa/El_Aaiun',\n            'Africa/Freetown',\n            'Africa/Gaborone',\n            'Africa/Harare',\n            'Africa/Johannesburg',\n            'Africa/Juba',\n            'Africa/Kampala',\n            'Africa/Khartoum',\n            'Africa/Kigali',\n            'Africa/Kinshasa',\n            'Africa/Lagos',\n            'Africa/Libreville',\n            'Africa/Lome',\n            'Africa/Luanda',\n            'Africa/Lubumbashi',\n            'Africa/Lusaka',\n            'Africa/Malabo',\n            'Africa/Maputo',\n            'Africa/Maseru',\n            'Africa/Mbabane',\n            'Africa/Mogadishu',\n            'Africa/Monrovia',\n            'Africa/Nairobi',\n            'Africa/Ndjamena',\n            'Africa/Niamey',\n            'Africa/Nouakchott',\n            'Africa/Ouagadougou',\n            'Africa/Porto-Novo',\n            'Africa/Sao_Tome',\n            'Africa/Tripoli',\n            'Africa/Tunis',\n            'Africa/Windhoek',\n            'America/Adak',\n            'America/Anchorage',\n            'America/Anguilla',\n            'America/Antigua',\n            'America/Araguaina',\n            'America/Argentina/La_Rioja',\n            'America/Argentina/Rio_Gallegos',\n            'America/Argentina/Salta',\n            'America/Argentina/San_Juan',\n            'America/Argentina/San_Luis',\n            'America/Argentina/Tucuman',\n            'America/Argentina/Ushuaia',\n            'America/Aruba',\n            'America/Asuncion',\n            'America/Bahia',\n            'America/Bahia_Banderas',\n            'America/Barbados',\n            'America/Belem',\n            'America/Belize',\n            'America/Blanc-Sablon',\n            'America/Boa_Vista',\n            'America/Bogota',\n            'America/Boise',\n            'America/Buenos_Aires',\n            'America/Cambridge_Bay',\n            'America/Campo_Grande',\n            'America/Cancun',\n            'America/Caracas',\n            'America/Catamarca',\n            'America/Cayenne',\n            'America/Cayman',\n            'America/Chicago',\n            'America/Chihuahua',\n            'America/Ciudad_Juarez',\n            'America/Coral_Harbour',\n            'America/Cordoba',\n            'America/Costa_Rica',\n            'America/Coyhaique',\n            'America/Creston',\n            'America/Cuiaba',\n            'America/Curacao',\n            'America/Danmarkshavn',\n            'America/Dawson',\n            'America/Dawson_Creek',\n            'America/Denver',\n            'America/Detroit',\n            'America/Dominica',\n            'America/Edmonton',\n            'America/Eirunepe',\n            'America/El_Salvador',\n            'America/Fort_Nelson',\n            'America/Fortaleza',\n            'America/Glace_Bay',\n            'America/Godthab',\n            'America/Goose_Bay',\n            'America/Grand_Turk',\n            'America/Grenada',\n            'America/Guadeloupe',\n            'America/Guatemala',\n            'America/Guayaquil',\n            'America/Guyana',\n            'America/Halifax',\n            'America/Havana',\n            'America/Hermosillo',\n            'America/Indiana/Knox',\n            'America/Indiana/Marengo',\n            'America/Indiana/Petersburg',\n            'America/Indiana/Tell_City',\n            'America/Indiana/Vevay',\n            'America/Indiana/Vincennes',\n            'America/Indiana/Winamac',\n            'America/Indianapolis',\n            'America/Inuvik',\n            'America/Iqaluit',\n            'America/Jamaica',\n            'America/Jujuy',\n            'America/Juneau',\n            'America/Kentucky/Monticello',\n            'America/Kralendijk',\n            'America/La_Paz',\n            'America/Lima',\n            'America/Los_Angeles',\n            'America/Louisville',\n            'America/Lower_Princes',\n            'America/Maceio',\n            'America/Managua',\n            'America/Manaus',\n            'America/Marigot',\n            'America/Martinique',\n            'America/Matamoros',\n            'America/Mazatlan',\n            'America/Mendoza',\n            'America/Menominee',\n            'America/Merida',\n            'America/Metlakatla',\n            'America/Mexico_City',\n            'America/Miquelon',\n            'America/Moncton',\n            'America/Monterrey',\n            'America/Montevideo',\n            'America/Montserrat',\n            'America/Nassau',\n            'America/New_York',\n            'America/Nome',\n            'America/Noronha',\n            'America/North_Dakota/Beulah',\n            'America/North_Dakota/Center',\n            'America/North_Dakota/New_Salem',\n            'America/Ojinaga',\n            'America/Panama',\n            'America/Paramaribo',\n            'America/Phoenix',\n            'America/Port-au-Prince',\n            'America/Port_of_Spain',\n            'America/Porto_Velho',\n            'America/Puerto_Rico',\n            'America/Punta_Arenas',\n            'America/Rankin_Inlet',\n            'America/Recife',\n            'America/Regina',\n            'America/Resolute',\n            'America/Rio_Branco',\n            'America/Santarem',\n            'America/Santiago',\n            'America/Santo_Domingo',\n            'America/Sao_Paulo',\n            'America/Scoresbysund',\n            'America/Sitka',\n            'America/St_Barthelemy',\n            'America/St_Johns',\n            'America/St_Kitts',\n            'America/St_Lucia',\n            'America/St_Thomas',\n            'America/St_Vincent',\n            'America/Swift_Current',\n            'America/Tegucigalpa',\n            'America/Thule',\n            'America/Tijuana',\n            'America/Toronto',\n            'America/Tortola',\n            'America/Vancouver',\n            'America/Whitehorse',\n            'America/Winnipeg',\n            'America/Yakutat',\n            'Antarctica/Casey',\n            'Antarctica/Davis',\n            'Antarctica/DumontDUrville',\n            'Antarctica/Macquarie',\n            'Antarctica/Mawson',\n            'Antarctica/McMurdo',\n            'Antarctica/Palmer',\n            'Antarctica/Rothera',\n            'Antarctica/Syowa',\n            'Antarctica/Troll',\n            'Antarctica/Vostok',\n            'Arctic/Longyearbyen',\n            'Asia/Aden',\n            'Asia/Almaty',\n            'Asia/Amman',\n            'Asia/Anadyr',\n            'Asia/Aqtau',\n            'Asia/Aqtobe',\n            'Asia/Ashgabat',\n            'Asia/Atyrau',\n            'Asia/Baghdad',\n            'Asia/Bahrain',\n            'Asia/Baku',\n            'Asia/Bangkok',\n            'Asia/Barnaul',\n            'Asia/Beirut',\n            'Asia/Bishkek',\n            'Asia/Brunei',\n            'Asia/Calcutta',\n            'Asia/Chita',\n            'Asia/Colombo',\n            'Asia/Damascus',\n            'Asia/Dhaka',\n            'Asia/Dili',\n            'Asia/Dubai',\n            'Asia/Dushanbe',\n            'Asia/Famagusta',\n            'Asia/Gaza',\n            'Asia/Hebron',\n            'Asia/Hong_Kong',\n            'Asia/Hovd',\n            'Asia/Irkutsk',\n            'Asia/Jakarta',\n            'Asia/Jayapura',\n            'Asia/Jerusalem',\n            'Asia/Kabul',\n            'Asia/Kamchatka',\n            'Asia/Karachi',\n            'Asia/Katmandu',\n            'Asia/Khandyga',\n            'Asia/Krasnoyarsk',\n            'Asia/Kuala_Lumpur',\n            'Asia/Kuching',\n            'Asia/Kuwait',\n            'Asia/Macau',\n            'Asia/Magadan',\n            'Asia/Makassar',\n            'Asia/Manila',\n            'Asia/Muscat',\n            'Asia/Nicosia',\n            'Asia/Novokuznetsk',\n            'Asia/Novosibirsk',\n            'Asia/Omsk',\n            'Asia/Oral',\n            'Asia/Phnom_Penh',\n            'Asia/Pontianak',\n            'Asia/Pyongyang',\n            'Asia/Qatar',\n            'Asia/Qostanay',\n            'Asia/Qyzylorda',\n            'Asia/Rangoon',\n            'Asia/Riyadh',\n            'Asia/Saigon',\n            'Asia/Sakhalin',\n            'Asia/Samarkand',\n            'Asia/Seoul',\n            'Asia/Shanghai',\n            'Asia/Singapore',\n            'Asia/Srednekolymsk',\n            'Asia/Taipei',\n            'Asia/Tashkent',\n            'Asia/Tbilisi',\n            'Asia/Tehran',\n            'Asia/Thimphu',\n            'Asia/Tokyo',\n            'Asia/Tomsk',\n            'Asia/Ulaanbaatar',\n            'Asia/Urumqi',\n            'Asia/Ust-Nera',\n            'Asia/Vientiane',\n            'Asia/Vladivostok',\n            'Asia/Yakutsk',\n            'Asia/Yekaterinburg',\n            'Asia/Yerevan',\n            'Atlantic/Azores',\n            'Atlantic/Bermuda',\n            'Atlantic/Canary',\n            'Atlantic/Cape_Verde',\n            'Atlantic/Faeroe',\n            'Atlantic/Madeira',\n            'Atlantic/Reykjavik',\n            'Atlantic/South_Georgia',\n            'Atlantic/St_Helena',\n            'Atlantic/Stanley',\n            'Australia/Adelaide',\n            'Australia/Brisbane',\n            'Australia/Broken_Hill',\n            'Australia/Darwin',\n            'Australia/Eucla',\n            'Australia/Hobart',\n            'Australia/Lindeman',\n            'Australia/Lord_Howe',\n            'Australia/Melbourne',\n            'Australia/Perth',\n            'Australia/Sydney',\n            'Europe/Amsterdam',\n            'Europe/Andorra',\n            'Europe/Astrakhan',\n            'Europe/Athens',\n            'Europe/Belgrade',\n            'Europe/Berlin',\n            'Europe/Bratislava',\n            'Europe/Brussels',\n            'Europe/Bucharest',\n            'Europe/Budapest',\n            'Europe/Busingen',\n            'Europe/Chisinau',\n            'Europe/Copenhagen',\n            'Europe/Dublin',\n            'Europe/Gibraltar',\n            'Europe/Guernsey',\n            'Europe/Helsinki',\n            'Europe/Isle_of_Man',\n            'Europe/Istanbul',\n            'Europe/Jersey',\n            'Europe/Kaliningrad',\n            'Europe/Kiev',\n            'Europe/Kirov',\n            'Europe/Lisbon',\n            'Europe/Ljubljana',\n            'Europe/London',\n            'Europe/Luxembourg',\n            'Europe/Madrid',\n            'Europe/Malta',\n            'Europe/Mariehamn',\n            'Europe/Minsk',\n            'Europe/Monaco',\n            'Europe/Moscow',\n            'Europe/Oslo',\n            'Europe/Paris',\n            'Europe/Podgorica',\n            'Europe/Prague',\n            'Europe/Riga',\n            'Europe/Rome',\n            'Europe/Samara',\n            'Europe/San_Marino',\n            'Europe/Sarajevo',\n            'Europe/Saratov',\n            'Europe/Simferopol',\n            'Europe/Skopje',\n            'Europe/Sofia',\n            'Europe/Stockholm',\n            'Europe/Tallinn',\n            'Europe/Tirane',\n            'Europe/Ulyanovsk',\n            'Europe/Vaduz',\n            'Europe/Vatican',\n            'Europe/Vienna',\n            'Europe/Vilnius',\n            'Europe/Volgograd',\n            'Europe/Warsaw',\n            'Europe/Zagreb',\n            'Europe/Zurich',\n            'Indian/Antananarivo',\n            'Indian/Chagos',\n            'Indian/Christmas',\n            'Indian/Cocos',\n            'Indian/Comoro',\n            'Indian/Kerguelen',\n            'Indian/Mahe',\n            'Indian/Maldives',\n            'Indian/Mauritius',\n            'Indian/Mayotte',\n            'Indian/Reunion',\n            'Pacific/Apia',\n            'Pacific/Auckland',\n            'Pacific/Bougainville',\n            'Pacific/Chatham',\n            'Pacific/Easter',\n            'Pacific/Efate',\n            'Pacific/Enderbury',\n            'Pacific/Fakaofo',\n            'Pacific/Fiji',\n            'Pacific/Funafuti',\n            'Pacific/Galapagos',\n            'Pacific/Gambier',\n            'Pacific/Guadalcanal',\n            'Pacific/Guam',\n            'Pacific/Honolulu',\n            'Pacific/Kiritimati',\n            'Pacific/Kosrae',\n            'Pacific/Kwajalein',\n            'Pacific/Majuro',\n            'Pacific/Marquesas',\n            'Pacific/Midway',\n            'Pacific/Nauru',\n            'Pacific/Niue',\n            'Pacific/Norfolk',\n            'Pacific/Noumea',\n            'Pacific/Pago_Pago',\n            'Pacific/Palau',\n            'Pacific/Pitcairn',\n            'Pacific/Ponape',\n            'Pacific/Port_Moresby',\n            'Pacific/Rarotonga',\n            'Pacific/Saipan',\n            'Pacific/Tahiti',\n            'Pacific/Tarawa',\n            'Pacific/Tongatapu',\n            'Pacific/Truk',\n            'Pacific/Wake',\n            'Pacific/Wallis'\n        ]) or not exists (select 1 from pg_catalog.pg_timezone_names\n                          where name = new.timezone) then\n        raise exception 'Invalid timezone' using errcode = '23514';\n    end if;\n    if tg_op = 'UPDATE' then\n        new.id := old.id;\n        new.owner_user_id := old.owner_user_id;\n        new.created_at := old.created_at;\n        new.version := old.version + 1;\n        new.updated_at := pg_catalog.clock_timestamp();\n    end if;\n    return new;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
@@ -1200,6 +1340,12 @@
       "nspname": "public",
       "proname": "accept_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION public.accept_practice_invitation(p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.accept_practice_invitation(p_token_digest);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "archive_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION public.archive_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.archive_practice_credential(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1258,6 +1404,12 @@
     },
     {
       "nspname": "public",
+      "proname": "list_practice_register_with_maintenance",
+      "definition": "CREATE OR REPLACE FUNCTION public.list_practice_register_with_maintenance(p_practice_id uuid, p_include_archived boolean)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.list_practice_register_with_maintenance(p_practice_id, p_include_archived);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "list_practice_team",
       "definition": "CREATE OR REPLACE FUNCTION public.list_practice_team(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.list_practice_team(p_practice_id);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -1290,6 +1442,12 @@
       "nspname": "public",
       "proname": "update_practice",
       "definition": "CREATE OR REPLACE FUNCTION public.update_practice(p_practice_id uuid, p_name text, p_timezone text, p_expected_version integer)\n RETURNS practices\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.update_practice(p_practice_id, p_name, p_timezone, p_expected_version);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "update_practice_credential",
+      "definition": "CREATE OR REPLACE FUNCTION public.update_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.update_practice_credential(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision, p_title, p_type, p_owner_kind, p_owner_clinician_id, p_covered_clinician_ids, p_issuer, p_jurisdiction, p_end_date, p_action_deadline);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     }
   ],
@@ -1447,6 +1605,13 @@
       "grantee": "authenticated",
       "table_schema": "public",
       "table_name": "credentials",
+      "column_name": "archived_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "table_schema": "public",
+      "table_name": "credentials",
       "column_name": "created_at",
       "privilege_type": "SELECT"
     },
@@ -3294,6 +3459,258 @@
     {
       "grantee": "postgres",
       "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "credential_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "credential_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "credential_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "credential_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "operation",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "operation",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "operation",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "operation",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "payload",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "payload",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "payload",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "payload",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "request_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "request_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "request_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "request_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "result",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "result",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "result",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "register_change_requests",
+      "column_name": "result",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
       "table_name": "register_create_requests",
       "column_name": "actor_user_id",
       "privilege_type": "INSERT"
@@ -3933,6 +4350,34 @@
       "table_schema": "public",
       "table_name": "credential_cycles",
       "column_name": "updated_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
       "privilege_type": "UPDATE"
     },
     {
@@ -4934,6 +5379,13 @@
       "table_schema": "public",
       "table_name": "credential_cycles",
       "column_name": "updated_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "table_schema": "public",
+      "table_name": "credentials",
+      "column_name": "archived_at",
       "privilege_type": "REFERENCES"
     },
     {
@@ -5190,6 +5642,11 @@
     {
       "nspname": "private",
       "relname": "register_audit_events",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
       "relrowsecurity": true
     },
     {
@@ -5461,19 +5918,19 @@
       "nspname": "private",
       "relname": "register_audit_events",
       "conname": "register_audit_events_before_data_check",
-      "definition": "CHECK ((before_data IS NULL))"
+      "definition": "CHECK ((((operation = ANY (ARRAY['clinician-created'::text, 'credential-created'::text])) AND (before_data IS NULL)) OR ((operation = ANY (ARRAY['credential-updated'::text, 'credential-archived'::text])) AND (before_data IS NOT NULL))))"
     },
     {
       "nspname": "private",
       "relname": "register_audit_events",
       "conname": "register_audit_events_check",
-      "definition": "CHECK ((((operation = 'clinician-created'::text) AND (clinician_id IS NOT NULL) AND (credential_id IS NULL)) OR ((operation = 'credential-created'::text) AND (credential_id IS NOT NULL) AND (clinician_id IS NULL))))"
+      "definition": "CHECK ((((operation = 'clinician-created'::text) AND (clinician_id IS NOT NULL) AND (credential_id IS NULL)) OR ((operation = ANY (ARRAY['credential-created'::text, 'credential-updated'::text, 'credential-archived'::text])) AND (credential_id IS NOT NULL) AND (clinician_id IS NULL))))"
     },
     {
       "nspname": "private",
       "relname": "register_audit_events",
       "conname": "register_audit_events_operation_check",
-      "definition": "CHECK ((operation = ANY (ARRAY['clinician-created'::text, 'credential-created'::text])))"
+      "definition": "CHECK ((operation = ANY (ARRAY['clinician-created'::text, 'credential-created'::text, 'credential-updated'::text, 'credential-archived'::text])))"
     },
     {
       "nspname": "private",
@@ -5485,6 +5942,42 @@
       "nspname": "private",
       "relname": "register_audit_events",
       "conname": "register_audit_events_practice_id_fkey",
+      "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_credential_fkey",
+      "definition": "FOREIGN KEY (practice_id, credential_id) REFERENCES credentials(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_requests_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_requests_operation_check",
+      "definition": "CHECK ((operation = ANY (ARRAY['credential-updated'::text, 'credential-archived'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_requests_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_requests_practice_id_actor_user_id_request__key",
+      "definition": "UNIQUE (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "register_change_requests",
+      "conname": "register_change_requests_practice_id_fkey",
       "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
     },
     {
@@ -5959,6 +6452,30 @@
     },
     {
       "schemaname": "private",
+      "tablename": "register_change_requests",
+      "indexname": "register_change_actor_idx",
+      "indexdef": "CREATE INDEX register_change_actor_idx ON private.register_change_requests USING btree (actor_user_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_change_requests",
+      "indexname": "register_change_credential_idx",
+      "indexdef": "CREATE INDEX register_change_credential_idx ON private.register_change_requests USING btree (practice_id, credential_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_change_requests",
+      "indexname": "register_change_requests_pkey",
+      "indexdef": "CREATE UNIQUE INDEX register_change_requests_pkey ON private.register_change_requests USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "register_change_requests",
+      "indexname": "register_change_requests_practice_id_actor_user_id_request__key",
+      "indexdef": "CREATE UNIQUE INDEX register_change_requests_practice_id_actor_user_id_request__key ON private.register_change_requests USING btree (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "schemaname": "private",
       "tablename": "register_create_requests",
       "indexname": "register_create_requests_actor_idx",
       "indexdef": "CREATE INDEX register_create_requests_actor_idx ON private.register_create_requests USING btree (actor_user_id)"
@@ -6016,6 +6533,12 @@
       "tablename": "credential_cycles",
       "indexname": "credential_cycles_practice_id_id_key",
       "indexdef": "CREATE UNIQUE INDEX credential_cycles_practice_id_id_key ON public.credential_cycles USING btree (practice_id, id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "credentials",
+      "indexname": "credentials_active_practice_idx",
+      "indexdef": "CREATE INDEX credentials_active_practice_idx ON public.credentials USING btree (practice_id, created_at, id) WHERE (archived_at IS NULL)"
     },
     {
       "schemaname": "public",

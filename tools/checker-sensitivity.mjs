@@ -3,6 +3,12 @@ import { spawnSync } from "node:child_process";
 import { uiCoverageSensitivity } from "./ui-coverage-sensitivity.mjs";
 const mutants = [
   {
+    file: "tools/gauntlet-contract.mjs",
+    from: "export function assertSchema(actual, expected) {",
+    to: "export function assertSchema(actual, expected) { return;",
+    test: "maintenance fingerprint detects removed receipt storage archive field and every helper",
+  },
+  {
     file: "tools/check-coverage.mjs",
     from: "s[key] = counts.get(line);",
     to: "s[key] = 1;",

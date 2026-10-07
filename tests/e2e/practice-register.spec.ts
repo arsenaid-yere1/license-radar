@@ -364,11 +364,11 @@ test("G25 manager creates, viewer reads, stale demotion denies and read outage i
     await expect(staff.getByText(/read-only/)).toBeVisible();
     const original = (
       await pool.query(
-        "select pg_get_functiondef('private.list_practice_register(uuid)'::regprocedure) body",
+        "select pg_get_functiondef('private.list_practice_register_with_maintenance(uuid,boolean)'::regprocedure) body",
       )
     ).rows[0].body;
     await pool.query(
-      "create or replace function private.list_practice_register(p_practice_id uuid) returns jsonb language plpgsql security definer set search_path='' as $$begin raise exception 'fixture outage';end$$",
+      "create or replace function private.list_practice_register_with_maintenance(p_practice_id uuid,p_include_archived boolean) returns jsonb language plpgsql security definer set search_path='' as $$begin raise exception 'fixture outage';end$$",
     );
     try {
       await staff.reload();
