@@ -240,4 +240,4 @@ AC1–AC12 have named source/test witnesses; each phase passes its exit criteria
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.
 
 Final evidence: `thoughts/shared/research/2026-10-06-e2-s2-implementation-evidence.md`.
-Run `d474a1b4-2df3-4aef-83e7-49192e87ce3c` passed all 31 layers against source commit `411ab8dc0cf4fbe7ecea2e378a4449e2361a2838`, source hash `00cde850b87a2264c774ab1ca7c3c174090e467737ed73546a2e8d8ac58664ab`. No hosted release was performed.
+Run `d474a1b4-2df3-4aef-83e7-49192e87ce3c` passed all 31 layers against source commit `411ab8dc0cf4fbe7ecea2e378a4449e2361a2838`, source hash `00cde850b87a2264c774ab1ca7c3c174090e467737ed73546a2e8d8ac58664ab`. The implementation turn did not deploy. The subsequent explicit “push to prod” request authorized the completed hosted release recorded in `thoughts/shared/handoffs/2026-10-06-e2-s2-production-release.md`; user manual acceptance remains separate.

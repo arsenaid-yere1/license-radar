@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, reminder responsibility, and register ownership are live in the hosted pilot.** E2-S2 date entry is implemented locally; the hosted pilot remains on E2-S1 until a separate release. Calendar and SMS reminders remain planned features.
+**Early development: practice setup, staff access, reminder responsibility, register ownership, and date entry are live in the hosted pilot.** Calendar and SMS reminders remain planned features.
 
 Today, users can:
 
@@ -31,7 +31,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership is live in E2-S1. E2-S2 date entry is implemented locally. The next story is E2-S3: editing, archiving, and suspected duplicate review, including unsent-job invalidation when that infrastructure exists.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership and E2-S2 date entry are live in the hosted pilot. The next story is E2-S3: editing, archiving, and suspected duplicate review, including unsent-job invalidation when that infrastructure exists.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -143,5 +143,8 @@ Place the checksum-verified Gitleaks binary at `.tools/gitleaks`; versions, chec
 - [E2-S2 executable specification](thoughts/shared/plans/2026-10-06-e2-s2-old-coder-spec.md).
 - [E2-S2 implementation plan](thoughts/shared/plans/2026-10-06-e2-s2-authoritative-dates.md).
 - [E2-S2 implementation evidence](thoughts/shared/research/2026-10-06-e2-s2-implementation-evidence.md).
+- [E2-S2 production release](thoughts/shared/handoffs/2026-10-06-e2-s2-production-release.md).
 
 The E2-S2 migration adds an unknown initial cycle to existing credentials without changing their historical values, timestamps, audits, or retry receipts. Editing those existing dates is E2-S3 work. The original creation API remains compatible, including its historical response shape; new application saves use the detailed creation API.
+
+The E2-S2 release passed all 31 verification layers. Its production migration preserved all 12 historical data sets and added exactly one unknown cycle to the existing credential. The hosted schema matched all nine application catalog sections, and anonymous access and private-route smoke checks passed. Authenticated hosted creation and user manual acceptance remain unconfirmed; real local SQL/API/browser checks cover those workflows.
