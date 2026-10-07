@@ -289,6 +289,16 @@
           "G19 register guards missing access and outages without fabricated empty state",
           "M14 archived view is explicit and malformed query selects active"
         ]
+      },
+      {
+        "command": "npm test -- tests/unit/register-maintenance-forms.test.tsx --testNamePattern=\"M13 a fresh active read\"",
+        "phase": "final recovery review before authoritative omission correction",
+        "observedFailedTests": 2,
+        "names": [
+          "M13 a fresh active read omits an archived record after a historical update reply",
+          "M13 a fresh active read omits an archived record after a historical create reply"
+        ],
+        "reason": "Old reply overlay remained visible after fresh active list omitted the archived record; initial update-case selector was scoped to the edit region before this behavioral RED."
       }
     ]
   }

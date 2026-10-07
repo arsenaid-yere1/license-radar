@@ -340,3 +340,65 @@ it("M13 exact edit retry cannot replace a newer authoritative record with a hist
     screen.getByRole("button", { name: "Edit record" }).matches(":disabled"),
   ).toBe(false);
 });
+
+it.each(["update", "create"] as const)(
+  "M13 a fresh active read omits an archived record after a historical %s reply",
+  async (intent) => {
+    const historical = {
+      ...record,
+      title: "Historical reply",
+      version: intent === "update" ? 2 : 1,
+    };
+    const legacy = { ...historical };
+    Reflect.deleteProperty(legacy, "archived_at");
+    Reflect.deleteProperty(legacy, "suspected_duplicate_ids");
+    const maintenance = vi.fn().mockResolvedValue({
+      status: "success",
+      changed: true,
+      credential: historical,
+      message: "Changes saved.",
+    });
+    const creation = vi.fn().mockResolvedValue({
+      status: "success",
+      credential: legacy,
+      message: "Record added.",
+    });
+    const renderPanel = (
+      credentials: typeof register.credentials,
+      readKey: string,
+    ) => (
+      <RegisterPanel
+        register={{ ...register, credentials }}
+        canEdit
+        action={creation}
+        maintenanceAction={maintenance}
+        clinicianKey="c"
+        credentialKey="k"
+        readKey={readKey}
+      />
+    );
+    const view = render(
+      renderPanel(intent === "update" ? [record] : [], "read1"),
+    );
+    if (intent === "update")
+      fireEvent.click(screen.getByRole("button", { name: "Edit record" }));
+    fireEvent.change(
+      (intent === "update" ? editor() : screen).getByLabelText("Record title"),
+      {
+        target: { value: "Historical reply" },
+      },
+    );
+    await submit(intent === "update" ? "Save changes" : "Add record");
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Historical reply" }),
+      ).toBeTruthy(),
+    );
+    view.rerender(renderPanel([], "read2"));
+    expect(
+      screen.queryByRole("heading", { name: "Historical reply" }),
+    ).toBeNull();
+    expect(screen.getByText("No renewal records added yet.")).toBeTruthy();
+    expect(refresh).toHaveBeenCalled();
+  },
+);

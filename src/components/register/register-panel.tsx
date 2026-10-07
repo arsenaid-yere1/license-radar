@@ -58,7 +58,12 @@ export function RegisterPanel({
   const clinicians = merge(register.clinicians, saved.clinicians),
     allCredentials = merge(
       register.credentials,
-      saved.credentials,
+      retainCredentialReplies(
+        saved.credentials,
+        register.credentials,
+        awaitingRead,
+        readKey,
+      ),
     ) as (Credential & {
       archived_at?: string | null;
       suspected_duplicate_ids?: string[];
@@ -187,6 +192,21 @@ function merge<T extends { id: string; version: number }>(
     if (!merged.has(value.id) || merged.get(value.id)!.version < value.version)
       merged.set(value.id, value);
   return Array.from(merged.values());
+}
+
+function retainCredentialReplies(
+  saved: (Credential & { archived_at?: string | null })[],
+  current: Credential[],
+  awaitingRead: string | null,
+  readKey?: string,
+) {
+  const hasFreshRead = awaitingRead !== null && awaitingRead !== readKey;
+  return saved.filter(
+    (record) =>
+      !hasFreshRead ||
+      Boolean(record.archived_at) ||
+      current.some((value) => value.id === record.id),
+  );
 }
 
 export function RecordDates({ record }: { record: Credential }) {

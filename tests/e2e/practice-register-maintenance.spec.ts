@@ -346,6 +346,64 @@ test("M13 archive precommit rollback pending lock and lost committed response pr
   await page.reload();
   await expect(page.getByText("No renewal records added yet.")).toBeVisible();
 });
+for (const intent of ["update", "create"] as const)
+  test(`M13 fresh active read retires a historical ${intent} reply after another session archives`, async ({
+    page,
+    context,
+  }) => {
+    const member = await open(page);
+    if (intent === "update") {
+      await create(page);
+      await item(page).getByRole("button", { name: "Edit record" }).click();
+      await editor(page).getByLabel("Record title").fill("Retained history");
+    } else {
+      await page.getByLabel("Record title").fill("Retained history");
+    }
+    await page.route("**/practice/register", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      await route.fetch();
+      await route.abort("failed");
+    });
+    await page
+      .getByRole("button", {
+        name: intent === "update" ? "Save changes" : "Add record",
+      })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Retry this save" }),
+    ).toBeVisible();
+    const second = await context.newPage();
+    try {
+      await second.goto("/practice/register");
+      await item(second, "Retained history")
+        .getByRole("button", { name: "Archive record" })
+        .click();
+      await second.getByRole("button", { name: "Confirm archive" }).click();
+      await expect(
+        second.getByText("Record archived.", { exact: true }),
+      ).toBeVisible();
+      const archived = await snapshots(member.practice_id);
+      await page.unroute("**/practice/register");
+      await page.getByRole("button", { name: "Retry this save" }).click();
+      await expect(
+        page.getByText(
+          intent === "update" ? "Changes saved." : "Record saved.",
+          { exact: true },
+        ),
+      ).toBeFocused();
+      await expect(
+        page.getByRole("heading", { name: "Retained history", exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText("No renewal records added yet."),
+      ).toBeVisible();
+      expect(await snapshots(member.practice_id)).toEqual(archived);
+      await page.getByRole("link", { name: "Archived records" }).click();
+      await expect(item(page, "Retained history")).toContainText("Archived on");
+    } finally {
+      await second.close();
+    }
+  });
 test("M10 M14 advisory duplicates resolve after edit/archive and viewer keeps active and archived inventory across sign-in", async ({
   page,
 }) => {

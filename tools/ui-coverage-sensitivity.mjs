@@ -71,6 +71,13 @@ const faults = [
     file: "tests/unit/register-maintenance-forms.test.tsx",
     name: "M12 definite errors retain draft and conflict requires explicit replacement and fresh tokens",
   },
+  {
+    source: "src/components/register/register-panel.tsx",
+    from: "!hasFreshRead ||",
+    to: "true ||",
+    file: "tests/unit/register-maintenance-forms.test.tsx",
+    name: "M13 a fresh active read omits an archived record after a historical update reply",
+  },
 ];
 export function mutationFailureEvidence(messages) {
   return messages.map((message) => ({
