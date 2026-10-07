@@ -127,6 +127,8 @@ function CreateFeedback({
         </p>
       )}
       {review && (
+        // A document request refreshes saved data and live authorization.
+        // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a className="text-link" href="/practice/register">
           Reload register
         </a>

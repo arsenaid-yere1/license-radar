@@ -240,6 +240,9 @@ test("M13 M15 lost committed edit freezes exact retry and rejects foreign-Origin
   await expect(
     page.getByRole("link", { name: "Archived records" }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Renewal calendar" }),
+  ).toHaveCount(0);
   const committed = await snapshots(member.practice_id);
   expect(
     committed["private.register_change_requests"] as unknown[],
@@ -252,6 +255,9 @@ test("M13 M15 lost committed edit freezes exact retry and rejects foreign-Origin
   await editor(page).getByRole("button", { name: "Retry this save" }).click();
   await expect(page.getByText("Changes saved.", { exact: true })).toBeFocused();
   await expect(item(page, "Corrected")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Renewal calendar" }),
+  ).toBeVisible();
   expect(await snapshots(member.practice_id)).toEqual(committed);
   expect(
     await capturePayload(requests[1].body, requests[1].contentType),
@@ -333,6 +339,9 @@ test("M13 archive precommit rollback pending lock and lost committed response pr
   });
   await page.getByRole("button", { name: "Confirm archive" }).click();
   await expect(page.locator("p[role=alert]")).toContainText("Retry this save");
+  await expect(
+    page.getByRole("link", { name: "Renewal calendar" }),
+  ).toHaveCount(0);
   const archived = await snapshots(member.practice_id);
   await page.unroute("**/practice/register");
   await page.getByRole("button", { name: "Retry this save" }).click();

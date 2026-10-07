@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, reminder responsibility, register ownership, date entry, and register maintenance are live in the hosted pilot.** Calendar and SMS reminders remain planned features.
+**Early development: practice setup, staff access, reminder responsibility, register ownership, date entry, and register maintenance are live in the hosted pilot.** E3-S1 calendar and agenda are implemented locally; SMS reminders remain planned.
 
 Today, users can:
 
@@ -31,7 +31,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership and E2-S2 date entry are live in the hosted pilot. E2-S3 editing, retained archiving, and advisory duplicate review are live in the hosted pilot. E3-S1 calendar and agenda are next; event exclusion and E4 unsent-job invalidation/cancellation remain required when that infrastructure exists.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership and E2-S2 date entry are live in the hosted pilot. E2-S3 editing, retained archiving, and advisory duplicate review are live in the hosted pilot. E3-S1 calendar and agenda are implemented locally, including exclusion of archived records. E3-S2 dashboard is next; E4 unsent-job invalidation/cancellation remains required when that infrastructure exists.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Text an enrolled office manager 60 calendar days before the relevant date, using the practice's timezone. Show failed or undelivered reminders so they can be addressed.
@@ -158,3 +158,11 @@ E2-S3 lets administrators/managers correct existing records and explicitly archi
 - [E2-S3 production release](thoughts/shared/handoffs/2026-10-07-e2-s3-production-release.md).
 
 The E2-S3 release passed all 32 verification layers. Its additive hosted migration preserved all 13 historical data sets and matched all nine application catalog sections. Public-page, anonymous-denial, and private-route checks passed. An existing authenticated browser session loaded both active and archived register views; hosted edit/archive submissions were not exercised because the live register contained no records. Populated local SQL/API/browser tests cover those mutations. Text reminders remain inactive.
+
+- [E3-S1 executable specification](thoughts/shared/plans/2026-10-07-e3-s1-old-coder-spec.md).
+- [E3-S1 implementation plan](thoughts/shared/plans/2026-10-07-e3-s1-calendar-and-agenda.md).
+- [E3-S1 implementation evidence](thoughts/shared/research/2026-10-07-e3-s1-implementation-evidence.md).
+
+E3-S1 adds **Renewal calendar** from practice settings and the register. All active members can view a month calendar or agenda, filter by clinician or practice ownership, type, and jurisdiction, and open read-only record details. Each entered end date and earlier action deadline appears separately; the effective tracking date is labeled. A shared policy remains one event per date purpose. Records with both dates unknown remain visible under **Dates not entered** in every month. The practice timezone determines today; saved calendar dates do not shift with the browser timezone. Desktop defaults to month and phones to agenda, with explicit view links available on both.
+
+Calendar/detail pages are saved snapshots. **Refresh records** and ordinary navigation recheck access and read current values; browser history may restore an earlier snapshot until refreshed. Corrections move dates and archiving removes events after a fresh read, preserving retained history. Detail links recheck current membership and active-record availability. Invalid filters show a warning until corrected or cleared. Register navigation remains locked while a maintenance save is pending or uncertain. No database migration or new dependency is needed. These changes have not been deployed. Text reminders remain inactive; E3-S2 dashboard and E4 scheduling/dispatch remain future work.

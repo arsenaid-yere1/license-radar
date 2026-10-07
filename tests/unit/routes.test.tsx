@@ -29,6 +29,9 @@ vi.mock("@/components/auth/email-code-form", () => ({
   EmailCodeForm: () => <div>Code form</div>,
 }));
 vi.mock("next/navigation", () => ({
+  notFound: () => {
+    throw new Error("NOT_FOUND");
+  },
   useRouter: () => ({ refresh: vi.fn() }),
   redirect: (url: string) => {
     throw new Error(`REDIRECT:${url}`);
@@ -149,6 +152,11 @@ it.each([
     expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Manage team" })).toBeNull();
     expect(screen.getByText("UTC")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "Renewal calendar" })
+        .getAttribute("href"),
+    ).toBe("/practice/calendar");
     expect(
       screen
         .getByRole("link", { name: "Renewal register" })
@@ -279,4 +287,161 @@ it("M14 archived view is explicit and malformed query selects active", async () 
     ).toBeTruthy();
     v.unmount();
   }
+});
+
+const calendarId = "aaaaaaaa-0000-4000-8000-000000000001";
+const calendarRecord = {
+  id: calendarId,
+  title: "Shared policy",
+  type: "malpractice_policy",
+  owner_kind: "practice",
+  owner_clinician_id: null,
+  owner_name: "Cedar",
+  version: 1,
+  covered_clinicians: [
+    { id: "bbbbbbbb-0000-4000-8000-000000000002", name: "Rivera" },
+  ],
+  issuer: "Insurer",
+  jurisdiction: "CA",
+  archived_at: null,
+  suspected_duplicate_ids: [],
+  current_cycle: {
+    id: calendarId,
+    cycle_number: 1,
+    date_revision: 1,
+    end_date: "2028-02-29",
+    action_deadline: "2028-02-01",
+  },
+};
+function calendarAccess(role = "manager") {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: {
+      practice: { id: "own", name: "Cedar", timezone: "America/Los_Angeles" },
+      role,
+    },
+  });
+  boundary.getMaintenanceRegister.mockResolvedValue({
+    status: "success",
+    register: { clinicians: [], credentials: [calendarRecord] },
+  });
+}
+it("C08 calendar and detail check authentication, access and read errors before showing data", async () => {
+  const { default: Calendar } = await import("@/app/practice/calendar/page"),
+    { default: Detail } =
+      await import("@/app/practice/register/[credentialId]/page");
+  const routes = [
+    () => Calendar({}),
+    () => Detail({ params: Promise.resolve({ credentialId: calendarId }) }),
+  ];
+  for (const route of routes) {
+    calendarAccess();
+    boundary.requireUser.mockRejectedValueOnce(new Error("REDIRECT:/login"));
+    await expect(route()).rejects.toThrow("REDIRECT:/login");
+    expect(boundary.getMaintenanceRegister).not.toHaveBeenCalled();
+    boundary.getPracticeAccess.mockResolvedValue({ status: "unavailable" });
+    await expect(route()).rejects.toThrow(
+      "We could not complete this request. Try again.",
+    );
+    boundary.getPracticeAccess.mockResolvedValue({
+      status: "success",
+      access: null,
+    });
+    await expect(route()).rejects.toThrow("REDIRECT:/onboarding/practice");
+    calendarAccess();
+    boundary.getMaintenanceRegister.mockResolvedValue({
+      status: "unavailable",
+    });
+    await expect(route()).rejects.toThrow(
+      "We could not complete this request. Try again.",
+    );
+    boundary.getMaintenanceRegister.mockClear();
+  }
+});
+it("C07 C08 all active roles see authorized detail and fresh active calendar data", async () => {
+  const { default: Calendar } = await import("@/app/practice/calendar/page"),
+    { default: Detail } =
+      await import("@/app/practice/register/[credentialId]/page");
+  for (const role of ["administrator", "manager", "viewer"]) {
+    calendarAccess(role);
+    const c = render(
+      await Calendar({
+        searchParams: Promise.resolve({
+          month: "2028-02",
+          practiceId: "foreign",
+        }),
+      }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "Your renewal calendar." }),
+    ).toBeTruthy();
+    expect(boundary.getMaintenanceRegister).toHaveBeenLastCalledWith(
+      {},
+      "own",
+      false,
+    );
+    c.unmount();
+    const d = render(
+      await Detail({
+        params: Promise.resolve({ credentialId: calendarId.toUpperCase() }),
+        searchParams: Promise.resolve({ month: "2028-02", view: "agenda" }),
+      }),
+    );
+    expect(screen.getByRole("heading", { name: "Shared policy" })).toBeTruthy();
+    expect(screen.getByText("Covers: Rivera")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", {
+          name: role === "viewer" ? "View in register" : "Edit in register",
+        })
+        .getAttribute("href"),
+    ).toBe(`/practice/register#record-${calendarId}`);
+    expect(
+      screen
+        .getByRole("link", { name: "Back to calendar" })
+        .getAttribute("href"),
+    ).toBe("/practice/calendar?month=2028-02&view=agenda");
+    expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
+    d.unmount();
+  }
+});
+it("C07 malformed, foreign, missing and archived detail IDs share neutral not-found", async () => {
+  const { default: Detail } =
+    await import("@/app/practice/register/[credentialId]/page");
+  calendarAccess();
+  for (const credentialId of ["bad", "bbbbbbbb-0000-4000-8000-000000000002"]) {
+    await expect(
+      Detail({ params: Promise.resolve({ credentialId }) }),
+    ).rejects.toThrow("NOT_FOUND");
+  }
+  boundary.getMaintenanceRegister.mockResolvedValue({
+    status: "success",
+    register: { clinicians: [], credentials: [] },
+  });
+  await expect(
+    Detail({ params: Promise.resolve({ credentialId: calendarId }) }),
+  ).rejects.toThrow("NOT_FOUND");
+  boundary.getMaintenanceRegister.mockResolvedValue({
+    status: "success",
+    register: {
+      clinicians: [],
+      credentials: [{ ...calendarRecord, archived_at: "2026-01-01T00:00:00Z" }],
+    },
+  });
+  await expect(
+    Detail({ params: Promise.resolve({ credentialId: calendarId }) }),
+  ).rejects.toThrow("NOT_FOUND");
+});
+it("C07 not-found page offers neutral fixed navigation", async () => {
+  const { default: NotFound } =
+    await import("@/app/practice/register/[credentialId]/not-found");
+  render(<NotFound />);
+  expect(
+    screen.getByRole("heading", { name: "Record unavailable." }),
+  ).toBeTruthy();
+  expect(
+    screen
+      .getByRole("link", { name: "Return to calendar" })
+      .getAttribute("href"),
+  ).toBe("/practice/calendar");
 });

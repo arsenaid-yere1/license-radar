@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: [
+      "src/lib/calendar/properties.test.ts",
       "src/lib/practice/properties.test.ts",
       "src/lib/team/properties.test.ts",
       "src/lib/recipients/properties.test.ts",

@@ -1,5 +1,8 @@
 const configOptions = {
   mutate: [
+    "src/lib/calendar/events.ts",
+    "src/lib/calendar/dates.ts",
+    "src/lib/calendar/query.ts",
     "src/lib/practice/schema.ts",
     "src/lib/practice/timezones.ts",
     "src/lib/practice/repository.ts",

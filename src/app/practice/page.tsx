@@ -41,10 +41,13 @@ export default async function Settings() {
             <p>{user.email}</p>
           </div>
           <p className="hint">
-            Your renewal calendar will build on this profile.
+            Your calendar follows the dates saved in your renewal register.
           </p>
         </section>
         <div className="settings-panels">
+          <a href="/practice/calendar" className="text-link">
+            Renewal calendar
+          </a>
           <Link href="/practice/register" className="text-link">
             Renewal register
           </Link>

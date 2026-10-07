@@ -195,8 +195,8 @@ AC1–AC12 have executable witnesses; all four phases pass; the final diff is re
 
 ## Implementation progress
 
-- [ ] Phase 1: Calendar projection, dates, and query state.
-- [ ] Phase 2: Authenticated calendar and credential detail reads.
-- [ ] Phase 3: Responsive calendar, agenda, filters, and navigation.
+- [x] Phase 1: Calendar projection, dates, and query state.
+- [x] Phase 2: Authenticated calendar and credential detail reads.
+- [x] Phase 3: Responsive calendar, agenda, filters, and navigation.
 - [ ] Phase 4: Regression gates and implementation evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.

@@ -9,7 +9,7 @@ import type {
   MaintenanceCredential,
   MaintenanceState,
 } from "@/lib/register/schema";
-import { RecordDates } from "./register-panel";
+import { RecordDates } from "./record-dates";
 export type RecordFormProps = {
   record: MaintenanceCredential;
   clinicians: Clinician[];

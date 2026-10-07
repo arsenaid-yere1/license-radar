@@ -207,6 +207,9 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
         }),
     );
   const view = render(panel(action));
+  expect(
+    screen.getByRole("link", { name: "Renewal calendar" }).getAttribute("href"),
+  ).toBe("/practice/calendar");
   fireEvent.click(screen.getByRole("button", { name: "Archive record" }));
   expect(screen.getByText(/Archive “Policy”/)).toBeTruthy();
   await submit("Confirm archive");
@@ -217,6 +220,7 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
     screen.getByRole("button", { name: "Cancel" }).matches(":disabled"),
   ).toBe(true);
   expect(screen.queryByRole("link", { name: "Archived records" })).toBeNull();
+  expect(screen.queryByRole("link", { name: "Renewal calendar" })).toBeNull();
   await submit("Retry this save");
   await waitFor(() => expect(action).toHaveBeenCalledTimes(2));
   expect(Array.from(action.mock.calls[1][1])).toEqual(
@@ -234,6 +238,7 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   await waitFor(() =>
     expect(screen.getByRole("status").textContent).toBe("Record archived."),
   );
+  expect(screen.getByRole("link", { name: "Renewal calendar" })).toBeTruthy();
   expect(screen.queryByRole("heading", { name: "Policy" })).toBeNull();
   view.rerender(panel(action, register, "read2"));
   expect(screen.queryByRole("heading", { name: "Policy" })).toBeNull();
