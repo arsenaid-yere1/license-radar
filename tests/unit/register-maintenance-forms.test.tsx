@@ -238,7 +238,11 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   await waitFor(() =>
     expect(screen.getByRole("status").textContent).toBe("Record archived."),
   );
-  expect(screen.queryByRole("link", { name: "Renewal calendar" })).toBeTruthy();
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("link", { name: "Renewal calendar" }),
+    ).toBeTruthy(),
+  );
   expect(screen.queryByRole("heading", { name: "Policy" })).toBeNull();
   view.rerender(panel(action, register, "read2"));
   expect(screen.queryByRole("heading", { name: "Policy" })).toBeNull();
