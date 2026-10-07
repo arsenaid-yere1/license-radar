@@ -65,6 +65,7 @@ The failure model is mapped to the concrete concurrency, rollback, conflict/repl
 - The real browser caught repeated archive success text failing to receive focus. Store each completion as a distinct notice object so focus runs on every acknowledged save.
 - The first full mutation attempt scored 99.44% with four survivors. Added meaningful default active-read/edit-message and discriminant feedback assertions; followed the existing lazy-dispatch pattern so malformed mutant schemas fail in tests rather than module collection. One cached lazy branch literal still escaped instrumentation. Declared immutable branch schemas at module scope while retaining lazy dispatch, then reran the strict checks. No tests were weakened, ignored mutants added, or thresholds changed.
 - An exploratory coverage merge correctly rejected stale browser source maps from earlier builds. The final gauntlet deletes prior coverage/reports before building and exercising the final source.
+- The first complete gauntlet attempt passed both strict mutation layers, then stopped at an inherited P03 SQL-mutant baseline timeout before applying that fault. The failed case reported 133.7 seconds elapsed against its unchanged 30-second limit; the same case passed unchanged on a narrow rerun in 6.4 seconds. The cause was not established. No timeout, assertion, inventory, or threshold was weakened; the complete gauntlet was restarted. Final diff inspection also removed trailing whitespace inside SQL test strings, with SQL lint and diff checks passing.
 
 ## Final fresh verification
 

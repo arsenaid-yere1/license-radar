@@ -231,7 +231,7 @@ where
     and practice_id = (select p.id from maintenance_practice as p);
 select throws_ok(
     $q$
-insert into private.register_change_requests 
+insert into private.register_change_requests
 select gen_random_uuid(),
 practice_id,
 actor_user_id,
@@ -240,10 +240,10 @@ credential_id,
 operation,
 payload,
 result,
-created_at 
-from private.register_change_requests 
+created_at
+from private.register_change_requests
 where practice_id=(
-select id 
+select id
 from maintenance_practice)
 $q$,
     '23505',
@@ -257,16 +257,16 @@ actor_user_id,
 operation,
 credential_id,
 before_data,
-after_data) 
+after_data)
 select practice_id,
 actor_user_id,
 operation,
 credential_id,
 null,
-after_data 
-from private.register_audit_events 
+after_data
+from private.register_audit_events
 where operation='credential-archived' and practice_id=(
-select id 
+select id
 from maintenance_practice)
 $q$,
     '23514',
@@ -280,16 +280,16 @@ actor_user_id,
 operation,
 credential_id,
 before_data,
-after_data) 
+after_data)
 select practice_id,
 actor_user_id,
 'credential-created',
 credential_id,
 before_data,
-after_data 
-from private.register_audit_events 
+after_data
+from private.register_audit_events
 where operation='credential-archived' and practice_id=(
-select id 
+select id
 from maintenance_practice)
 $q$,
     '23514',
