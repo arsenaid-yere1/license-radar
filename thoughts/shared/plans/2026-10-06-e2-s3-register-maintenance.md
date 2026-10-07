@@ -2,9 +2,10 @@
 
 Date: 2026-10-06 (America/Los_Angeles).
 Baseline: `27b728b4578a96d526e7fd25cf8f385284856e3c`.
-Status: Implemented locally; final fresh verification in progress.
+Status: Implemented locally and verified; all 32 fresh verification layers passed.
 Research: `thoughts/shared/research/2026-10-06-e2-s3-register-maintenance.md`.
 Verification: `thoughts/shared/plans/2026-10-06-e2-s3-register-maintenance-verification.md`.
+Implementation evidence: `thoughts/shared/research/2026-10-06-e2-s3-implementation-evidence.md`.
 
 ## Overview
 
@@ -22,20 +23,20 @@ All active members read; administrators/managers write through checked RPCs. No 
 
 ## Desired End State
 
-| ID | Acceptance criterion |
-| --- | --- |
-| AC1 | Administrators/managers edit title, type, issuer, jurisdiction, owner, covered clinicians, expiration/coverage end, and earlier action deadline of an active credential, including filling dates on historical unknown-date records. |
-| AC2 | Existing text/date/owner/coverage rules apply to edits, including unknown, historical, and action-only dates. Shared policies remain one credential/cycle. |
-| AC3 | A changed edit increments credential version once. Either date changing increments the same cycle's date revision once. Metadata/coverage-only edits leave cycle revision/timestamps unchanged; true no-ops change no business rows or audits. |
-| AC4 | Stale version/cycle/revision writes conflict without overwriting newer data. The interface preserves the draft for comparison and requires an explicit reload/review before another write. |
-| AC5 | Archive requires a named-record confirmation, hides the record from the default active register, and preserves credential, coverage, cycle, historical dates, receipts, and audits. An explicit archived view remains readable by active members. |
-| AC6 | Archived records cannot be edited or restored in this slice. Concurrent/repeated archives do not add duplicate history; exact uncertain retries confirm the original result. |
-| AC7 | Suspected active duplicates are flagged for human review using the rule below. Legitimate similar records can coexist; no automatic merge, deletion, or uniqueness rejection occurs. |
-| AC8 | Changed edits/archives atomically save full before/after snapshots, actor/time, and a caller-scoped immutable mutation receipt. Identical retries return the original outcome; changed payloads under one mutation key conflict. |
-| AC9 | Viewer, anonymous, outsider, revoked, and demoted write denial applies before replay/data disclosure, including lock-wait races. Direct DML/private helpers/history remain denied. |
+| ID   | Acceptance criterion                                                                                                                                                                                                                                           |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1  | Administrators/managers edit title, type, issuer, jurisdiction, owner, covered clinicians, expiration/coverage end, and earlier action deadline of an active credential, including filling dates on historical unknown-date records.                           |
+| AC2  | Existing text/date/owner/coverage rules apply to edits, including unknown, historical, and action-only dates. Shared policies remain one credential/cycle.                                                                                                     |
+| AC3  | A changed edit increments credential version once. Either date changing increments the same cycle's date revision once. Metadata/coverage-only edits leave cycle revision/timestamps unchanged; true no-ops change no business rows or audits.                 |
+| AC4  | Stale version/cycle/revision writes conflict without overwriting newer data. The interface preserves the draft for comparison and requires an explicit reload/review before another write.                                                                     |
+| AC5  | Archive requires a named-record confirmation, hides the record from the default active register, and preserves credential, coverage, cycle, historical dates, receipts, and audits. An explicit archived view remains readable by active members.              |
+| AC6  | Archived records cannot be edited or restored in this slice. Concurrent/repeated archives do not add duplicate history; exact uncertain retries confirm the original result.                                                                                   |
+| AC7  | Suspected active duplicates are flagged for human review using the rule below. Legitimate similar records can coexist; no automatic merge, deletion, or uniqueness rejection occurs.                                                                           |
+| AC8  | Changed edits/archives atomically save full before/after snapshots, actor/time, and a caller-scoped immutable mutation receipt. Identical retries return the original outcome; changed payloads under one mutation key conflict.                               |
+| AC9  | Viewer, anonymous, outsider, revoked, and demoted write denial applies before replay/data disclosure, including lock-wait races. Direct DML/private helpers/history remain denied.                                                                             |
 | AC10 | Pending/uncertain requests freeze all fields and in-form cancellation/intent controls; exact-key retry recovers. Definite validation failure preserves editable drafts. Updated/archive display survives stale refresh without resurrecting known older state. |
-| AC11 | Upgrade preserves every historical column/value/version/timestamp/cycle/link/audit/receipt and old creation responses verbatim; new archive fields start NULL and new receipt storage empty. Inherited and new verification gates pass. |
-| AC12 | Date revision and archive state are explicit foundations for E3/E4; SMS remains inactive. No guessed dates, scheduled-job claims, legal-validity labels, or renewal completion semantics appear. |
+| AC11 | Upgrade preserves every historical column/value/version/timestamp/cycle/link/audit/receipt and old creation responses verbatim; new archive fields start NULL and new receipt storage empty. Inherited and new verification gates pass.                        |
+| AC12 | Date revision and archive state are explicit foundations for E3/E4; SMS remains inactive. No guessed dates, scheduled-job claims, legal-validity labels, or renewal completion semantics appear.                                                               |
 
 These are resolved planning defaults. No material product or implementation question remains open for this slice.
 
@@ -53,7 +54,7 @@ These are resolved planning defaults. No material product or implementation ques
 - Clinician renaming/deactivation/archive, staff changes, new credential fields/types, CSV import, evidence uploads, or protected identifiers.
 - Restore/unarchive, hard deletion, automatic merging, duplicate dismissal persistence, fuzzy matching, or an audit-history screen (E7-S2).
 - Calendar/dashboard implementation, successor cycles, progress/completion, renewal links, reminder jobs/outbox, scheduling/dispatch, phone/consent, or accepted-message history.
-- Runtime changes, migrations, commits, database resets, or production deployment during this planning request.
+- Hosted migrations, production database resets/deployment, or publication. The initial planning request was read-only; subsequent local implementation and fixture verification were separately authorized by “create specs and implement it.”
 
 ## Implementation Approach
 
@@ -173,17 +174,17 @@ Inspect desktop/mobile edit/archive/duplicate/error/retry flows and keyboard foc
 
 Use Node 24.21.0. Run all inherited/new unit, formatting, lint, types, SQL, API, and production browser suites. Run resets/upgrades/faults sequentially on the guarded local fixture stack only.
 
-| Commands | Required implementation result |
-| --- | --- |
-| `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test` | All inherited/new checks pass. |
-| `npm run db:reset`, `npm run test:db`, `npm run test:integration` | Fresh replay, full TAP/controls, real API, concurrency, and recovery pass. |
-| `.venv-gauntlet/bin/sqlfluff lint supabase/migrations supabase/tests` | SQL passes. |
-| `node tools/register-maintenance-upgrade.mjs` | Populated thirteen-table preservation, rollback, old/new replay, and fresh catalog match pass. |
-| `npm run test:controls`, `npm run mutation`, `npm run mutation:properties`, `node tools/sql-mutants.mjs` | Applied new/inherited faults are killed by required assertions and restored. |
-| `npm run build`, `npm run test:e2e` | Production-local new/inherited browser flows pass. |
-| `npm run gauntlet` | All 32 layers pass against an actual clean committed implementation checkpoint, including schema/types/coverage. |
+| Commands                                                                                                 | Required implementation result                                                                                   |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`                                  | All inherited/new checks pass.                                                                                   |
+| `npm run db:reset`, `npm run test:db`, `npm run test:integration`                                        | Fresh replay, full TAP/controls, real API, concurrency, and recovery pass.                                       |
+| `.venv-gauntlet/bin/sqlfluff lint supabase/migrations supabase/tests`                                    | SQL passes.                                                                                                      |
+| `node tools/register-maintenance-upgrade.mjs`                                                            | Populated thirteen-table preservation, rollback, old/new replay, and fresh catalog match pass.                   |
+| `npm run test:controls`, `npm run mutation`, `npm run mutation:properties`, `node tools/sql-mutants.mjs` | Applied new/inherited faults are killed by required assertions and restored.                                     |
+| `npm run build`, `npm run test:e2e`                                                                      | Production-local new/inherited browser flows pass.                                                               |
+| `npm run gauntlet`                                                                                       | All 32 layers pass against an actual clean committed implementation checkpoint, including schema/types/coverage. |
 
-The current gauntlet clean-source/checkpoint gate remains required. This planning request does not create that checkpoint or run database/gauntlet work. Any later implementation turn must report actual commands, source identity, acceptance witnesses, and unrun checks rather than copying historical green results.
+The implementation retained the clean-source/checkpoint gate and passed all 32 layers on commit `e67b6e128dfcf7bf14c8a86fa7bfbfb8dba7cd1c`, run `5e3f2dde-4aef-44d8-906f-3f80f3e89dc2`. Actual commands, source fingerprint, witnesses, failure history and manual/hosted limits are recorded in the implementation evidence; these are fresh implementation results rather than copied historical checks.
 
 ### Manual verification
 
@@ -208,6 +209,6 @@ AC1–AC12 have executable witnesses, each phase passes its exit criteria, all 3
 
 - [x] Phase 1: Database maintenance contracts.
 - [x] Phase 2: Domain validation and server actions.
-- [ ] Phase 3: Editing, archive confirmation, and review UI.
-- [ ] Phase 4: Upgrade, fault controls, and final evidence.
+- [x] Phase 3: Editing, archive confirmation, and review UI.
+- [x] Phase 4: Upgrade, fault controls, and final evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.
