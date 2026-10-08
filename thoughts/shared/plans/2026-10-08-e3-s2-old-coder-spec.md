@@ -94,3 +94,7 @@ The first browser run exposed two fixture assumptions: the inherited detail labe
 ## Revision 4 — generated nearby-date ordering (2026-10-08)
 
 The initial property-only mutation run killed 67 mutants but retained removal of the due-list sort: wide-range records rarely contained multiple nearby dates. Add QP04, generating 2–20 dates within 0–60 days with title ties, checking exact independent date/title/UUID ordering for both input directions. This strengthens Q04/QP01's existing order contract without changing runtime behavior or thresholds. Observe the surviving mutation fail QP04 before restoring it. Spec approval: not obtained (autonomous run).
+
+## Revision 5 — coverage roster order (2026-10-08)
+
+The first complete gauntlet passed 22 layers before the browser layer failed one of 48 cases. The shared policy contained the correct two clinicians, but the test assumed creation order; the inherited read orders the roster by identifiers. Q02 requires exact coverage membership and one credential count, with no roster display-order contract. Assert the exact sorted pair and no extras instead of an unsupported creation-order substring. Runtime rendering and data reads remain unchanged. Record the failed run/source in RED history and rerun the complete gauntlet after the corrected witness checkpoint. Spec approval: not obtained (autonomous run).

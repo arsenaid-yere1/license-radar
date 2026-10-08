@@ -218,8 +218,12 @@ test("Q01 Q02 Q03 Q06 Q11 Q12 Q14 exact dashboard lists, shared coverage, date p
   ).toBe(day);
   const before = await snapshot(m.practice_id);
   await counts(page, 1, 9, 2);
-  await expect(page.getByRole("region", { name: "Past due" })).toContainText(
-    "Covers: Rivera & 陈, Chen",
+  const covered = await page
+    .getByRole("region", { name: "Past due" })
+    .getByText(/^Covers:/)
+    .textContent();
+  expect(covered!.slice("Covers: ".length).split(", ").sort()).toEqual(
+    ["Rivera & 陈", "Chen"].sort(),
   );
   await expect(page.getByRole("region", { name: "Past due" })).toContainText(
     "earlier action deadline",

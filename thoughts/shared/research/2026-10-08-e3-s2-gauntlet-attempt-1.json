@@ -1,0 +1,131 @@
+{
+  "runId": "b276cb2f-cc6b-4e1c-b409-0227d0462f70",
+  "started": "2026-10-08T16:15:25.075Z",
+  "source": {
+    "commit": "d6c859beb70cb13efb25cc7eb605f94ea1978e3f",
+    "sourceHash": "f10c6522c195716d9dd4b2ca1f9278c5aae04111098c129f777922f56c5496c1",
+    "files": 211
+  },
+  "results": [
+    {
+      "id": "checker-controls",
+      "exitCode": 0,
+      "durationMs": 161
+    },
+    {
+      "id": "checker-sensitivity",
+      "exitCode": 0,
+      "durationMs": 18286
+    },
+    {
+      "id": "types",
+      "exitCode": 0,
+      "durationMs": 613
+    },
+    {
+      "id": "lint",
+      "exitCode": 0,
+      "durationMs": 1676
+    },
+    {
+      "id": "format",
+      "exitCode": 0,
+      "durationMs": 959
+    },
+    {
+      "id": "sql-lint",
+      "exitCode": 0,
+      "durationMs": 3429
+    },
+    {
+      "id": "access-upgrade",
+      "exitCode": 0,
+      "durationMs": 28444
+    },
+    {
+      "id": "recipient-upgrade",
+      "exitCode": 0,
+      "durationMs": 27354
+    },
+    {
+      "id": "register-upgrade",
+      "exitCode": 0,
+      "durationMs": 27648
+    },
+    {
+      "id": "credential-dates-upgrade",
+      "exitCode": 0,
+      "durationMs": 27627
+    },
+    {
+      "id": "register-maintenance-upgrade",
+      "exitCode": 0,
+      "durationMs": 28862
+    },
+    {
+      "id": "replay",
+      "exitCode": 0,
+      "durationMs": 13352
+    },
+    {
+      "id": "schema",
+      "exitCode": 0,
+      "durationMs": 96
+    },
+    {
+      "id": "database",
+      "exitCode": 0,
+      "durationMs": 11339
+    },
+    {
+      "id": "integration",
+      "exitCode": 0,
+      "durationMs": 53732
+    },
+    {
+      "id": "unit-coverage",
+      "exitCode": 0,
+      "durationMs": 2547
+    },
+    {
+      "id": "mutation",
+      "exitCode": 0,
+      "durationMs": 335186
+    },
+    {
+      "id": "mutation-properties",
+      "exitCode": 0,
+      "durationMs": 251088
+    },
+    {
+      "id": "sql-mutants",
+      "exitCode": 0,
+      "durationMs": 217473
+    },
+    {
+      "id": "schema-restored",
+      "exitCode": 0,
+      "durationMs": 78
+    },
+    {
+      "id": "generated-types",
+      "exitCode": 0,
+      "durationMs": 1390
+    },
+    {
+      "id": "build",
+      "exitCode": 0,
+      "durationMs": 5929
+    }
+  ],
+  "status": "failed",
+  "failure": {
+    "id": "browser",
+    "exitCode": 1
+  },
+  "browserObservation": {
+    "passed": 47,
+    "failed": 1,
+    "failure": "Q02 roster creation-order assumption; exact two names present in identifier order"
+  }
+}
