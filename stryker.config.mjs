@@ -1,5 +1,14 @@
 const configOptions = {
   mutate: [
+    "src/lib/sms/schema.ts",
+    "src/lib/sms/repository.ts",
+    "src/lib/sms/operations.ts",
+    "src/lib/sms/messages.ts",
+    "src/lib/sms/provider.ts",
+    "src/lib/sms/config.ts",
+    "src/lib/sms/disclosures.ts",
+    "src/lib/sms/webhook.ts",
+    "src/app/practice/sms/actions.ts",
     "src/lib/dashboard/summary.ts",
     "src/lib/calendar/events.ts",
     "src/lib/calendar/dates.ts",

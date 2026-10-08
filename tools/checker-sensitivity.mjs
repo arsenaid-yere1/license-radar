@@ -3,6 +3,12 @@ import { spawnSync } from "node:child_process";
 import { uiCoverageSensitivity } from "./ui-coverage-sensitivity.mjs";
 const mutants = [
   {
+    file: "tools/sms-capabilities.mjs",
+    from: "export function assertSmsCapabilities(files) {",
+    to: "export function assertSmsCapabilities(files) { return;",
+    test: "SMS checker rejects direct and indirect client imports",
+  },
+  {
     file: "tools/gauntlet-contract.mjs",
     from: "export function assertSchema(actual, expected) {",
     to: "export function assertSchema(actual, expected) { return;",
@@ -151,6 +157,7 @@ const baseline = spawnSync(
     "--test",
     "tools/gauntlet-controls.test.mjs",
     "tools/access-controls.test.mjs",
+    "tools/sms-controls.test.mjs",
   ],
   { encoding: "utf8" },
 );
@@ -171,6 +178,7 @@ for (const mutant of mutants) {
         `--test-name-pattern=${mutant.test}`,
         "tools/gauntlet-controls.test.mjs",
         "tools/access-controls.test.mjs",
+        "tools/sms-controls.test.mjs",
       ],
       { encoding: "utf8" },
     );

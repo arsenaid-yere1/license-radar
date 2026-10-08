@@ -14,7 +14,7 @@ export function recipientInput(form: FormData) {
 export function recipientMessage(status: RecipientState["status"]) {
   switch (status) {
     case "success":
-      return "Reminder recipient saved. SMS setup is still pending.";
+      return "Reminder recipient saved.";
     case "invalid":
       return "Choose a valid recipient or explicitly clear the selection.";
     case "forbidden":

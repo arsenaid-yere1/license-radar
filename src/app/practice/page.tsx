@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
 import { getRecipient } from "@/lib/recipients/repository";
+import { getRecipientEnrollment } from "@/lib/sms/repository";
 import { RecipientPanel } from "@/components/recipients/recipient-panel";
 import { recipientAction } from "./recipient-actions";
 import { roleLabels } from "@/lib/team/schema";
@@ -21,6 +22,9 @@ export default async function Settings() {
   const { practice, role } = result.access;
   const recipient = await getRecipient(client, practice.id);
   if (recipient.status !== "success")
+    throw new Error("We could not complete this request. Try again.");
+  const sms = await getRecipientEnrollment(client, practice.id);
+  if (sms.status !== "success")
     throw new Error("We could not complete this request. Try again.");
   return (
     <Shell action={<SignOutForm />}>
@@ -87,9 +91,13 @@ export default async function Settings() {
               </>
             )}
           </section>
+          <Link href="/practice/sms" className="text-link">
+            My reminder texts
+          </Link>
           <RecipientPanel
-            recipient={recipient.recipient}
+            recipient={sms.recipient}
             action={recipientAction}
+            enrollment={sms.enrollment}
           />
         </div>
       </div>

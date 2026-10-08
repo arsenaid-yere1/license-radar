@@ -68,3 +68,10 @@ Each named scenario is an executable test name or a named multi-layer witness in
 ## Revisions
 
 - 2026-10-08: Initial specification, before implementation. Provider versions resolved from package metadata. Automated-only local implementation follows the user's instruction without a separate spec-approval exchange.
+
+- 2026-10-08: Assignment confirmation is now “Reminder recipient saved.” Existing exact-copy witnesses will be updated because assignment no longer implies enrollment is pending. This is the planned presentation change, with the legacy RPC shape retained.
+- 2026-10-08: SQL tests were observed RED before migration. Some new application tests were added after their implementations; targeted temporary behavioral mutants and the permanent mutation gate are required before claiming test sensitivity. This is a workflow deviation, not an assertion of strict test-first development.
+
+- 2026-10-08: Added an observed-RED malformed-state witness: `enrolled` requires consent and verification, and verification requires a positive phone revision and owner suffix. Rejecting contradictory replies enforces the existing fail-unavailable contract. Generated properties now use valid phone metadata for verified states.
+
+- 2026-10-08: Observed RED then GREEN for same-phone no-op preservation, lease expiry after a witnessed practice-lock wait, and selection/readiness snapshot alignment. These repair existing contract requirements rather than changing them. Exact disclosure/copy, configuration, parser-boundary and recovery-call assertions were strengthened after mutation survivors; no thresholds or inherited checks were reduced. Missing-setup UI tests check absence of collection controls and continued withdrawal for an existing phone, rather than assuming disabled controls for an empty enrollment.

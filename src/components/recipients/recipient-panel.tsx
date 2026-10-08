@@ -1,6 +1,8 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { enrollmentMessage } from "@/lib/sms/messages";
+import type { Readiness } from "@/lib/sms/schema";
 import { roleLabels } from "@/lib/team/schema";
 import type {
   Recipient,
@@ -10,23 +12,31 @@ import type {
 export function RecipientPanel({
   recipient,
   action,
+  enrollment,
 }: {
   recipient: Recipient;
   action: RecipientAction;
+  enrollment?: Readiness;
 }) {
   return (
     <section className="panel">
       <h2>Reminder recipient</h2>
-      <RecipientControl recipient={recipient} action={action} />
+      <RecipientControl
+        recipient={recipient}
+        action={action}
+        enrollment={enrollment}
+      />
     </section>
   );
 }
 function RecipientControl({
   recipient,
   action,
+  enrollment,
 }: {
   recipient: Recipient;
   action: RecipientAction;
+  enrollment?: Readiness;
 }) {
   const [choice, setChoice] = useState(recipient.selected?.id ?? "");
   const [committed, setCommitted] = useState(recipient);
@@ -58,7 +68,7 @@ function RecipientControl({
     state.status === "conflict" || state.status === "invalid-recipient";
   return (
     <>
-      <RecipientSummary recipient={committed} />
+      <RecipientSummary recipient={committed} enrollment={enrollment} />
       {committed.canEdit && (
         <RecipientForm
           committed={committed}
@@ -74,7 +84,13 @@ function RecipientControl({
   );
 }
 
-function RecipientSummary({ recipient }: { recipient: Recipient }) {
+function RecipientSummary({
+  recipient,
+  enrollment,
+}: {
+  recipient: Recipient;
+  enrollment?: Readiness;
+}) {
   return (
     <>
       <p>
@@ -84,11 +100,13 @@ function RecipientSummary({ recipient }: { recipient: Recipient }) {
           : "No reminder recipient selected"}
       </p>
       <p className="hint">
-        {recipient.readiness === "no-recipient"
-          ? "Choose who will be responsible for reminders."
-          : recipient.readiness === "sms-setup-pending"
-            ? "Recipient assigned. SMS setup pending."
-            : "The selected member is unavailable. Choose another recipient."}{" "}
+        {enrollment
+          ? enrollmentMessage(enrollment.reason)
+          : recipient.readiness === "no-recipient"
+            ? "Choose who will be responsible for reminders."
+            : recipient.readiness === "sms-setup-pending"
+              ? "Recipient assigned. SMS setup pending."
+              : "The selected member is unavailable. Choose another recipient."}{" "}
         Text reminders are not active yet.
       </p>
     </>

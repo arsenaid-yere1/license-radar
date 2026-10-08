@@ -11,6 +11,7 @@ const files = [
   { path: "supabase/tests/practice_register.test.sql", plan: 22 },
   { path: "supabase/tests/practice_credential_dates.test.sql", plan: 22 },
   { path: "supabase/tests/practice_register_maintenance.test.sql", plan: 27 },
+  { path: "supabase/tests/practice_sms_enrollment.test.sql", plan: 20 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -442,6 +443,104 @@ for (const [constraint, composite] of [
       ...(composite ? ["M09 change composite reference"] : []),
     ],
   });
+for (const [id, mutation, expected] of [
+  [
+    "sms-sms_phone_endpoints-rls",
+    "alter table private.sms_phone_endpoints disable row level security",
+    ["SMS sms_phone_endpoints RLS"],
+  ],
+  [
+    "sms-sms_phone_endpoints-grant",
+    "grant select on private.sms_phone_endpoints to authenticated",
+    ["SMS sms_phone_endpoints private"],
+  ],
+  [
+    "sms-practice_sms_enrollments-rls",
+    "alter table private.practice_sms_enrollments disable row level security",
+    ["SMS practice_sms_enrollments RLS"],
+  ],
+  [
+    "sms-practice_sms_enrollments-grant",
+    "grant select on private.practice_sms_enrollments to authenticated",
+    ["SMS practice_sms_enrollments private"],
+  ],
+  [
+    "sms-sms_enrollment_events-rls",
+    "alter table private.sms_enrollment_events disable row level security",
+    ["SMS sms_enrollment_events RLS"],
+  ],
+  [
+    "sms-sms_enrollment_events-grant",
+    "grant select on private.sms_enrollment_events to authenticated",
+    ["SMS sms_enrollment_events private"],
+  ],
+  [
+    "sms-sms_verification_challenges-rls",
+    "alter table private.sms_verification_challenges disable row level security",
+    ["SMS sms_verification_challenges RLS"],
+  ],
+  [
+    "sms-sms_verification_challenges-grant",
+    "grant select on private.sms_verification_challenges to authenticated",
+    ["SMS sms_verification_challenges private"],
+  ],
+  [
+    "sms-sms_verification_requests-rls",
+    "alter table private.sms_verification_requests disable row level security",
+    ["SMS sms_verification_requests RLS"],
+  ],
+  [
+    "sms-sms_verification_requests-grant",
+    "grant select on private.sms_verification_requests to authenticated",
+    ["SMS sms_verification_requests private"],
+  ],
+  [
+    "sms-sms_action_receipts-rls",
+    "alter table private.sms_action_receipts disable row level security",
+    ["SMS sms_action_receipts RLS"],
+  ],
+  [
+    "sms-sms_action_receipts-grant",
+    "grant select on private.sms_action_receipts to authenticated",
+    ["SMS sms_action_receipts private"],
+  ],
+  [
+    "sms-sms_provider_events-rls",
+    "alter table private.sms_provider_events disable row level security",
+    ["SMS sms_provider_events RLS"],
+  ],
+  [
+    "sms-sms_provider_events-grant",
+    "grant select on private.sms_provider_events to authenticated",
+    ["SMS sms_provider_events private"],
+  ],
+  [
+    "sms-service-grant",
+    "grant execute on function public.claim_sms_verification_send(uuid,uuid,uuid) to authenticated",
+    ["SMS proof only service"],
+  ],
+  [
+    "sms-owner-grant",
+    "revoke execute on function public.get_my_practice_sms_enrollment(uuid) from authenticated",
+    ["SMS owner entry grants"],
+  ],
+  [
+    "sms-wrapper-definer",
+    "alter function public.get_my_practice_sms_enrollment(uuid) security definer",
+    ["SMS invoker wrappers"],
+  ],
+  [
+    "sms-helper-grant",
+    "grant execute on function private.sms_member(uuid,uuid,boolean) to authenticated",
+    ["SMS internal helpers denied"],
+  ],
+  [
+    "sms-consent-fk",
+    "alter table private.practice_sms_enrollments drop constraint practice_sms_consent_event_fkey",
+    ["SMS restrictive foreign keys", "SMS composite tenant references"],
+  ],
+])
+  cases.push({ id, file: files[7], mutation, expected });
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });

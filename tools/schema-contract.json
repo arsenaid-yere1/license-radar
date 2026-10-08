@@ -394,6 +394,86 @@
     },
     {
       "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "endpoint_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "version",
+      "data_type": "integer",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "phone_revision",
+      "data_type": "integer",
+      "column_default": "0",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_revision",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_at",
+      "data_type": "timestamp with time zone",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_event_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_epoch",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "withdrawn",
+      "data_type": "boolean",
+      "column_default": "false",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
       "table_name": "register_audit_events",
       "column_name": "id",
       "data_type": "uuid",
@@ -595,6 +675,478 @@
     {
       "table_schema": "private",
       "table_name": "register_create_requests",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "request_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "intent",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "result",
+      "data_type": "text",
+      "column_default": "'success'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "version",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "phone_revision",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "occurred_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "phone_revision",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "endpoint_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "kind",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_version",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_text",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "occurred_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "account_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "messaging_service_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "phone_e164",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "provider_blocked",
+      "data_type": "boolean",
+      "column_default": "false",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "suppression_epoch",
+      "data_type": "integer",
+      "column_default": "0",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "account_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "message_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "endpoint_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "opt_out_type",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "occurred_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "clock_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "phone_revision",
+      "data_type": "integer",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "endpoint_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verify_service_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verification_sid",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "state",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "transaction_timestamp()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "expires_at",
+      "data_type": "timestamp with time zone",
+      "column_default": "(transaction_timestamp() + '00:10:00'::interval)",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "check_count",
+      "data_type": "integer",
+      "column_default": "0",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "id",
+      "data_type": "uuid",
+      "column_default": "gen_random_uuid()",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "actor_user_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "practice_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "membership_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "request_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "challenge_id",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "intent",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "state",
+      "data_type": "text",
+      "column_default": "'prepared'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "claim_token",
+      "data_type": "uuid",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "reserved_at",
+      "data_type": "timestamp with time zone",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "lease_until",
+      "data_type": "timestamp with time zone",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "outcome",
+      "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
       "column_name": "created_at",
       "data_type": "timestamp with time zone",
       "column_default": "clock_timestamp()",
@@ -1056,6 +1608,12 @@
     },
     {
       "nspname": "private",
+      "proname": "apply_sms_provider_opt_out",
+      "definition": "CREATE OR REPLACE FUNCTION private.apply_sms_provider_opt_out(p_account_sid text, p_messaging_service_sid text, p_phone text, p_message_sid text, p_opt_out_type text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare endpoint private.sms_phone_endpoints; event private.sms_provider_events;\nbegin\n    if p_opt_out_type is null or p_opt_out_type not in ('STOP','START','HELP') or p_message_sid is null or p_message_sid !~ '^SM[0-9a-fA-F]{32}$' then raise exception 'Invalid event' using errcode='23514'; end if;\n    insert into private.sms_phone_endpoints (account_sid,messaging_service_sid,phone_e164) values (p_account_sid,p_messaging_service_sid,p_phone) on conflict do nothing;\n    select * into endpoint from private.sms_phone_endpoints where account_sid=p_account_sid and messaging_service_sid=p_messaging_service_sid and phone_e164=p_phone for update;\n    select * into event from private.sms_provider_events where account_sid=p_account_sid and message_sid=p_message_sid;\n    if found then\n        if event.endpoint_id<>endpoint.id or event.opt_out_type<>p_opt_out_type then return '{\"status\":\"conflict\"}'::jsonb; end if;\n        return '{\"status\":\"success\"}'::jsonb;\n    end if;\n    insert into private.sms_provider_events (account_sid,message_sid,endpoint_id,opt_out_type) values (p_account_sid,p_message_sid,endpoint.id,p_opt_out_type);\n    if p_opt_out_type='STOP' then update private.sms_phone_endpoints set provider_blocked=true,suppression_epoch=suppression_epoch+1 where id=endpoint.id; end if;\n    return '{\"status\":\"success\"}'::jsonb;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "archive_practice_credential",
       "definition": "CREATE OR REPLACE FUNCTION private.archive_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    return private.apply_credential_change(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision, null);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -1101,6 +1659,24 @@
       "proname": "change_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION private.change_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_reason text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.membership_id is not distinct from p_membership_id then return; end if;\n    update private.practice_reminder_settings set membership_id = p_membership_id,\n        version = version + 1, updated_at = pg_catalog.clock_timestamp() where practice_id = p_practice_id;\n    insert into private.practice_recipient_events\n        (practice_id, actor_user_id, operation, before_membership_id, after_membership_id,\n         before_version, after_version, reason)\n    values (p_practice_id, auth.uid(),\n        case when p_reason is not null then 'member-invalidated'\n             when settings.membership_id is null then 'assigned'\n             when p_membership_id is null then 'cleared' else 'replaced' end,\n        settings.membership_id, p_membership_id, settings.version, settings.version + 1, p_reason);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "claim_sms_verification_check",
+      "definition": "CREATE OR REPLACE FUNCTION private.claim_sms_verification_check(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_challenge_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid; enrollment private.practice_sms_enrollments; challenge private.sms_verification_challenges; endpoint private.sms_phone_endpoints; request private.sms_verification_requests; now_at timestamptz:=pg_catalog.clock_timestamp(); payload jsonb; token uuid;\nbegin\n    member := private.sms_member(p_practice_id,p_actor_id,true);\n    if p_request_id is null or p_expected_version is null or p_expected_version<1 then raise exception 'Invalid check input' using errcode='23514'; end if;\n    select * into challenge from private.sms_verification_challenges where id=p_challenge_id and practice_id=p_practice_id and membership_id=member;\n    if not found then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    select * into endpoint from private.sms_phone_endpoints where id=challenge.endpoint_id for update;\n    select * into enrollment from private.practice_sms_enrollments where practice_id=p_practice_id and membership_id=member for update;\n    select * into challenge from private.sms_verification_challenges where id=p_challenge_id for update;\n    payload := pg_catalog.jsonb_build_object('challenge',p_challenge_id,'version',p_expected_version);\n    if exists (select 1 from private.sms_action_receipts where practice_id=p_practice_id and actor_user_id=p_actor_id and request_id=p_request_id) then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    select * into request from private.sms_verification_requests where practice_id=p_practice_id and actor_user_id=p_actor_id and request_id=p_request_id for update;\n    now_at := pg_catalog.clock_timestamp();\n    if found then\n        if request.intent<>'check' or request.payload<>payload then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n        if request.state='claimed' and request.lease_until<=now_at then\n            update private.sms_verification_requests set state='uncertain',outcome='uncertain' where id=request.id;\n            update private.sms_verification_challenges set state='uncertain' where id=challenge.id and state='pending';\n        end if;\n        return private.sms_reply(p_practice_id,member,case when request.state='complete' then coalesce(request.outcome,'success') else 'uncertain' end);\n    end if;\n    if enrollment.version<>p_expected_version then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if endpoint.provider_blocked or enrollment.phone_revision<>challenge.phone_revision or enrollment.endpoint_id<>endpoint.id or challenge.state<>'pending'\n        or challenge.verification_sid is null or challenge.expires_at<=now_at or challenge.check_count>=5 then return private.sms_reply(p_practice_id,member,'verification-required'); end if;\n    if exists (select 1 from private.sms_verification_requests where challenge_id=challenge.id and state in ('claimed','uncertain')) then return private.sms_reply(p_practice_id,member,'busy'); end if;\n    token := gen_random_uuid();\n    update private.sms_verification_challenges set check_count=check_count+1 where id=challenge.id;\n    insert into private.sms_verification_requests (actor_user_id,practice_id,membership_id,request_id,challenge_id,intent,payload,state,claim_token,reserved_at,lease_until)\n        values (p_actor_id,p_practice_id,member,p_request_id,challenge.id,'check',payload,'claimed',token,now_at,now_at+interval '30 seconds');\n    return pg_catalog.jsonb_build_object('status','claimed','claimToken',token,'phone',endpoint.phone_e164,'accountSid',endpoint.account_sid,'messagingServiceSid',endpoint.messaging_service_sid,'verifyServiceSid',challenge.verify_service_sid,'verificationSid',challenge.verification_sid,'challengeId',challenge.id);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "claim_sms_verification_send",
+      "definition": "CREATE OR REPLACE FUNCTION private.claim_sms_verification_send(p_practice_id uuid, p_actor_id uuid, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid; request private.sms_verification_requests; challenge private.sms_verification_challenges; endpoint private.sms_phone_endpoints; enrollment private.practice_sms_enrollments; now_at timestamptz := pg_catalog.clock_timestamp(); token uuid;\nbegin\n    member := private.sms_member(p_practice_id,p_actor_id,true);\n    select * into request from private.sms_verification_requests where practice_id=p_practice_id and actor_user_id=p_actor_id and request_id=p_request_id and intent='send';\n    if not found or request.membership_id<>member then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    select e.* into endpoint from private.sms_phone_endpoints e join private.sms_verification_challenges c on c.endpoint_id=e.id where c.id=request.challenge_id for update of e;\n    select * into enrollment from private.practice_sms_enrollments where practice_id=p_practice_id and membership_id=member for update;\n    select * into challenge from private.sms_verification_challenges where id=request.challenge_id for update;\n    select * into request from private.sms_verification_requests where id=request.id for update;\n    now_at := pg_catalog.clock_timestamp();\n    if request.state<>'prepared' then\n        if request.state='claimed' and request.lease_until<=now_at then\n            update private.sms_verification_requests set state='uncertain',outcome='uncertain' where id=request.id;\n            update private.sms_verification_challenges set state='uncertain' where id=challenge.id and state in ('reserved','pending');\n        end if;\n        return private.sms_reply(p_practice_id,member,case when request.state='complete' then 'success' else 'uncertain' end);\n    end if;\n    if endpoint.provider_blocked or enrollment.phone_revision<>challenge.phone_revision or enrollment.endpoint_id<>endpoint.id\n        or challenge.state not in ('reserved','pending') or challenge.expires_at<=now_at then return private.sms_reply(p_practice_id,member,'verification-required'); end if;\n    if exists (select 1 from private.sms_verification_requests where challenge_id=challenge.id and state in ('claimed','uncertain')) then return private.sms_reply(p_practice_id,member,'busy'); end if;\n    if exists (select 1 from private.sms_verification_requests r join private.sms_verification_challenges c on c.id=r.challenge_id\n        where r.intent='send' and r.reserved_at>now_at-interval '60 seconds' and (r.actor_user_id=p_actor_id or c.endpoint_id=endpoint.id))\n        or (select count(*) from private.sms_verification_requests where intent='send' and actor_user_id=p_actor_id and reserved_at>now_at-interval '30 minutes')>=5\n        or (select count(*) from private.sms_verification_requests where intent='send' and actor_user_id=p_actor_id and reserved_at>now_at-interval '24 hours')>=10\n        or (select count(*) from private.sms_verification_requests r join private.sms_verification_challenges c on c.id=r.challenge_id where r.intent='send' and c.endpoint_id=endpoint.id and r.reserved_at>now_at-interval '30 minutes')>=5\n        or (select count(*) from private.sms_verification_requests r join private.sms_verification_challenges c on c.id=r.challenge_id where r.intent='send' and c.endpoint_id=endpoint.id and r.reserved_at>now_at-interval '24 hours')>=10\n        or (select count(*) from private.sms_verification_requests where intent='send' and practice_id=p_practice_id and reserved_at>now_at-interval '24 hours')>=100 then return private.sms_reply(p_practice_id,member,'rate-limited'); end if;\n    token := gen_random_uuid();\n    update private.sms_verification_requests set state='claimed',claim_token=token,reserved_at=now_at,lease_until=now_at+interval '30 seconds' where id=request.id;\n    return pg_catalog.jsonb_build_object('status','claimed','claimToken',token,'phone',endpoint.phone_e164,'accountSid',endpoint.account_sid,'messagingServiceSid',endpoint.messaging_service_sid,'verifyServiceSid',challenge.verify_service_sid,'verificationSid',challenge.verification_sid,'challengeId',challenge.id);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "consent_my_practice_sms",
+      "definition": "CREATE OR REPLACE FUNCTION private.consent_my_practice_sms(p_practice_id uuid, p_request_id uuid, p_expected_version integer, p_consent boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid; enrollment private.practice_sms_enrollments; endpoint private.sms_phone_endpoints; receipt private.sms_action_receipts; event uuid; payload jsonb;\nbegin\n    member := private.sms_member(p_practice_id,auth.uid(),true);\n    if p_consent is distinct from true or p_request_id is null or p_expected_version is null or p_expected_version < 1 then\n        raise exception 'Explicit consent required' using errcode = '23514';\n    end if;\n    select e.* into endpoint from private.sms_phone_endpoints e join private.practice_sms_enrollments s on s.endpoint_id = e.id\n        where s.practice_id = p_practice_id and s.membership_id = member for update of e;\n    select * into enrollment from private.practice_sms_enrollments where practice_id = p_practice_id and membership_id = member for update;\n    payload := pg_catalog.jsonb_build_object('version',p_expected_version,'consent',true,'disclosure','e4-s1-v1');\n    select * into receipt from private.sms_action_receipts where practice_id = p_practice_id and actor_user_id = auth.uid() and request_id = p_request_id;\n    if found then\n        return private.sms_reply(p_practice_id,member,case when receipt.intent = 'consent' and receipt.payload = payload then 'success' else 'conflict' end);\n    end if;\n    if exists (select 1 from private.sms_verification_requests where practice_id=p_practice_id and actor_user_id=auth.uid() and request_id=p_request_id) then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if enrollment.version is distinct from p_expected_version then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if endpoint.id is null or endpoint.provider_blocked or enrollment.verified_revision is distinct from enrollment.phone_revision then\n        return private.sms_reply(p_practice_id,member,'verification-required');\n    end if;\n    if enrollment.consent_event_id is null then\n        insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind,disclosure_version,disclosure_text)\n        values (p_practice_id,member,auth.uid(),enrollment.phone_revision,endpoint.id,'reminder-consent','e4-s1-v1',private.sms_disclosure('reminder-consent',p_practice_id)) returning id into event;\n        update private.practice_sms_enrollments set consent_event_id=event,consent_epoch=endpoint.suppression_epoch,withdrawn=false,version=version+1\n        where practice_id=p_practice_id and membership_id=member;\n    end if;\n    perform private.sms_receipt(p_practice_id,member,auth.uid(),p_request_id,'consent',payload);\n    return private.sms_reply(p_practice_id,member,'success');\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
       "nspname": "private",
@@ -1200,8 +1776,20 @@
     },
     {
       "nspname": "private",
+      "proname": "get_my_practice_sms_enrollment",
+      "definition": "CREATE OR REPLACE FUNCTION private.get_my_practice_sms_enrollment(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid;\nbegin\n    member := private.sms_member(p_practice_id, auth.uid(), false);\n    return private.sms_state(p_practice_id, member);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "get_practice_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION private.get_practice_reminder_recipient(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    can_edit boolean;\n    settings private.practice_reminder_settings;\n    selected jsonb;\n    readiness text;\n    result jsonb;\nbegin\n    can_edit := private.require_recipient_member(p_practice_id, false);\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    select pg_catalog.jsonb_build_object('id', m.id, 'email', u.email, 'role', m.role, 'state', m.state)\n    into selected from public.practice_memberships m join auth.users u on u.id = m.user_id\n    where m.practice_id = p_practice_id and m.id = settings.membership_id;\n    readiness := case when settings.membership_id is null then 'no-recipient'\n        when selected->>'state' = 'active' and selected->>'role' in ('administrator', 'manager')\n            then 'sms-setup-pending' else 'member-unavailable' end;\n    result := pg_catalog.jsonb_build_object('version', settings.version, 'selected', selected,\n        'readiness', readiness, 'ready', false, 'canEdit', can_edit);\n    if can_edit then\n        result := result || pg_catalog.jsonb_build_object('candidates', coalesce((\n            select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(\n                'id', m.id, 'email', u.email, 'role', m.role, 'state', m.state) order by m.created_at, m.id)\n            from public.practice_memberships m join auth.users u on u.id = m.user_id\n            where m.practice_id = p_practice_id and m.state = 'active'\n                and m.role in ('administrator', 'manager')\n        ), '[]'::jsonb));\n    end if;\n    return result;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "get_practice_reminder_recipient_with_enrollment",
+      "definition": "CREATE OR REPLACE FUNCTION private.get_practice_reminder_recipient_with_enrollment(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare recipient jsonb; enrollment jsonb; reason text;\nbegin\n    recipient := private.get_practice_reminder_recipient(p_practice_id);\n    reason := recipient->>'readiness';\n    if reason = 'sms-setup-pending' then\n        enrollment := private.sms_state(p_practice_id, (recipient->'selected'->>'id')::uuid);\n        reason := enrollment->>'reason';\n    end if;\n    return pg_catalog.jsonb_build_object('recipient', recipient, 'enrollment',\n        pg_catalog.jsonb_build_object('reason', reason, 'enrollmentReady', reason = 'enrolled', 'deliveryActive', false));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1214,6 +1802,12 @@
       "nspname": "private",
       "proname": "invalidate_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION private.invalidate_reminder_recipient(p_practice_id uuid, p_membership_id uuid, p_reason text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    settings private.practice_reminder_settings;\nbegin\n    select * into settings from private.practice_reminder_settings\n    where practice_id = p_practice_id for update;\n    if not found then raise exception 'Recipient settings unavailable' using errcode = 'XX000'; end if;\n    if settings.membership_id = p_membership_id then\n        perform private.change_reminder_recipient(p_practice_id, null, p_reason);\n    end if;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "invalidate_sms_enrollment",
+      "definition": "CREATE OR REPLACE FUNCTION private.invalidate_sms_enrollment(p_practice_id uuid, p_member_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare enrollment private.practice_sms_enrollments;\nbegin\n    select * into enrollment from private.practice_sms_enrollments where practice_id=p_practice_id and membership_id=p_member_id for update;\n    if not found then return; end if;\n    update private.practice_sms_enrollments set consent_event_id=null,consent_epoch=null,verified_revision=null,verified_at=null,\n        phone_revision=phone_revision+1,version=version+1,withdrawn=true where practice_id=p_practice_id and membership_id=p_member_id;\n    update private.sms_verification_challenges set state='invalidated' where practice_id=p_practice_id and membership_id=p_member_id and state<>'invalidated';\n    insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind)\n        values (p_practice_id,p_member_id,auth.uid(),enrollment.phone_revision+1,enrollment.endpoint_id,'member-invalidated');\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -1255,14 +1849,38 @@
     {
       "nspname": "private",
       "proname": "mutate_member",
-      "definition": "CREATE OR REPLACE FUNCTION private.mutate_member(p_membership_id uuid, p_expected_version integer, p_role text, p_revoke boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    member public.practice_memberships;\nbegin\n    select * into member from public.practice_memberships where id=p_membership_id;\n    perform private.require_administrator(member.practice_id);\n    select * into member from public.practice_memberships where id=p_membership_id for update;\n    if p_expected_version is null or p_expected_version < 1 or\n       (not p_revoke and (p_role is null or p_role not in ('administrator','manager','viewer'))) then\n        raise exception 'Invalid member input' using errcode='23514';\n    end if;\n    if p_revoke and member.state='revoked' then return '{\"status\":\"success\"}'::jsonb; end if;\n    if member.version <> p_expected_version or member.state <> 'active' then return '{\"status\":\"conflict\"}'::jsonb; end if;\n    if member.role='administrator' and (p_revoke or p_role <> 'administrator')\n       and (select count(*) from public.practice_memberships where practice_id=member.practice_id\n            and role='administrator' and state='active') <= 1 then return '{\"status\":\"last-administrator\"}'::jsonb; end if;\n    if not p_revoke and member.role=p_role then return '{\"status\":\"success\"}'::jsonb; end if;\n    if p_revoke then\n        update public.practice_memberships set state='revoked',revoked_at=pg_catalog.clock_timestamp(),\n            version=version+1,updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    else\n        update public.practice_memberships set role=p_role,version=version+1,\n            updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    end if;\n    if p_revoke or p_role = 'viewer' then\n        perform private.invalidate_reminder_recipient(member.practice_id, p_membership_id,\n            case when p_revoke then 'revoked' else 'role-viewer' end);\n    end if;\n    return '{\"status\":\"success\"}'::jsonb;\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.mutate_member(p_membership_id uuid, p_expected_version integer, p_role text, p_revoke boolean)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    member public.practice_memberships;\nbegin\n    select * into member from public.practice_memberships where id=p_membership_id;\n    perform private.require_administrator(member.practice_id);\n    select * into member from public.practice_memberships where id=p_membership_id for update;\n    if p_expected_version is null or p_expected_version < 1 or\n       (not p_revoke and (p_role is null or p_role not in ('administrator','manager','viewer'))) then\n        raise exception 'Invalid member input' using errcode='23514';\n    end if;\n    if p_revoke and member.state='revoked' then return '{\"status\":\"success\"}'::jsonb; end if;\n    if member.version <> p_expected_version or member.state <> 'active' then return '{\"status\":\"conflict\"}'::jsonb; end if;\n    if member.role='administrator' and (p_revoke or p_role <> 'administrator')\n       and (select count(*) from public.practice_memberships where practice_id=member.practice_id\n            and role='administrator' and state='active') <= 1 then return '{\"status\":\"last-administrator\"}'::jsonb; end if;\n    if not p_revoke and member.role=p_role then return '{\"status\":\"success\"}'::jsonb; end if;\n    if p_revoke then\n        update public.practice_memberships set state='revoked',revoked_at=pg_catalog.clock_timestamp(),\n            version=version+1,updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    else\n        update public.practice_memberships set role=p_role,version=version+1,\n            updated_at=pg_catalog.clock_timestamp() where id=p_membership_id;\n    end if;\n    if p_revoke or p_role = 'viewer' then\n        perform private.invalidate_sms_enrollment(member.practice_id, p_membership_id);\n        perform private.invalidate_reminder_recipient(member.practice_id, p_membership_id,\n            case when p_revoke then 'revoked' else 'role-viewer' end);\n    end if;\n    return '{\"status\":\"success\"}'::jsonb;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "prepare_my_sms_verification",
+      "definition": "CREATE OR REPLACE FUNCTION private.prepare_my_sms_verification(p_practice_id uuid, p_request_id uuid, p_phone text, p_expected_version integer, p_change_confirmed boolean, p_otp_permission boolean, p_account_sid text, p_messaging_service_sid text, p_verify_service_sid text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    member uuid; endpoint private.sms_phone_endpoints; enrollment private.practice_sms_enrollments;\n    challenge private.sms_verification_challenges; receipt private.sms_action_receipts; payload jsonb;\nbegin\n    member := private.sms_member(p_practice_id, auth.uid(), true);\n    if p_request_id is null or p_expected_version is null or p_expected_version < 1 or p_otp_permission is distinct from true\n        or p_phone is null or p_phone !~ '^\\+[1-9][0-9]{1,14}$' or p_verify_service_sid is null or p_verify_service_sid !~ '^VA[0-9a-fA-F]{32}$'\n        or p_account_sid is null or p_account_sid !~ '^AC[0-9a-fA-F]{32}$'\n        or p_messaging_service_sid is null or p_messaging_service_sid !~ '^MG[0-9a-fA-F]{32}$' then\n        raise exception 'Invalid verification input' using errcode = '23514';\n    end if;\n    insert into private.sms_phone_endpoints (account_sid,messaging_service_sid,phone_e164)\n    values (p_account_sid,p_messaging_service_sid,p_phone) on conflict do nothing;\n    select * into endpoint from private.sms_phone_endpoints where account_sid = p_account_sid\n        and messaging_service_sid = p_messaging_service_sid and phone_e164 = p_phone for update;\n    payload := pg_catalog.jsonb_build_object('endpoint',endpoint.id,'version',p_expected_version,'confirmed',p_change_confirmed,'verifyService',p_verify_service_sid);\n    select * into receipt from private.sms_action_receipts where practice_id = p_practice_id and actor_user_id = auth.uid() and request_id = p_request_id;\n    if found then\n        if receipt.intent <> 'prepare' or receipt.payload <> payload then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n        return private.sms_reply(p_practice_id,member,'success');\n    end if;\n    if exists (select 1 from private.sms_verification_requests where practice_id = p_practice_id and actor_user_id = auth.uid() and request_id = p_request_id) then\n        return private.sms_reply(p_practice_id,member,'conflict');\n    end if;\n    select * into enrollment from private.practice_sms_enrollments where practice_id = p_practice_id and membership_id = member for update;\n    if coalesce(enrollment.version,1) <> p_expected_version then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if endpoint.provider_blocked then return private.sms_reply(p_practice_id,member,'blocked'); end if;\n    if enrollment.endpoint_id = endpoint.id and enrollment.verified_revision = enrollment.phone_revision then\n        perform private.sms_receipt(p_practice_id,member,auth.uid(),p_request_id,'prepare',payload);\n        return private.sms_reply(p_practice_id,member,'success');\n    end if;\n    if enrollment.endpoint_id is not null and enrollment.endpoint_id <> endpoint.id and p_change_confirmed is distinct from true then\n        return private.sms_reply(p_practice_id,member,'confirmation-required');\n    end if;\n    -- Retire expired live challenges under their sole endpoint lock before successor allocation.\n    update private.sms_verification_challenges set state = 'expired' where endpoint_id = endpoint.id\n        and state in ('reserved','pending','uncertain') and expires_at <= pg_catalog.clock_timestamp();\n    select * into challenge from private.sms_verification_challenges where endpoint_id = endpoint.id\n        and state in ('reserved','pending','uncertain') for update;\n    if found and (challenge.membership_id <> member or challenge.practice_id <> p_practice_id or challenge.state = 'uncertain') then\n        return private.sms_reply(p_practice_id,member,'busy');\n    end if;\n    if not found then\n        if enrollment.practice_id is null then\n            insert into private.practice_sms_enrollments (practice_id,membership_id) values (p_practice_id,member);\n        end if;\n        if enrollment.endpoint_id is distinct from endpoint.id then\n            update private.sms_verification_challenges set state = 'invalidated'\n                where practice_id = p_practice_id and membership_id = member and state <> 'invalidated';\n            update private.practice_sms_enrollments set endpoint_id = endpoint.id, phone_revision = phone_revision + 1,\n                version = version + 1, verified_revision = null, verified_at = null, consent_event_id = null, consent_epoch = null, withdrawn = false\n                where practice_id = p_practice_id and membership_id = member returning * into enrollment;\n            insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind)\n                values (p_practice_id,member,auth.uid(),enrollment.phone_revision,endpoint.id,'phone-change');\n        else\n            update private.practice_sms_enrollments set verified_revision = null, verified_at = null, consent_event_id = null, consent_epoch = null,\n                withdrawn = false, version = version + 1 where practice_id = p_practice_id and membership_id = member returning * into enrollment;\n        end if;\n        insert into private.sms_verification_challenges (practice_id,membership_id,phone_revision,endpoint_id,verify_service_sid,state)\n            values (p_practice_id,member,enrollment.phone_revision,endpoint.id,p_verify_service_sid,'reserved') returning * into challenge;\n    elsif challenge.verify_service_sid <> p_verify_service_sid then return private.sms_reply(p_practice_id,member,'conflict');\n    end if;\n    insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind,disclosure_version,disclosure_text)\n        values (p_practice_id,member,auth.uid(),challenge.phone_revision,endpoint.id,'otp-permission','e4-s1-v1',private.sms_disclosure('otp-permission',p_practice_id));\n    insert into private.sms_verification_requests (actor_user_id,practice_id,membership_id,request_id,challenge_id,intent,payload)\n        values (auth.uid(),p_practice_id,member,p_request_id,challenge.id,'send',payload);\n    perform private.sms_receipt(p_practice_id,member,auth.uid(),p_request_id,'prepare',payload);\n    return private.sms_reply(p_practice_id,member,'success');\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
       "nspname": "private",
       "proname": "preview_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION private.preview_practice_invitation(p_token_digest text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    invitation private.practice_invitations;\n    invited_role text;\nbegin\n    invitation := private.invitation_for_actor(p_token_digest);\n    if invitation.id is null then return '{\"status\":\"invalid-invitation\"}'::jsonb; end if;\n    invited_role := invitation.role;\n    if invitation.state='accepted' then\n        select role into invited_role from public.practice_memberships\n        where practice_id=invitation.practice_id and user_id=auth.uid() and state='active';\n    end if;\n    return pg_catalog.jsonb_build_object('status','success','name',\n        (select name from public.practices where id=invitation.practice_id),\n        'role',invited_role,'expires_at',invitation.expires_at);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "record_sms_verification",
+      "definition": "CREATE OR REPLACE FUNCTION private.record_sms_verification(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_claim_token uuid, p_outcome jsonb, p_intent text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid; request private.sms_verification_requests; enrollment private.practice_sms_enrollments; challenge private.sms_verification_challenges; endpoint private.sms_phone_endpoints; result_status text; now_at timestamptz:=pg_catalog.clock_timestamp(); matches boolean;\nbegin\n    member := private.sms_member(p_practice_id,p_actor_id,true);\n    select * into request from private.sms_verification_requests where practice_id=p_practice_id and actor_user_id=p_actor_id and request_id=p_request_id and intent=p_intent;\n    if not found or request.membership_id<>member then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    select e.* into endpoint from private.sms_phone_endpoints e join private.sms_verification_challenges c on c.endpoint_id=e.id where c.id=request.challenge_id for update of e;\n    select * into enrollment from private.practice_sms_enrollments where practice_id=p_practice_id and membership_id=member for update;\n    select * into challenge from private.sms_verification_challenges where id=request.challenge_id for update;\n    select * into request from private.sms_verification_requests where id=request.id for update;\n    now_at := pg_catalog.clock_timestamp();\n    if request.state='complete' then return private.sms_reply(p_practice_id,member,coalesce(request.outcome,'success')); end if;\n    if request.claim_token is distinct from p_claim_token or request.state<>'claimed' then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if endpoint.provider_blocked or enrollment.phone_revision<>challenge.phone_revision or enrollment.endpoint_id<>endpoint.id or challenge.state not in ('reserved','pending') or challenge.expires_at<=now_at then\n        update private.sms_verification_requests set state='complete',outcome='verification-required' where id=request.id;\n        return private.sms_reply(p_practice_id,member,'verification-required');\n    end if;\n    matches := coalesce(p_outcome->>'accountSid'=endpoint.account_sid and p_outcome->>'serviceSid'=challenge.verify_service_sid\n        and p_outcome->>'to'=endpoint.phone_e164 and p_outcome->>'channel'='sms' and p_outcome->>'sid' ~ '^VE[0-9a-fA-F]{32}$'\n        and (challenge.verification_sid is null or p_outcome->>'sid'=challenge.verification_sid),false);\n    if request.lease_until<=now_at or p_outcome->>'status'='uncertain' or not matches then\n        result_status:='uncertain';\n        update private.sms_verification_challenges set state='uncertain' where id=challenge.id;\n    elsif p_intent='send' and p_outcome->>'status'='pending' then\n        result_status:='success'; update private.sms_verification_challenges set state='pending',verification_sid=p_outcome->>'sid' where id=challenge.id;\n    elsif p_intent='check' and p_outcome->>'status'='approved' then\n        result_status:='success'; update private.sms_verification_challenges set state='verified' where id=challenge.id;\n        update private.practice_sms_enrollments set verified_revision=phone_revision,verified_at=now_at,version=version+1,withdrawn=false where practice_id=p_practice_id and membership_id=member;\n        insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind)\n            values (p_practice_id,member,p_actor_id,challenge.phone_revision,endpoint.id,'verified');\n    elsif p_intent='check' and p_outcome->>'status'='pending' then result_status:='wrong-code';\n        if challenge.check_count>=5 then update private.sms_verification_challenges set state='failed' where id=challenge.id; end if;\n    else result_status:='verification-required'; update private.sms_verification_challenges set state='failed' where id=challenge.id;\n    end if;\n    update private.sms_verification_requests set state=case when result_status='uncertain' then 'uncertain' else 'complete' end,outcome=result_status where id=request.id;\n    return private.sms_reply(p_practice_id,member,result_status);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "record_sms_verification_check",
+      "definition": "CREATE OR REPLACE FUNCTION private.record_sms_verification_check(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_claim_token uuid, p_outcome jsonb)\n RETURNS jsonb\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select private.record_sms_verification(p_practice_id,p_actor_id,p_request_id,p_claim_token,p_outcome,'check');\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "record_sms_verification_send",
+      "definition": "CREATE OR REPLACE FUNCTION private.record_sms_verification_send(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_claim_token uuid, p_outcome jsonb)\n RETURNS jsonb\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select private.record_sms_verification(p_practice_id,p_actor_id,p_request_id,p_claim_token,p_outcome,'send');\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
     },
     {
       "nspname": "private",
@@ -1320,6 +1938,36 @@
     },
     {
       "nspname": "private",
+      "proname": "sms_disclosure",
+      "definition": "CREATE OR REPLACE FUNCTION private.sms_disclosure(p_kind text, p_practice_id uuid)\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select case when p_kind = 'otp-permission' then\n        'License Renewal Radar: I request a phone verification text. Message and data rates may apply. SMS terms and privacy: /sms-information.'\n    else 'License Renewal Radar: I agree to renewal reminder texts for ' || name ||\n        '. Frequency varies with renewal dates. Message and data rates may apply. Reply STOP or withdraw in settings to stop; HELP for help. SMS terms and privacy: /sms-information. Renewal texts are not active yet.' end\n    from public.practices where id = p_practice_id;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "sms_member",
+      "definition": "CREATE OR REPLACE FUNCTION private.sms_member(p_practice_id uuid, p_actor uuid, p_edit boolean)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member public.practice_memberships;\nbegin\n    perform 1 from public.practices where id = p_practice_id for update;\n    select * into member from public.practice_memberships\n    where practice_id = p_practice_id and user_id = p_actor and state = 'active';\n    if not found or (p_edit and member.role not in ('administrator','manager')) then\n        raise exception 'forbidden' using errcode = '42501';\n    end if;\n    return member.id;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "sms_receipt",
+      "definition": "CREATE OR REPLACE FUNCTION private.sms_receipt(p_practice_id uuid, p_member uuid, p_actor uuid, p_request uuid, p_intent text, p_payload jsonb)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    insert into private.sms_action_receipts (practice_id,membership_id,actor_user_id,request_id,intent,payload,version,phone_revision)\n    select p_practice_id,p_member,p_actor,p_request,p_intent,p_payload,version,phone_revision\n    from private.practice_sms_enrollments where practice_id = p_practice_id and membership_id = p_member;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "sms_reply",
+      "definition": "CREATE OR REPLACE FUNCTION private.sms_reply(p_practice_id uuid, p_member uuid, p_status text)\n RETURNS jsonb\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n    select pg_catalog.jsonb_build_object('status', p_status, 'enrollment', private.sms_state(p_practice_id, p_member));\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "sms_state",
+      "definition": "CREATE OR REPLACE FUNCTION private.sms_state(p_practice_id uuid, p_member_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    enrollment private.practice_sms_enrollments;\n    endpoint private.sms_phone_endpoints;\n    challenge private.sms_verification_challenges;\n    member public.practice_memberships;\n    consent private.sms_enrollment_events;\n    reason text := 'not-started';\n    is_verified boolean := false;\n    is_consented boolean := false;\n    retry_at timestamptz;\nbegin\n    select * into member from public.practice_memberships where practice_id = p_practice_id and id = p_member_id;\n    select * into enrollment from private.practice_sms_enrollments where practice_id = p_practice_id and membership_id = p_member_id;\n    if enrollment.endpoint_id is not null then\n        select * into endpoint from private.sms_phone_endpoints where id = enrollment.endpoint_id;\n        if not found then raise exception 'Enrollment unavailable' using errcode = 'XX000'; end if;\n    end if;\n    select * into challenge from private.sms_verification_challenges\n    where practice_id = p_practice_id and membership_id = p_member_id and phone_revision = enrollment.phone_revision\n    order by created_at desc, id desc limit 1;\n    if enrollment.consent_event_id is not null then\n        select * into consent from private.sms_enrollment_events where id = enrollment.consent_event_id\n        and practice_id = p_practice_id and membership_id = p_member_id and phone_revision = enrollment.phone_revision\n        and kind = 'reminder-consent' and disclosure_version = 'e4-s1-v1';\n        if not found then raise exception 'Consent unavailable' using errcode = 'XX000'; end if;\n    end if;\n    is_verified := coalesce(enrollment.verified_revision = enrollment.phone_revision and enrollment.verified_at is not null, false);\n    is_consented := is_verified and consent.id is not null and not endpoint.provider_blocked\n        and enrollment.consent_epoch = endpoint.suppression_epoch;\n    if coalesce(endpoint.provider_blocked, false) then reason := 'provider-opted-out';\n    elsif enrollment.withdrawn then reason := 'withdrawn';\n    elsif is_consented then reason := 'enrolled';\n    elsif is_verified then reason := 'consent-required';\n    elsif challenge.expires_at > pg_catalog.clock_timestamp() and challenge.state in ('reserved','pending','uncertain') then\n        reason := case when challenge.state = 'uncertain' or exists (\n            select 1 from private.sms_verification_requests where challenge_id = challenge.id\n            and state = 'claimed' and lease_until <= pg_catalog.clock_timestamp()\n        ) then 'verification-uncertain' else 'verification-pending' end;\n    end if;\n    select max(r.reserved_at) + interval '60 seconds' into retry_at\n    from private.sms_verification_requests r join private.sms_verification_challenges c on c.id = r.challenge_id\n    where r.intent = 'send' and (r.actor_user_id = member.user_id or c.endpoint_id = enrollment.endpoint_id);\n    return pg_catalog.jsonb_build_object(\n        'version', coalesce(enrollment.version, 1), 'phoneRevision', coalesce(enrollment.phone_revision, 0),\n        'phoneSuffix', case when endpoint.id is not null then pg_catalog.right(endpoint.phone_e164, 4) else null end,\n        'verified', is_verified, 'consented', coalesce(is_consented, false),\n        'canEdit', member.state = 'active' and member.role in ('administrator','manager'), 'reason', reason,\n        'challengeId', case when challenge.expires_at > pg_catalog.clock_timestamp() and challenge.state in ('reserved','pending','uncertain') then challenge.id else null end,\n        'expiresAt', case when challenge.expires_at > pg_catalog.clock_timestamp() and challenge.state in ('reserved','pending','uncertain') then challenge.expires_at else null end,\n        'retryAfter', case when retry_at > pg_catalog.clock_timestamp() then retry_at else null end, 'deliveryActive', false);\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
       "proname": "update_practice",
       "definition": "CREATE OR REPLACE FUNCTION private.update_practice(p_practice_id uuid, p_name text, p_timezone text, p_expected_version integer)\n RETURNS practices\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    result public.practices;\nbegin\n    perform private.require_administrator(p_practice_id);\n    if p_expected_version is null or p_expected_version < 1 then\n        raise exception 'Invalid version' using errcode = '23514';\n    end if;\n    update public.practices set name = p_name, timezone = p_timezone\n    where id = p_practice_id and version = p_expected_version returning * into result;\n    if not found then raise exception 'conflict' using errcode = 'PT409'; end if;\n    return result;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
@@ -1337,10 +1985,22 @@
       "privileges": "{postgres=X/postgres}"
     },
     {
+      "nspname": "private",
+      "proname": "withdraw_my_practice_sms",
+      "definition": "CREATE OR REPLACE FUNCTION private.withdraw_my_practice_sms(p_practice_id uuid, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare member uuid; enrollment private.practice_sms_enrollments; receipt private.sms_action_receipts;\nbegin\n    member := private.sms_member(p_practice_id,auth.uid(),false);\n    if p_request_id is null then raise exception 'Invalid request' using errcode='23514'; end if;\n    select * into enrollment from private.practice_sms_enrollments where practice_id=p_practice_id and membership_id=member for update;\n    select * into receipt from private.sms_action_receipts where practice_id=p_practice_id and actor_user_id=auth.uid() and request_id=p_request_id;\n    if found then return private.sms_reply(p_practice_id,member,case when receipt.intent='withdraw' then 'success' else 'conflict' end); end if;\n    if exists (select 1 from private.sms_verification_requests where practice_id=p_practice_id and actor_user_id=auth.uid() and request_id=p_request_id) then return private.sms_reply(p_practice_id,member,'conflict'); end if;\n    if enrollment.practice_id is null then return private.sms_reply(p_practice_id,member,'success'); end if;\n    if not enrollment.withdrawn then\n        update private.practice_sms_enrollments set consent_event_id=null,consent_epoch=null,withdrawn=true,version=version+1\n            where practice_id=p_practice_id and membership_id=member;\n        insert into private.sms_enrollment_events (practice_id,membership_id,actor_user_id,phone_revision,endpoint_id,kind)\n            values (p_practice_id,member,auth.uid(),enrollment.phone_revision,enrollment.endpoint_id,'withdrawn');\n    end if;\n    perform private.sms_receipt(p_practice_id,member,auth.uid(),p_request_id,'withdraw','{}'::jsonb);\n    return private.sms_reply(p_practice_id,member,'success');\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
       "nspname": "public",
       "proname": "accept_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION public.accept_practice_invitation(p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.accept_practice_invitation(p_token_digest);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "apply_sms_provider_opt_out",
+      "definition": "CREATE OR REPLACE FUNCTION public.apply_sms_provider_opt_out(p_account_sid text, p_messaging_service_sid text, p_phone text, p_message_sid text, p_opt_out_type text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.apply_sms_provider_opt_out(p_account_sid, p_messaging_service_sid, p_phone, p_message_sid, p_opt_out_type);\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
     },
     {
       "nspname": "public",
@@ -1358,6 +2018,24 @@
       "nspname": "public",
       "proname": "change_practice_member_role",
       "definition": "CREATE OR REPLACE FUNCTION public.change_practice_member_role(p_membership_id uuid, p_expected_version integer, p_role text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.change_practice_member_role(p_membership_id,p_expected_version,p_role);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "claim_sms_verification_check",
+      "definition": "CREATE OR REPLACE FUNCTION public.claim_sms_verification_check(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_challenge_id uuid, p_expected_version integer)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.claim_sms_verification_check(p_practice_id, p_actor_id, p_request_id, p_challenge_id, p_expected_version);\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "claim_sms_verification_send",
+      "definition": "CREATE OR REPLACE FUNCTION public.claim_sms_verification_send(p_practice_id uuid, p_actor_id uuid, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.claim_sms_verification_send(p_practice_id, p_actor_id, p_request_id);\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "consent_my_practice_sms",
+      "definition": "CREATE OR REPLACE FUNCTION public.consent_my_practice_sms(p_practice_id uuid, p_request_id uuid, p_expected_version integer, p_consent boolean)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.consent_my_practice_sms(p_practice_id, p_request_id, p_expected_version, p_consent);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1392,8 +2070,20 @@
     },
     {
       "nspname": "public",
+      "proname": "get_my_practice_sms_enrollment",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_my_practice_sms_enrollment(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_my_practice_sms_enrollment(p_practice_id);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "get_practice_reminder_recipient",
       "definition": "CREATE OR REPLACE FUNCTION public.get_practice_reminder_recipient(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_practice_reminder_recipient(p_practice_id);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "get_practice_reminder_recipient_with_enrollment",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_practice_reminder_recipient_with_enrollment(p_practice_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_practice_reminder_recipient_with_enrollment(p_practice_id);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -1416,9 +2106,27 @@
     },
     {
       "nspname": "public",
+      "proname": "prepare_my_sms_verification",
+      "definition": "CREATE OR REPLACE FUNCTION public.prepare_my_sms_verification(p_practice_id uuid, p_request_id uuid, p_phone text, p_expected_version integer, p_change_confirmed boolean, p_otp_permission boolean, p_account_sid text, p_messaging_service_sid text, p_verify_service_sid text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.prepare_my_sms_verification(p_practice_id, p_request_id, p_phone, p_expected_version, p_change_confirmed, p_otp_permission, p_account_sid, p_messaging_service_sid, p_verify_service_sid);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
       "proname": "preview_practice_invitation",
       "definition": "CREATE OR REPLACE FUNCTION public.preview_practice_invitation(p_token_digest text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.preview_practice_invitation(p_token_digest);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "record_sms_verification_check",
+      "definition": "CREATE OR REPLACE FUNCTION public.record_sms_verification_check(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_claim_token uuid, p_outcome jsonb)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.record_sms_verification_check(p_practice_id, p_actor_id, p_request_id, p_claim_token, p_outcome);\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "record_sms_verification_send",
+      "definition": "CREATE OR REPLACE FUNCTION public.record_sms_verification_send(p_practice_id uuid, p_actor_id uuid, p_request_id uuid, p_claim_token uuid, p_outcome jsonb)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.record_sms_verification_send(p_practice_id, p_actor_id, p_request_id, p_claim_token, p_outcome);\n$function$\n",
+      "privileges": "{postgres=X/postgres,service_role=X/postgres}"
     },
     {
       "nspname": "public",
@@ -1448,6 +2156,12 @@
       "nspname": "public",
       "proname": "update_practice_credential",
       "definition": "CREATE OR REPLACE FUNCTION public.update_practice_credential(p_practice_id uuid, p_request_id uuid, p_credential_id uuid, p_expected_version integer, p_expected_cycle_id uuid, p_expected_date_revision integer, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.update_practice_credential(p_practice_id, p_request_id, p_credential_id, p_expected_version, p_expected_cycle_id, p_expected_date_revision, p_title, p_type, p_owner_kind, p_owner_clinician_id, p_covered_clinician_ids, p_issuer, p_jurisdiction, p_end_date, p_action_deadline);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "withdraw_my_practice_sms",
+      "definition": "CREATE OR REPLACE FUNCTION public.withdraw_my_practice_sms(p_practice_id uuid, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.withdraw_my_practice_sms(p_practice_id, p_request_id);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     }
   ],
@@ -3207,6 +3921,286 @@
     {
       "grantee": "postgres",
       "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_epoch",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_epoch",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_epoch",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_epoch",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_event_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_event_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_event_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "consent_event_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "endpoint_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "endpoint_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "endpoint_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "endpoint_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "phone_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "phone_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "phone_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "phone_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "verified_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "withdrawn",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "withdrawn",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "withdrawn",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "practice_sms_enrollments",
+      "column_name": "withdrawn",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
       "table_name": "register_audit_events",
       "column_name": "actor_user_id",
       "privilege_type": "INSERT"
@@ -3930,6 +4924,1658 @@
       "table_schema": "private",
       "table_name": "register_create_requests",
       "column_name": "result",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "intent",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "intent",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "intent",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "intent",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "occurred_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "occurred_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "occurred_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "occurred_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "payload",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "payload",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "payload",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "payload",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "phone_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "phone_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "phone_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "phone_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "request_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "request_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "request_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "request_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "result",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "result",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "result",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "result",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_action_receipts",
+      "column_name": "version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_text",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_text",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_text",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_text",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_version",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_version",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_version",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "disclosure_version",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "kind",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "kind",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "occurred_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "occurred_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "occurred_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "occurred_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "phone_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "phone_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "phone_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "phone_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_enrollment_events",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "account_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "account_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "account_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "account_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "messaging_service_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "messaging_service_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "messaging_service_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "messaging_service_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "phone_e164",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "phone_e164",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "phone_e164",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "phone_e164",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "provider_blocked",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "provider_blocked",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "provider_blocked",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "provider_blocked",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "suppression_epoch",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "suppression_epoch",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "suppression_epoch",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_phone_endpoints",
+      "column_name": "suppression_epoch",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "account_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "account_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "account_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "account_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "endpoint_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "message_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "message_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "message_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "message_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "occurred_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "occurred_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "occurred_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "occurred_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "opt_out_type",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "opt_out_type",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "opt_out_type",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_provider_events",
+      "column_name": "opt_out_type",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "check_count",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "check_count",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "check_count",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "check_count",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "endpoint_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "endpoint_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "endpoint_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "endpoint_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "expires_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "expires_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "expires_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "expires_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "phone_revision",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "phone_revision",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "phone_revision",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "phone_revision",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "state",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "state",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "state",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "state",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verification_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verification_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verification_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verification_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verify_service_sid",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verify_service_sid",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verify_service_sid",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_challenges",
+      "column_name": "verify_service_sid",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "actor_user_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "challenge_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "challenge_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "challenge_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "challenge_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "claim_token",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "claim_token",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "claim_token",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "claim_token",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "created_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "created_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "created_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "created_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "intent",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "intent",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "intent",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "intent",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "lease_until",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "lease_until",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "lease_until",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "lease_until",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "membership_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "membership_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "membership_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "membership_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "outcome",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "outcome",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "outcome",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "outcome",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "payload",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "payload",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "payload",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "payload",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "practice_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "practice_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "practice_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "practice_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "request_id",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "request_id",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "request_id",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "request_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "reserved_at",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "reserved_at",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "reserved_at",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "reserved_at",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "state",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "state",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "state",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "sms_verification_requests",
+      "column_name": "state",
       "privilege_type": "UPDATE"
     },
     {
@@ -5641,6 +8287,11 @@
     },
     {
       "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
       "relname": "register_audit_events",
       "relrowsecurity": true
     },
@@ -5652,6 +8303,36 @@
     {
       "nspname": "private",
       "relname": "register_create_requests",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "relrowsecurity": true
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
       "relrowsecurity": true
     },
     {
@@ -5898,6 +8579,66 @@
     },
     {
       "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_consent_event_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id, phone_revision, consent_event_id) REFERENCES private.sms_enrollment_events(practice_id, membership_id, phone_revision, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_check",
+      "definition": "CHECK (((verified_revision IS NULL) = (verified_at IS NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_check1",
+      "definition": "CHECK (((verified_revision IS NULL) OR ((verified_revision = phone_revision) AND (endpoint_id IS NOT NULL))))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_check2",
+      "definition": "CHECK (((consent_event_id IS NULL) = (consent_epoch IS NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_check3",
+      "definition": "CHECK (((consent_event_id IS NULL) OR (verified_revision IS NOT NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_endpoint_id_fkey",
+      "definition": "FOREIGN KEY (endpoint_id) REFERENCES private.sms_phone_endpoints(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_phone_revision_check",
+      "definition": "CHECK ((phone_revision >= 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_pkey",
+      "definition": "PRIMARY KEY (practice_id, membership_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_practice_id_membership_id_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id) REFERENCES practice_memberships(practice_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "practice_sms_enrollments",
+      "conname": "practice_sms_enrollments_version_check",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "nspname": "private",
       "relname": "register_audit_events",
       "conname": "register_audit_clinician_fkey",
       "definition": "FOREIGN KEY (practice_id, clinician_id) REFERENCES clinicians(practice_id, id) ON DELETE RESTRICT"
@@ -6009,6 +8750,276 @@
       "relname": "register_create_requests",
       "conname": "register_create_requests_practice_id_fkey",
       "definition": "FOREIGN KEY (practice_id) REFERENCES practices(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_intent_check",
+      "definition": "CHECK ((intent = ANY (ARRAY['prepare'::text, 'consent'::text, 'withdraw'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_phone_revision_check",
+      "definition": "CHECK ((phone_revision >= 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_practice_id_actor_user_id_request_id_key",
+      "definition": "UNIQUE (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_practice_id_membership_id_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id) REFERENCES private.practice_sms_enrollments(practice_id, membership_id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_result_check",
+      "definition": "CHECK ((result = 'success'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_action_receipts",
+      "conname": "sms_action_receipts_version_check",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_check",
+      "definition": "CHECK (((kind = ANY (ARRAY['otp-permission'::text, 'reminder-consent'::text])) = ((disclosure_version IS NOT NULL) AND (disclosure_text IS NOT NULL))))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_endpoint_id_fkey",
+      "definition": "FOREIGN KEY (endpoint_id) REFERENCES private.sms_phone_endpoints(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_kind_check",
+      "definition": "CHECK ((kind = ANY (ARRAY['phone-change'::text, 'otp-permission'::text, 'verified'::text, 'reminder-consent'::text, 'withdrawn'::text, 'member-invalidated'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_phone_revision_check",
+      "definition": "CHECK ((phone_revision >= 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_practice_id_membership_id_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id) REFERENCES private.practice_sms_enrollments(practice_id, membership_id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_enrollment_events",
+      "conname": "sms_enrollment_events_practice_id_membership_id_phone_revis_key",
+      "definition": "UNIQUE (practice_id, membership_id, phone_revision, id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_account_sid_check",
+      "definition": "CHECK ((account_sid ~ '^AC[0-9a-fA-F]{32}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_account_sid_messaging_service_sid_phone_key",
+      "definition": "UNIQUE (account_sid, messaging_service_sid, phone_e164)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_messaging_service_sid_check",
+      "definition": "CHECK ((messaging_service_sid ~ '^MG[0-9a-fA-F]{32}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_phone_e164_check",
+      "definition": "CHECK ((phone_e164 ~ '^\\+[1-9][0-9]{1,14}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_phone_endpoints",
+      "conname": "sms_phone_endpoints_suppression_epoch_check",
+      "definition": "CHECK ((suppression_epoch >= 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "conname": "sms_provider_events_account_sid_message_sid_key",
+      "definition": "UNIQUE (account_sid, message_sid)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "conname": "sms_provider_events_endpoint_id_fkey",
+      "definition": "FOREIGN KEY (endpoint_id) REFERENCES private.sms_phone_endpoints(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "conname": "sms_provider_events_message_sid_check",
+      "definition": "CHECK ((message_sid ~ '^SM[0-9a-fA-F]{32}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "conname": "sms_provider_events_opt_out_type_check",
+      "definition": "CHECK ((opt_out_type = ANY (ARRAY['STOP'::text, 'START'::text, 'HELP'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_provider_events",
+      "conname": "sms_provider_events_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_check",
+      "definition": "CHECK (((expires_at > created_at) AND (expires_at <= (created_at + '00:10:00'::interval))))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_check_count_check",
+      "definition": "CHECK (((check_count >= 0) AND (check_count <= 5)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_endpoint_id_fkey",
+      "definition": "FOREIGN KEY (endpoint_id) REFERENCES private.sms_phone_endpoints(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_phone_revision_check",
+      "definition": "CHECK ((phone_revision > 0))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_practice_id_membership_id_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id) REFERENCES private.practice_sms_enrollments(practice_id, membership_id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_practice_id_membership_id_id_key",
+      "definition": "UNIQUE (practice_id, membership_id, id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_state_check",
+      "definition": "CHECK ((state = ANY (ARRAY['reserved'::text, 'pending'::text, 'verified'::text, 'failed'::text, 'uncertain'::text, 'expired'::text, 'invalidated'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_verification_sid_check",
+      "definition": "CHECK ((verification_sid ~ '^VE[0-9a-fA-F]{32}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_challenges",
+      "conname": "sms_verification_challenges_verify_service_sid_check",
+      "definition": "CHECK ((verify_service_sid ~ '^VA[0-9a-fA-F]{32}$'::text))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_actor_user_id_fkey",
+      "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_check",
+      "definition": "CHECK (((claim_token IS NULL) = (reserved_at IS NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_check1",
+      "definition": "CHECK (((lease_until IS NULL) = (reserved_at IS NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_intent_check",
+      "definition": "CHECK ((intent = ANY (ARRAY['send'::text, 'check'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_practice_id_actor_user_id_request_key",
+      "definition": "UNIQUE (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_practice_id_membership_id_challe_fkey",
+      "definition": "FOREIGN KEY (practice_id, membership_id, challenge_id) REFERENCES private.sms_verification_challenges(practice_id, membership_id, id) ON DELETE RESTRICT"
+    },
+    {
+      "nspname": "private",
+      "relname": "sms_verification_requests",
+      "conname": "sms_verification_requests_state_check",
+      "definition": "CHECK ((state = ANY (ARRAY['prepared'::text, 'claimed'::text, 'complete'::text, 'uncertain'::text])))"
     },
     {
       "nspname": "public",
@@ -6422,6 +9433,12 @@
     },
     {
       "schemaname": "private",
+      "tablename": "practice_sms_enrollments",
+      "indexname": "practice_sms_enrollments_pkey",
+      "indexdef": "CREATE UNIQUE INDEX practice_sms_enrollments_pkey ON private.practice_sms_enrollments USING btree (practice_id, membership_id)"
+    },
+    {
+      "schemaname": "private",
       "tablename": "register_audit_events",
       "indexname": "register_audit_actor_idx",
       "indexdef": "CREATE INDEX register_audit_actor_idx ON private.register_audit_events USING btree (actor_user_id)"
@@ -6491,6 +9508,96 @@
       "tablename": "register_create_requests",
       "indexname": "register_create_requests_practice_id_actor_user_id_request__key",
       "indexdef": "CREATE UNIQUE INDEX register_create_requests_practice_id_actor_user_id_request__key ON private.register_create_requests USING btree (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_action_receipts",
+      "indexname": "sms_action_receipts_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_action_receipts_pkey ON private.sms_action_receipts USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_action_receipts",
+      "indexname": "sms_action_receipts_practice_id_actor_user_id_request_id_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_action_receipts_practice_id_actor_user_id_request_id_key ON private.sms_action_receipts USING btree (practice_id, actor_user_id, request_id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_enrollment_events",
+      "indexname": "sms_enrollment_events_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_enrollment_events_pkey ON private.sms_enrollment_events USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_enrollment_events",
+      "indexname": "sms_enrollment_events_practice_id_membership_id_phone_revis_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_enrollment_events_practice_id_membership_id_phone_revis_key ON private.sms_enrollment_events USING btree (practice_id, membership_id, phone_revision, id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_phone_endpoints",
+      "indexname": "sms_phone_endpoints_account_sid_messaging_service_sid_phone_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_phone_endpoints_account_sid_messaging_service_sid_phone_key ON private.sms_phone_endpoints USING btree (account_sid, messaging_service_sid, phone_e164)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_phone_endpoints",
+      "indexname": "sms_phone_endpoints_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_phone_endpoints_pkey ON private.sms_phone_endpoints USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_provider_events",
+      "indexname": "sms_provider_events_account_sid_message_sid_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_provider_events_account_sid_message_sid_key ON private.sms_provider_events USING btree (account_sid, message_sid)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_provider_events",
+      "indexname": "sms_provider_events_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_provider_events_pkey ON private.sms_provider_events USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_challenges",
+      "indexname": "sms_one_live_challenge",
+      "indexdef": "CREATE UNIQUE INDEX sms_one_live_challenge ON private.sms_verification_challenges USING btree (endpoint_id) WHERE (state = ANY (ARRAY['reserved'::text, 'pending'::text, 'uncertain'::text]))"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_challenges",
+      "indexname": "sms_verification_challenges_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_verification_challenges_pkey ON private.sms_verification_challenges USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_challenges",
+      "indexname": "sms_verification_challenges_practice_id_membership_id_id_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_verification_challenges_practice_id_membership_id_id_key ON private.sms_verification_challenges USING btree (practice_id, membership_id, id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_requests",
+      "indexname": "sms_request_actor_budget",
+      "indexdef": "CREATE INDEX sms_request_actor_budget ON private.sms_verification_requests USING btree (actor_user_id, reserved_at)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_requests",
+      "indexname": "sms_request_challenge_budget",
+      "indexdef": "CREATE INDEX sms_request_challenge_budget ON private.sms_verification_requests USING btree (challenge_id, reserved_at)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_requests",
+      "indexname": "sms_verification_requests_pkey",
+      "indexdef": "CREATE UNIQUE INDEX sms_verification_requests_pkey ON private.sms_verification_requests USING btree (id)"
+    },
+    {
+      "schemaname": "private",
+      "tablename": "sms_verification_requests",
+      "indexname": "sms_verification_requests_practice_id_actor_user_id_request_key",
+      "indexdef": "CREATE UNIQUE INDEX sms_verification_requests_practice_id_actor_user_id_request_key ON private.sms_verification_requests USING btree (practice_id, actor_user_id, request_id)"
     },
     {
       "schemaname": "public",
@@ -6622,7 +9729,7 @@
   "schemas": [
     {
       "nspname": "private",
-      "privileges": "{postgres=UC/postgres,authenticated=U/postgres}"
+      "privileges": "{postgres=UC/postgres,authenticated=U/postgres,service_role=U/postgres}"
     },
     {
       "nspname": "public",

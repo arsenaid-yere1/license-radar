@@ -20,7 +20,7 @@
     "test:db": "node tools/local-environment.mjs test-db",
     "db:reset": "node tools/local-environment.mjs reset",
     "gauntlet": "node tools/gauntlet.mjs",
-    "test:controls": "node --test tools/gauntlet-controls.test.mjs tools/access-controls.test.mjs",
+    "test:controls": "node --test tools/gauntlet-controls.test.mjs tools/access-controls.test.mjs tools/sms-controls.test.mjs",
     "mutation": "stryker run",
     "mutation:properties": "stryker run stryker.properties.config.mjs"
   },
@@ -30,6 +30,8 @@
     "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "twilio": "6.1.2",
     "zod": "4.6.5"
   },
   "devDependencies": {

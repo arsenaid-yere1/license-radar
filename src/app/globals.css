@@ -873,3 +873,25 @@ fieldset {
     font-size: 12px;
   }
 }
+
+.sms-panel form {
+  margin-block: 1.5rem;
+}
+.sms-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.sms-choice input {
+  width: auto;
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+.sms-information {
+  max-width: 48rem;
+  margin-inline: auto;
+}
+.sms-information h2 {
+  margin-top: 2rem;
+}

@@ -244,3 +244,43 @@ it("R19 a lost action response retains choice and requires explicit reload", asy
   expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole("link", { name: "Reload recipient" })).toBeTruthy();
 });
+it("Enrollment refresh is independent of assignment version", () => {
+  const action = vi.fn(),
+    view = render(
+      <RecipientPanel
+        recipient={recipient}
+        enrollment={{
+          reason: "consent-required",
+          enrollmentReady: false,
+          deliveryActive: false,
+        }}
+        action={action}
+      />,
+    );
+  expect(
+    screen.getByText(
+      "Phone verified. Choose separately whether to receive renewal texts. Text reminders are not active yet.",
+    ),
+  ).toBeTruthy();
+  view.rerender(
+    <RecipientPanel
+      recipient={recipient}
+      enrollment={{
+        reason: "enrolled",
+        enrollmentReady: true,
+        deliveryActive: false,
+      }}
+      action={action}
+    />,
+  );
+  expect(
+    screen.getByText(
+      "Phone verified and consent recorded. Renewal texts are not active yet. Text reminders are not active yet.",
+    ),
+  ).toBeTruthy();
+  expect(
+    screen.queryByText(
+      "Phone verified. Choose separately whether to receive renewal texts.",
+    ),
+  ).toBeNull();
+});

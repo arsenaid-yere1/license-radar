@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, chmodSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { Client } from "pg";
 export function assertFixtureTarget(nonFixtureCount) {
@@ -57,6 +57,8 @@ export function prepare() {
   assertLocal(c.API_URL, 55321, "http:");
   assertLocal(c.DB_URL, 55322, "postgresql:");
   assertLocal(c.MAILPIT_URL, 55324, "http:");
+  if (!(c.SECRET_KEY ?? c.SERVICE_ROLE_KEY))
+    throw new Error("Missing local service credential");
   const safe = {
     API_URL: c.API_URL,
     DB_URL: c.DB_URL,
@@ -66,9 +68,11 @@ export function prepare() {
   writeFileSync(".env.test.json", JSON.stringify(safe), { mode: 0o600 });
   writeFileSync(
     ".env.local",
-    `NEXT_PUBLIC_SUPABASE_URL=${c.API_URL}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${c.PUBLISHABLE_KEY}\n`,
+    `NEXT_PUBLIC_SUPABASE_URL=${c.API_URL}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${c.PUBLISHABLE_KEY}\nSUPABASE_SECRET_KEY=${c.SECRET_KEY ?? c.SERVICE_ROLE_KEY}\nSMS_PROVIDER_FIXTURE=local-e4-s1\nSMS_FIXTURE_URL=http://127.0.0.1:55325\nSMS_APP_URL=http://127.0.0.1:3000\nSMS_FIXTURE_TOKEN=local-fixture-only-e4-s1\n`,
     { mode: 0o600 },
   );
+  chmodSync(".env.test.json", 0o600);
+  chmodSync(".env.local", 0o600);
 }
 if (
   process.argv[1] &&

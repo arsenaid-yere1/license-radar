@@ -884,6 +884,94 @@ for (const [id, signature, from, to, pattern] of [
     pattern,
     apply: () => functionFault(signature, from, to),
   });
+const sms = "tests/integration/practice-sms-enrollment.test.ts";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "sms-without-consent",
+    "private.sms_state(uuid,uuid)",
+    "is_consented := is_verified and consent.id is not null and not endpoint.provider_blocked\n        and enrollment.consent_epoch = endpoint.suppression_epoch;",
+    "is_consented := is_verified and not endpoint.provider_blocked;",
+    "Verification needs separate reminder consent",
+  ],
+  [
+    "sms-stop-proof",
+    "private.apply_sms_provider_opt_out(text,text,text,text,text)",
+    "if p_opt_out_type='STOP' then",
+    "if p_opt_out_type='START' then",
+    "STOP is signed and globally terminal",
+  ],
+  [
+    "sms-repeat-claim",
+    "private.claim_sms_verification_send(uuid,uuid,uuid)",
+    "if request.state<>'prepared' then",
+    "if false then",
+    "Requests are immutable and claimed once",
+  ],
+  [
+    "sms-send-cooldown",
+    "private.claim_sms_verification_send(uuid,uuid,uuid)",
+    "r.reserved_at>now_at-interval '60 seconds'",
+    "r.reserved_at>now_at",
+    "Send budgets count every reservation",
+  ],
+  [
+    "sms-check-count",
+    "private.claim_sms_verification_check(uuid,uuid,uuid,uuid,integer)",
+    "set check_count=check_count+1",
+    "set check_count=check_count",
+    "Code checks are bounded and serialized",
+  ],
+  [
+    "sms-proof-commit",
+    "private.record_sms_verification(uuid,uuid,uuid,uuid,jsonb,text)",
+    "p_intent='check' and p_outcome->>'status'='approved'",
+    "p_intent='check' and p_outcome->>'status'='pending'",
+    "Verification needs separate reminder consent",
+  ],
+
+  [
+    "sms-proof-audit",
+    "private.record_sms_verification(uuid,uuid,uuid,uuid,jsonb,text)",
+    "endpoint.id,'verified');",
+    "endpoint.id,'withdrawn');",
+    "Audit and receipt faults roll back mutations",
+  ],
+  [
+    "sms-consent-receipt",
+    "private.consent_my_practice_sms(uuid,uuid,integer,boolean)",
+    "perform private.sms_receipt(p_practice_id,member,auth.uid(),p_request_id,'consent',payload);",
+    "null;",
+    "Audit and receipt faults roll back mutations",
+  ],
+  [
+    "sms-withdraw-clear",
+    "private.withdraw_my_practice_sms(uuid,uuid)",
+    "set consent_event_id=null,consent_epoch=null,withdrawn=true",
+    "set withdrawn=true",
+    "Withdrawal is immediate and idempotent",
+  ],
+  [
+    "sms-lease",
+    "private.claim_sms_verification_send(uuid,uuid,uuid)",
+    "request.lease_until<=now_at",
+    "request.lease_until>now_at",
+    "Requests are immutable and claimed once",
+  ],
+  [
+    "sms-unselected-invalidation",
+    "private.invalidate_sms_enrollment(uuid,uuid)",
+    "if not found then return; end if;",
+    "return;",
+    "Access loss invalidates unselected enrollment",
+  ],
+]) {
+  mutants.push({
+    id,
+    file: sms,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+}
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

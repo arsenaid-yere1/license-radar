@@ -57,9 +57,7 @@ it("R17 action binds parsed values and safe recipient-specific messages", async 
   expect((await recipientAction({ status: "idle" }, form())).message).toBe(
     "Reminder recipient cleared. No recipient is selected.",
   );
-  expect(recipientMessage("success")).toBe(
-    "Reminder recipient saved. SMS setup is still pending.",
-  );
+  expect(recipientMessage("success")).toBe("Reminder recipient saved.");
   expect(recipientMessage("invalid")).toBe(
     "Choose a valid recipient or explicitly clear the selection.",
   );

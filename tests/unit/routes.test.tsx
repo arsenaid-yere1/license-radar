@@ -4,10 +4,16 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 const boundary = vi.hoisted(() => ({
   requireUser: vi.fn(),
   getRecipient: vi.fn(),
+  getRecipientEnrollment: vi.fn(),
+  getMyEnrollment: vi.fn(),
   getMaintenanceRegister: vi.fn(),
   getTeam: vi.fn(),
   getCurrentPractice: vi.fn(),
   getPracticeAccess: vi.fn(),
+}));
+vi.mock("@/lib/sms/repository", () => ({
+  getRecipientEnrollment: boundary.getRecipientEnrollment,
+  getMyEnrollment: boundary.getMyEnrollment,
 }));
 vi.mock("@/lib/register/repository", () => ({
   getMaintenanceRegister: boundary.getMaintenanceRegister,
@@ -47,6 +53,21 @@ import ErrorPage from "@/app/error";
 import Layout from "@/app/layout";
 beforeEach(() => {
   vi.resetAllMocks();
+  boundary.getRecipientEnrollment.mockResolvedValue({
+    status: "success",
+    recipient: {
+      version: 1,
+      selected: null,
+      readiness: "no-recipient",
+      ready: false,
+      canEdit: false,
+    },
+    enrollment: {
+      reason: "no-recipient",
+      enrollmentReady: false,
+      deliveryActive: false,
+    },
+  });
   boundary.getRecipient.mockResolvedValue({
     status: "success",
     recipient: {
@@ -174,6 +195,47 @@ it("R18 recipient read failure never fabricates an empty recipient", async () =>
   await expect(Settings()).rejects.toThrow(
     "We could not complete this request. Try again.",
   );
+});
+it("SMS readiness read failure never fabricates an enrolled or empty recipient", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { practice: { id: "own" }, role: "manager" },
+  });
+  boundary.getRecipientEnrollment.mockResolvedValue({ status: "unavailable" });
+  await expect(Settings()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+});
+it("Shared selection and enrollment readiness use the same detailed snapshot", async () => {
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: { practice: { id: "own", name: "Cedar" }, role: "viewer" },
+  });
+  boundary.getRecipientEnrollment.mockResolvedValue({
+    status: "success",
+    recipient: {
+      version: 2,
+      selected: {
+        id: "new",
+        email: "new@example.test",
+        role: "manager",
+        state: "active",
+      },
+      readiness: "sms-setup-pending",
+      ready: false,
+      canEdit: false,
+    },
+    enrollment: {
+      reason: "enrolled",
+      enrollmentReady: true,
+      deliveryActive: false,
+    },
+  });
+  render(await Settings());
+  expect(
+    screen.getByText(/Current recipient:/).closest("p")?.textContent,
+  ).toContain("new@example.test");
+  expect(screen.getByText(/Phone verified and consent recorded/)).toBeTruthy();
 });
 
 it("R18 team route reads current recipient only for administrator and fails closed on outage", async () => {

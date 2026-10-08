@@ -284,6 +284,16 @@ export type Database = {
         Args: { p_token_digest: string };
         Returns: Json;
       };
+      apply_sms_provider_opt_out: {
+        Args: {
+          p_account_sid: string;
+          p_message_sid: string;
+          p_messaging_service_sid: string;
+          p_opt_out_type: string;
+          p_phone: string;
+        };
+        Returns: Json;
+      };
       archive_practice_credential: {
         Args: {
           p_credential_id: string;
@@ -304,6 +314,33 @@ export type Database = {
           p_expected_version: number;
           p_membership_id: string;
           p_role: string;
+        };
+        Returns: Json;
+      };
+      claim_sms_verification_check: {
+        Args: {
+          p_actor_id: string;
+          p_challenge_id: string;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      claim_sms_verification_send: {
+        Args: {
+          p_actor_id: string;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      consent_my_practice_sms: {
+        Args: {
+          p_consent: boolean;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
         };
         Returns: Json;
       };
@@ -366,7 +403,15 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_my_practice_sms_enrollment: {
+        Args: { p_practice_id: string };
+        Returns: Json;
+      };
       get_practice_reminder_recipient: {
+        Args: { p_practice_id: string };
+        Returns: Json;
+      };
+      get_practice_reminder_recipient_with_enrollment: {
         Args: { p_practice_id: string };
         Returns: Json;
       };
@@ -379,8 +424,42 @@ export type Database = {
         Returns: Json;
       };
       list_practice_team: { Args: { p_practice_id: string }; Returns: Json };
+      prepare_my_sms_verification: {
+        Args: {
+          p_account_sid: string;
+          p_change_confirmed: boolean;
+          p_expected_version: number;
+          p_messaging_service_sid: string;
+          p_otp_permission: boolean;
+          p_phone: string;
+          p_practice_id: string;
+          p_request_id: string;
+          p_verify_service_sid: string;
+        };
+        Returns: Json;
+      };
       preview_practice_invitation: {
         Args: { p_token_digest: string };
+        Returns: Json;
+      };
+      record_sms_verification_check: {
+        Args: {
+          p_actor_id: string;
+          p_claim_token: string;
+          p_outcome: Json;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      record_sms_verification_send: {
+        Args: {
+          p_actor_id: string;
+          p_claim_token: string;
+          p_outcome: Json;
+          p_practice_id: string;
+          p_request_id: string;
+        };
         Returns: Json;
       };
       reissue_practice_invitation: {
@@ -444,6 +523,10 @@ export type Database = {
           p_title: string;
           p_type: string;
         };
+        Returns: Json;
+      };
+      withdraw_my_practice_sms: {
+        Args: { p_practice_id: string; p_request_id: string };
         Returns: Json;
       };
     };

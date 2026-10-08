@@ -2,6 +2,7 @@ import config from "./stryker.config.mjs";
 const configOptions = {
   ...config,
   mutate: [
+    "src/lib/sms/schema.ts",
     "src/lib/dashboard/summary.ts",
     "src/lib/calendar/events.ts",
     "src/lib/calendar/dates.ts",

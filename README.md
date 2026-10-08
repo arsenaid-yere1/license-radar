@@ -25,7 +25,7 @@ The register is available from **Renewal register** in practice settings. Admini
 
 Each account has at most one active practice membership. All active staff can read shared settings; administrators edit settings and manage the team. Live membership checks and database row-level security isolate practice records and enforce revoked access on subsequent requests. Profile and access mutations save their private audit events in the same transaction. Creator identity remains provenance rather than authority.
 
-Recipient assignment records responsibility, with an independent version and private transaction audit. It does not enroll a phone or schedule texts; readiness remains “SMS setup pending.” Existing and new practices start unassigned. Viewers see the selection without a candidate roster.
+Recipient assignment records responsibility, with an independent version and private transaction audit. It does not enroll a phone or schedule texts. Existing and new practices start unassigned. Viewers see the selection without a candidate roster. E4-S1 adds local phone verification and separate reminder consent; the hosted pilot has not received this change.
 
 The reminder preview in practice settings is an **example**, not a scheduled notification. The hosted pilot is available at [license-radar.vercel.app](https://license-radar.vercel.app), using Vercel and the existing hosted Supabase project. Email-code sign-in uses the configured Resend SMTP provider. The original pilot setup used Resend’s test sender, which delivers only to the Resend account address; onboarding other staff requires a verified sending domain. Invitation links are shared manually.
 
@@ -71,7 +71,9 @@ npm run dev
 
 Open the application at [http://127.0.0.1:3000](http://127.0.0.1:3000). To sign in, enter your email address and retrieve the six-digit code from [local Mailpit](http://127.0.0.1:55324). Codes expire after 10 minutes; another code can be requested after 60 seconds. The local stack captures email instead of sending it externally.
 
-The `prepare` command creates ignored `.env.local` and `.env.test.json` files using the running local stack. Application configuration consists of `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; see [`.env.example`](.env.example). Admin keys are not needed by the application. Local auth rate limits are configured for testing and require review before hosted use.
+The `prepare` command creates ignored `.env.local` and `.env.test.json` files with mode 0600 using the running local stack. Public configuration consists of `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; see [`.env.example`](.env.example). The server-only SMS repository additionally needs `SUPABASE_SECRET_KEY`, kept only in `.env.local`. The test configuration contains no service key. Local auth rate limits are configured for testing and require review before hosted use.
+
+Preparation enables a guarded local SMS fixture, requiring exact loopback app, database and provider URLs. The browser-test server owns and closes that fixture automatically. Plain `npm run dev` or `npm start` does not start the provider fixture. To exercise verification manually, run `node --input-type=module -e 'await import("./tools/sms-provider-fixture.mjs").then(m => m.startSmsFixture())'` in another terminal; stop it after use. Fixture codes are available only through the authenticated local test harness. Removing the SMS fixture configuration makes collection unavailable while ordinary routes and personal withdrawal remain usable. No fixture may be configured for a hosted deployment.
 
 For a production build running locally:
 
@@ -112,7 +114,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 32-layer verification pipeline, including practice, recipient, register, and populated date-entry and E2-S2-to-maintenance upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 33-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, and SMS upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -182,3 +184,19 @@ The dashboard captures today in the practice timezone and displays it with the s
 - [E3-S2 production release](thoughts/shared/handoffs/2026-10-08-e3-s2-production-release.md).
 
 The E3-S2 release deployed the exact source that passed all 32 verification layers. Signed-in hosted checks confirmed the dashboard, all three entry links, snapshot refresh, section navigation, and neutral unavailable-record return navigation. Eleven public/private route checks and three anonymous data denials passed. The live register was empty, so populated dashboard acceptance remains covered by local tests; user manual acceptance is unconfirmed. Text reminders remain inactive.
+
+## E4-S1 phone verification and reminder consent
+
+**My reminder texts** lets an active administrator or manager verify their own international-format phone, then explicitly choose reminder consent for that practice. Requesting a code records permission for verification texts only. Consent is a separate unchecked choice after proof. Assignment never transfers another member's proof or consent. Shared settings expose readiness; only the owner receives their phone suffix. Email sign-in is unchanged. Enrollment readiness and active delivery are separate: renewal texts remain inactive.
+
+Confirmed phone replacement immediately clears prior proof and consent. A verified same-phone request preserves enrollment. In-app withdrawal affects personal consent in that practice and remains available to active viewers. Demotion to viewer or revocation invalidates proof, consent and challenges even when the member was not selected; promotion or rejoining requires fresh enrollment. Provider STOP suppresses the endpoint across practices using the configured account/service and persists as a tombstone. START and HELP are recorded but never unblock or restore consent in this release. Same-number STOP recovery belongs to E4-S4.
+
+Verification uses Twilio Verify with six-digit codes, a ten-minute first-attempt lifetime and five check reservations. Persisted send budgets are 60 seconds between phone/actor sends, five per rolling 30 minutes, ten per day for phone/actor, and 100 per day for the practice. Reservations include failures and unknown outcomes; changing a phone, practice or request ID cannot reset them. Resend preserves the first expiry. A lost provider outcome blocks the challenge until expiry. SDK retries are disabled; there is no automatic resend or OTP persistence in application ledgers.
+
+Live sending defaults off. Before activation, supply server credentials, an actual support contact, a registered Messaging Service and sender allowlist, a configured Verify service, Advanced Opt-Out, and the exact HTTPS callback URL ending `/api/sms/twilio/inbound`. Review the public SMS terms/privacy and set `SMS_TERMS_REVIEWED=e4-s1-v1` only after that review, then explicitly enable `SMS_LIVE_ENABLED=true`. Turning sends off retains configured signed STOP processing and withdrawal. Never publish service/API/Auth credentials. Deployment and real-phone acceptance require a separate request; offline tests do not establish handset delivery or provider setup.
+
+Rollback retains the additive schema, consent history and suppression ledger. Keep the validated callback route available while disabling collection/sends; reverting to the old app alone would remove STOP handling. Future E4-S2 scheduling and E4-S3 delivery must recheck live selection, membership, phone revision, consent/disclosure and endpoint suppression before dispatch. No reminder jobs or dispatch are introduced here.
+
+- [E4-S1 executable specification](thoughts/shared/plans/2026-10-08-e4-s1-old-coder-spec.md).
+- [E4-S1 implementation plan](thoughts/shared/plans/2026-10-08-e4-s1-phone-enrollment.md).
+- [E4-S1 activation handoff](thoughts/shared/handoffs/2026-10-08-e4-s1-live-activation.md).

@@ -26,7 +26,7 @@ test("R21 recipient assignment replacement conflict clear persistence and access
   await select.selectOption(id.id);
   await page.getByRole("button", { name: "Save recipient" }).click();
   await expect(
-    page.getByText("Reminder recipient saved. SMS setup is still pending.", {
+    page.getByText("Reminder recipient saved.", {
       exact: true,
     }),
   ).toBeFocused();
@@ -296,7 +296,7 @@ test("R23 recipient outage retains input, pending blocks repeats, and foreign Or
     await db.query("commit");
     const sent = await request;
     await expect(page.getByRole("status")).toHaveText(
-      "Reminder recipient saved. SMS setup is still pending.",
+      "Reminder recipient saved.",
     );
     const before = (
       await pool.query(

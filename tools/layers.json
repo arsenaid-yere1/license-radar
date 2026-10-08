@@ -55,6 +55,11 @@
     "args": ["tools/register-maintenance-upgrade.mjs"]
   },
   {
+    "id": "sms-enrollment-upgrade",
+    "command": "node",
+    "args": ["tools/sms-enrollment-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]
