@@ -243,6 +243,9 @@ test("M13 M15 lost committed edit freezes exact retry and rejects foreign-Origin
   await expect(
     page.getByRole("link", { name: "Renewal calendar" }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Renewal dashboard" }),
+  ).toHaveCount(0);
   const committed = await snapshots(member.practice_id);
   expect(
     committed["private.register_change_requests"] as unknown[],
@@ -257,6 +260,9 @@ test("M13 M15 lost committed edit freezes exact retry and rejects foreign-Origin
   await expect(item(page, "Corrected")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Renewal calendar" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Renewal dashboard" }),
   ).toBeVisible();
   expect(await snapshots(member.practice_id)).toEqual(committed);
   expect(
@@ -303,6 +309,9 @@ test("M13 archive precommit rollback pending lock and lost committed response pr
     await expect(
       page.getByRole("link", { name: "Archived records" }),
     ).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: "Renewal dashboard" }),
+    ).toHaveCount(0);
     await db.query("commit");
     await expect(
       page.getByText("Record archived.", { exact: true }),
@@ -342,12 +351,18 @@ test("M13 archive precommit rollback pending lock and lost committed response pr
   await expect(
     page.getByRole("link", { name: "Renewal calendar" }),
   ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Renewal dashboard" }),
+  ).toHaveCount(0);
   const archived = await snapshots(member.practice_id);
   await page.unroute("**/practice/register");
   await page.getByRole("button", { name: "Retry this save" }).click();
   await expect(
     page.getByText("Record archived.", { exact: true }),
   ).toBeFocused();
+  await expect(
+    page.getByRole("link", { name: "Renewal dashboard" }),
+  ).toBeVisible();
   expect(await snapshots(member.practice_id)).toEqual(archived);
   await expect(
     page.getByRole("heading", { name: "Lost archive", exact: true }),

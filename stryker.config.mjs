@@ -1,5 +1,6 @@
 const configOptions = {
   mutate: [
+    "src/lib/dashboard/summary.ts",
     "src/lib/calendar/events.ts",
     "src/lib/calendar/dates.ts",
     "src/lib/calendar/query.ts",

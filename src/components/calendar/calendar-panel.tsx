@@ -209,6 +209,7 @@ function CalendarToolbar({
         {/* A document request refreshes saved data and live authorization. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/practice/register">Renewal register</a>
+        <a href="/practice/dashboard">Renewal dashboard</a>
         {!query.invalidFilters && (
           <a href={calendarHref(query)}>Refresh records</a>
         )}

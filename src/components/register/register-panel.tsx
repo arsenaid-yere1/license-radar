@@ -293,6 +293,10 @@ function RegisterFeedback({
             <a className="text-link" href="/practice/calendar">
               Renewal calendar
             </a>
+            {" · "}
+            <a className="text-link" href="/practice/dashboard">
+              Renewal dashboard
+            </a>
           </>
         )}
       </nav>

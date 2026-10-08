@@ -40,16 +40,11 @@ export default async function CredentialDetail({
   );
   if (!record) notFound();
   const today = practiceToday(access.access.practice.timezone, new Date()),
-    query = parseCalendarQuery((await searchParams) ?? {}, today);
-  const back = query.invalidFilters
-    ? parseCalendarQuery({ month: query.month, view: query.view }, today)
-    : query;
+    raw = (await searchParams) ?? {};
   return (
     <Shell action={<SignOutForm />}>
       <div className="calendar-heading">
-        <a className="text-link" href={calendarHref(back)}>
-          Back to calendar
-        </a>
+        <BackLink raw={raw} today={today} />
         <span className="eyebrow">
           {access.access.practice.name} / Renewal record
         </span>
@@ -72,6 +67,24 @@ export default async function CredentialDetail({
         </article>
       </div>
     </Shell>
+  );
+}
+
+function BackLink({ raw, today }: { raw: SearchQuery; today: string }) {
+  if (raw.from === "dashboard")
+    return (
+      <a className="text-link" href="/practice/dashboard">
+        Back to dashboard
+      </a>
+    );
+  const query = parseCalendarQuery(raw, today),
+    back = query.invalidFilters
+      ? parseCalendarQuery({ month: query.month, view: query.view }, today)
+      : query;
+  return (
+    <a className="text-link" href={calendarHref(back)}>
+      Back to calendar
+    </a>
   );
 }
 

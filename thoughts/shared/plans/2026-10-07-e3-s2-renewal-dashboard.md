@@ -2,7 +2,7 @@
 
 Date: 2026-10-07 (America/Los_Angeles).
 Baseline: `cc1088da1382f50cf1d4301db25d9f19073c9f95`.
-Status: Planned; implementation has not started.
+Status: Phases 1–3 implemented and verified locally on 2026-10-08; Phase 4 full gauntlet in progress.
 Research: `thoughts/shared/research/2026-10-07-e3-s2-renewal-dashboard.md`.
 Verification: `thoughts/shared/plans/2026-10-07-e3-s2-renewal-dashboard-verification.md`.
 
@@ -145,7 +145,7 @@ Inspect real desktop and phone screenshots, urgent/missing/empty/error states an
 
 - Update README only when the dashboard is implemented, describing counts/date boundaries, missing-end overlap, snapshot refresh, inactive SMS and E4-S1 next.
 - Preserve the existing 32 layers in `tools/layers.json`/`tools/gauntlet.mjs`. New test files and source coverage are discovered automatically by `vitest.config.ts` and `tools/check-coverage.mjs`; only explicit mutation/property lists change. No SQL upgrade/mutant layer or generated-type change is justified.
-- Write actual source-bound implementation evidence under proposed `thoughts/shared/research/2026-10-07-e3-s2-implementation-evidence.md`; update progress only after phase success.
+- Write actual source-bound implementation evidence under proposed `thoughts/shared/research/2026-10-08-e3-s2-implementation-evidence.md`; update progress only after phase success.
 
 ### Automated verification
 
@@ -182,8 +182,14 @@ AC1–AC10 have executable witnesses within the documented workflow boundary; al
 
 ## Implementation progress
 
-- [ ] Phase 1: Urgency projection and independent date witnesses.
-- [ ] Phase 2: Authenticated route and record return navigation.
-- [ ] Phase 3: Dashboard presentation, entry links and browser acceptance.
+- [x] Phase 1: Urgency projection and independent date witnesses.
+- [x] Phase 2: Authenticated route and record return navigation.
+- [x] Phase 3: Dashboard presentation, entry links and browser acceptance.
 - [ ] Phase 4: Regression gates, documentation and evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.
+
+## Implementation verification log (2026-10-08)
+
+Phases 1–3: full unit suite 270/270 in 38 files; targeted dashboard/calendar integration 9/9; targeted dashboard/calendar/maintenance browser regressions 16/16; types, lint and production build pass. Dashboard-only property mutation 100% (68 killed, 0 survivors, 33 compiler-invalid); independent Gregorian and generated boundary/order witnesses added. Agent inspected 1440px and 375px populated screenshots. Human manual acceptance remains unchecked. Phase 4 will report only final fresh source-bound gauntlet results in evidence.
+
+Spec is at `thoughts/shared/plans/2026-10-08-e3-s2-old-coder-spec.md`, including append-only fixture/property clarifications. The shared error reset does not re-fetch a server snapshot; recovery witness uses a fresh request, matching the existing calendar contract. Source restoration after temporary faults and historical RED results are recorded at `thoughts/shared/research/2026-10-08-e3-s2-red-history.md`.

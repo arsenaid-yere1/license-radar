@@ -5,6 +5,9 @@ export default function NotFound() {
       <section className="panel error-panel">
         <h1>Record unavailable.</h1>
         <p>This record is not available in your active register.</p>
+        <a className="text-link" href="/practice/dashboard">
+          Return to dashboard
+        </a>
         <a className="text-link" href="/practice/calendar">
           Return to calendar
         </a>

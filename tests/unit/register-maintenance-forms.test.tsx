@@ -210,6 +210,11 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   expect(
     screen.getByRole("link", { name: "Renewal calendar" }).getAttribute("href"),
   ).toBe("/practice/calendar");
+  expect(
+    screen
+      .getByRole("link", { name: "Renewal dashboard" })
+      .getAttribute("href"),
+  ).toBe("/practice/dashboard");
   fireEvent.click(screen.getByRole("button", { name: "Archive record" }));
   expect(screen.getByText(/Archive “Policy”/)).toBeTruthy();
   await submit("Confirm archive");
@@ -221,6 +226,7 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   ).toBe(true);
   expect(screen.queryByRole("link", { name: "Archived records" })).toBeNull();
   expect(screen.queryByRole("link", { name: "Renewal calendar" })).toBeNull();
+  expect(screen.queryByRole("link", { name: "Renewal dashboard" })).toBeNull();
   await submit("Retry this save");
   await waitFor(() => expect(action).toHaveBeenCalledTimes(2));
   expect(Array.from(action.mock.calls[1][1])).toEqual(
@@ -229,6 +235,7 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   expect(
     screen.getByRole("button", { name: "Saving…" }).matches(":disabled"),
   ).toBe(true);
+  expect(screen.queryByRole("link", { name: "Renewal dashboard" })).toBeNull();
   resolve({
     status: "success",
     changed: true,
@@ -241,6 +248,11 @@ it("M13 uncertain and pending freeze exact payload cancellation intent and view;
   await waitFor(() =>
     expect(
       screen.queryByRole("link", { name: "Renewal calendar" }),
+    ).toBeTruthy(),
+  );
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("link", { name: "Renewal dashboard" }),
     ).toBeTruthy(),
   );
   expect(screen.queryByRole("heading", { name: "Policy" })).toBeNull();

@@ -670,6 +670,168 @@ fieldset {
 .calendar-weekday {
   display: none;
 }
+
+.dashboard-heading {
+  padding: 36px 56px 60px;
+  overflow-wrap: anywhere;
+}
+.dashboard-heading > .eyebrow {
+  margin-top: 22px;
+}
+.dashboard-heading .lede {
+  max-width: none;
+  margin-bottom: 20px;
+}
+.dashboard-asof {
+  font-size: 14px;
+}
+.dashboard-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 14px;
+  margin: 28px 0 36px;
+}
+.dashboard-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.dashboard-count {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--ink);
+  border-radius: 4px;
+  background: var(--white);
+  text-decoration: none;
+}
+.dashboard-count strong {
+  font-family: "Iowan Old Style", Palatino, serif;
+  font-size: 56px;
+  font-weight: 400;
+  line-height: 1;
+}
+.dashboard-count span {
+  font-size: 14px;
+}
+.dashboard-count:hover span {
+  text-decoration: underline;
+}
+.dashboard-count-past-due {
+  border-top-color: var(--danger);
+}
+.dashboard-count-due-within-60 {
+  border-top-color: #52724c;
+}
+.dashboard-count-missing-end {
+  border-top-color: var(--muted);
+}
+.dashboard-section {
+  margin-top: 40px;
+  border-top: 1px solid var(--line);
+  padding-top: 26px;
+}
+.dashboard-section-heading {
+  max-width: 780px;
+  margin-bottom: 24px;
+}
+.dashboard-section h2 {
+  font-size: 32px;
+}
+.dashboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dashboard-list > li {
+  border-top: 1px solid var(--line);
+}
+.dashboard-record {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  padding: 24px 0;
+}
+.dashboard-record h3 {
+  font-size: 19px;
+  margin: 12px 0 8px;
+  font-weight: 500;
+}
+.dashboard-record p {
+  font-size: 14px;
+  margin: 8px 0;
+}
+.dashboard-record .saved-label {
+  font-size: 13px;
+}
+.dashboard-record .saved-label span {
+  font-size: inherit;
+}
+.urgency-badge {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.urgency-past-due {
+  color: var(--danger);
+  border-color: #dbbdb0;
+  background: #faede6;
+}
+.urgency-due-today,
+.urgency-due-soon {
+  color: #315518;
+  border-color: #b8cc9a;
+  background: #edf3df;
+}
+.urgency-undated {
+  color: var(--muted);
+  background: var(--white);
+}
+.dashboard-later {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.dashboard-empty {
+  margin-top: 28px;
+}
+@media (max-width: 700px) {
+  .dashboard-heading {
+    padding: 30px 20px 50px;
+  }
+  .dashboard-counts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .dashboard-count {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 20px;
+  }
+  .dashboard-count strong {
+    font-size: 44px;
+  }
+  .dashboard-count span {
+    max-width: 200px;
+    text-align: right;
+  }
+  .dashboard-record {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .dashboard-section h2 {
+    font-size: 28px;
+  }
+}
 @media (max-width: 700px) {
   .month-calendar {
     display: block;

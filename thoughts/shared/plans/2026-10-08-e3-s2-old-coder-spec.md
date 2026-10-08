@@ -78,3 +78,19 @@ Entry point: `PATH="$PWD/.tools/node/bin:$PATH" npm run gauntlet`. Preserve all 
 ## Revisions
 
 - 2026-10-08 — Initial SPEC before runtime edits under autonomous implementation instruction. Setup and scope follow the verified plan; independent human spec approval absent; no production operation authorized here.
+
+## Revision 1 — fixture and recovery witnesses (2026-10-08)
+
+Add `tests/helpers/dashboard-fixtures.ts` to the file inventory: typed record fixtures and an independent Gregorian integer oracle shared by unit and property witnesses. Extend the existing maintenance unit/browser tests to check dashboard navigation is hidden during pending/uncertain saves and restored after confirmation. This clarifies Q13 without changing its acceptance contract. Spec approval: not obtained (autonomous run).
+
+## Revision 2 — generated horizon boundaries (2026-10-08)
+
+QP03 generates supported years with distances -1, 0, 1, 59, 60 and 61, asserts the exact bucket, signed days and urgency against independent Gregorian arithmetic, and asserts all other lists are empty. This complements QP01's wide-range generated records so the property-only mutation suite specifically witnesses the inclusive horizon. Spec approval: not obtained (autonomous run).
+
+## Revision 3 — inherited detail labels and recovery trigger (2026-10-08)
+
+The first browser run exposed two fixture assumptions: the inherited detail label is `Coverage end date`, with a capital C, and the shared error component's `reset()` does not fetch a fresh server snapshot. Q02 preserves that existing label; Q08 recovery uses a fresh page request (`page.reload()`), as required by the dashboard snapshot contract and the existing calendar witness. Replace those test assumptions explicitly; do not alter the shared error component or claim that its button performs a data refresh. The failed expectations and this correction must appear in evidence. Spec approval: not obtained (autonomous run).
+
+## Revision 4 — generated nearby-date ordering (2026-10-08)
+
+The initial property-only mutation run killed 67 mutants but retained removal of the due-list sort: wide-range records rarely contained multiple nearby dates. Add QP04, generating 2–20 dates within 0–60 days with title ties, checking exact independent date/title/UUID ordering for both input directions. This strengthens Q04/QP01's existing order contract without changing runtime behavior or thresholds. Observe the surviving mutation fail QP04 before restoring it. Spec approval: not obtained (autonomous run).

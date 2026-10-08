@@ -45,6 +45,9 @@ export default async function Settings() {
           </p>
         </section>
         <div className="settings-panels">
+          <a href="/practice/dashboard" className="text-link">
+            Renewal dashboard
+          </a>
           <a href="/practice/calendar" className="text-link">
             Renewal calendar
           </a>

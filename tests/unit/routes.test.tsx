@@ -445,3 +445,147 @@ it("C07 not-found page offers neutral fixed navigation", async () => {
       .getAttribute("href"),
   ).toBe("/practice/calendar");
 });
+
+it("Q07 dashboard authentication/access/read guards fail visibly before any counts", async () => {
+  const { default: Dashboard } = await import("@/app/practice/dashboard/page");
+  calendarAccess();
+  boundary.requireUser.mockRejectedValueOnce(new Error("REDIRECT:/login"));
+  await expect(Dashboard()).rejects.toThrow("REDIRECT:/login");
+  expect(boundary.getMaintenanceRegister).not.toHaveBeenCalled();
+  boundary.getPracticeAccess.mockResolvedValue({ status: "unavailable" });
+  await expect(Dashboard()).rejects.toThrow(
+    "We could not complete this request. Try again.",
+  );
+  boundary.getPracticeAccess.mockResolvedValue({
+    status: "success",
+    access: null,
+  });
+  await expect(Dashboard()).rejects.toThrow("REDIRECT:/onboarding/practice");
+  for (const status of ["forbidden", "unavailable"]) {
+    calendarAccess();
+    boundary.getMaintenanceRegister.mockResolvedValue({ status });
+    await expect(Dashboard()).rejects.toThrow(
+      "We could not complete this request. Try again.",
+    );
+  }
+});
+it("Q06 Q07 all active roles see one practice-local snapshot and fixed refresh/navigation", async () => {
+  const { default: Dashboard } = await import("@/app/practice/dashboard/page");
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-01-01T07:59:00Z"));
+  try {
+    for (const role of ["administrator", "manager", "viewer"]) {
+      calendarAccess(role);
+      const view = render(await Dashboard());
+      expect(boundary.getMaintenanceRegister).toHaveBeenLastCalledWith(
+        {},
+        "own",
+        false,
+      );
+      expect(
+        screen.getByRole("heading", { name: "Your renewal dashboard." }),
+      ).toBeTruthy();
+      expect(
+        view.container.querySelector('time[datetime="2025-12-31"]'),
+      ).toBeTruthy();
+      expect(screen.getByText(/America\/Los_Angeles/)).toBeTruthy();
+      expect(
+        screen
+          .getByRole("link", { name: "Refresh records" })
+          .getAttribute("href"),
+      ).toBe("/practice/dashboard");
+      expect(screen.queryByRole("button", { name: "Save changes" })).toBeNull();
+      view.unmount();
+    }
+    calendarAccess();
+    boundary.getPracticeAccess.mockResolvedValue({
+      status: "success",
+      access: {
+        practice: { id: "own", name: "Cedar", timezone: "Asia/Tokyo" },
+        role: "manager",
+      },
+    });
+    const view = render(await Dashboard());
+    expect(
+      view.container.querySelector('time[datetime="2026-01-01"]'),
+    ).toBeTruthy();
+    view.unmount();
+    boundary.getPracticeAccess.mockResolvedValue({
+      status: "success",
+      access: {
+        practice: { id: "own", name: "Cedar", timezone: "invalid" },
+        role: "manager",
+      },
+    });
+    await expect(Dashboard()).rejects.toThrow();
+  } finally {
+    vi.useRealTimers();
+  }
+});
+it("Q09 detail dashboard origin is exact, fixed and preserves invalid-origin calendar context", async () => {
+  const { default: Detail } =
+    await import("@/app/practice/register/[credentialId]/page");
+  calendarAccess();
+  for (const from of [
+    "dashboard",
+    ["dashboard", "dashboard"],
+    "https://evil.example",
+    undefined,
+    "other",
+  ]) {
+    const view = render(
+      await Detail({
+        params: Promise.resolve({ credentialId: calendarId }),
+        searchParams: Promise.resolve({
+          from,
+          month: "2028-02",
+          view: "agenda",
+          type: "malpractice_policy",
+          returnUrl: "https://evil.example",
+        }),
+      }),
+    );
+    const dashboard = from === "dashboard";
+    expect(
+      screen
+        .getByRole("link", {
+          name: dashboard ? "Back to dashboard" : "Back to calendar",
+        })
+        .getAttribute("href"),
+    ).toBe(
+      dashboard
+        ? "/practice/dashboard"
+        : "/practice/calendar?month=2028-02&view=agenda&type=malpractice_policy",
+    );
+    view.unmount();
+  }
+  const { default: NotFound } =
+    await import("@/app/practice/register/[credentialId]/not-found");
+  render(<NotFound />);
+  expect(
+    screen
+      .getByRole("link", { name: "Return to dashboard" })
+      .getAttribute("href"),
+  ).toBe("/practice/dashboard");
+});
+it("Q13 settings and invalid-filter calendar retain fixed dashboard entry", async () => {
+  calendarAccess();
+  boundary.getCurrentPractice.mockResolvedValue({
+    status: "success",
+    practice: { id: "own", name: "Cedar", timezone: "UTC", version: 1 },
+  });
+  const settings = render(await Settings());
+  expect(
+    screen
+      .getByRole("link", { name: "Renewal dashboard" })
+      .getAttribute("href"),
+  ).toBe("/practice/dashboard");
+  settings.unmount();
+  const { default: Calendar } = await import("@/app/practice/calendar/page");
+  render(await Calendar({ searchParams: Promise.resolve({ type: "bad" }) }));
+  expect(
+    screen
+      .getByRole("link", { name: "Renewal dashboard" })
+      .getAttribute("href"),
+  ).toBe("/practice/dashboard");
+});
