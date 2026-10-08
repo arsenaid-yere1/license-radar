@@ -1,0 +1,57 @@
+# E4-S1 production release — 2026-10-08
+
+The user's explicit “push to prod” authorized deployment and normal production-branch finalization to the existing hosted pilot. The additive SMS schema and application are live. Production checks completed by 2026-10-08T22:45:28Z. Phone collection and live verification remain unavailable until provider configuration and terms review; renewal reminder delivery remains inactive.
+
+## Release identity
+
+- Application: https://license-radar.vercel.app; personal setup: https://license-radar.vercel.app/practice/sms; public disclosure: https://license-radar.vercel.app/sms-information.
+- Vercel project `license-radar`, `prj_j4QA3gBzpbK3B3aycDa7Lm9rrugF`, scope `arsens-projects-630b84fe`; existing production environment retained.
+- Supabase project `vowgvmpxkctoqjoqfkqp`, PostgreSQL 17.11. Applied exactly `supabase/migrations/20261008184507_practice_sms_enrollment.sql`. No seed, reset, role file, Vault write or backfill.
+- Repository https://github.com/arsenaid-yere1/license-radar.git; production branch `main`; freshly observed remote baseline `886133312e5e7a8b89a327a43c5e918253a8bcc3`.
+- Exact committed archive deployed: `ffecc54ab98de81401d81fa3a1ad4fded962deb5`, including tested runtime checkpoint `761c9878ab4ce1fe3492a695f5745ed7a4f62749` and thoughts-only evidence.
+- Independently reproduced archive/source SHA-256: `d9f53f04076328016a230d0d1fb3c7819533b743c27f03b25a6d8d5f4cde903f`, 246 tracked non-thought inputs.
+- Gauntlet `72d373aa-c257-4f52-a4d9-866ec6ad7484`: **33/33 passed**, 325 unit/property, 139 integration, 52 browser tests; 163 SQL assertions, 107 SQL mutants and full integration rerun, 100% application/property mutation scores. Full evidence and limits: `thoughts/shared/research/2026-10-08-e4-s1-implementation-evidence.md`.
+- Promoted READY deployment `dpl_AL2sm7JcXwhwWPqK7vpNS3LuXeH1`, https://license-radar-1nmzm2hjb-arsens-projects-630b84fe.vercel.app. Complete independent alias inventory confirmed `license-radar.vercel.app` maps to that ID.
+- Previous live application deployment independently observed before release: `dpl_EJvL93jfycyJDrKFEB1BwbivVyJB`, https://license-radar-lys6fmkd5-arsens-projects-630b84fe.vercel.app. Retain the SMS schema on application rollback; callback considerations below apply before provider activation.
+
+## Commands and results
+
+Release commands used Node 24.21.0, Supabase CLI 2.119.0 and cached Vercel CLI 62.4.0. The hosted builder used Vercel CLI 62.1.0 and Next.js 16.3.8. CLI help and relevant official Supabase migration/CLI/changelog documentation were inspected; no new release tool was installed.
+
+| Command/check                                                                                                                               | Result                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `git ls-remote origin refs/heads/main`, clean status and `sourceState()`                                                                    | Expected baseline; source matched the successful gauntlet                                                                                                           |
+| `git archive HEAD`, independent hashes and `vercel deploy <archive> --prod --skip-domain --yes --dry --json --project <id> --scope <scope>` | Next.js; 299 files, 3,235,919 bytes; committed paths, SHA-1 and sizes matched; local environment files, caches and reports excluded                                 |
+| `vercel env ls production --json --project <id> --scope <scope>`                                                                            | Only existing public Supabase URL/publishable-key settings; no live/fixture/provider/server-secret configuration; values not retained in the release record         |
+| `vercel deploy <archive> --prod --skip-domain --yes --json --project <id> --scope <scope>`                                                  | Hosted compilation, types and route generation passed; READY; main hostname retained its prior deployment until promotion                                           |
+| `vercel inspect <candidate> --json --scope <scope>`                                                                                         | Independent READY/production/name/deployment-ID confirmation; source metadata was submitted at deployment but is not exposed by this CLI projection                 |
+| `supabase db push --project-ref <ref> --dry-run --skip-vault --output-format json` before/after                                             | Exactly one pending SMS migration before; database up to date and zero pending files afterward                                                                      |
+| `supabase db query --linked --project-ref <ref> --file <read-only snapshot.sql> --output-format json`, before/after/final                   | All nine application catalog sections match; all 14 complete historical row sets unchanged; all seven new SMS ledgers empty; eight migration versions after release |
+| `supabase db push --project-ref <ref> --skip-vault --yes --output-format json`                                                              | Exactly the SMS migration applied successfully                                                                                                                      |
+| `supabase db advisors --linked --project-ref <ref> --type security --fail-on error --output-format json`, before/after                      | No ERROR; same three pre-existing warning identities                                                                                                                |
+| `vercel promote dpl_AL2sm7JcXwhwWPqK7vpNS3LuXeH1 --yes --scope <scope>` and independent `vercel alias ls --json`                            | Success; complete 13-alias inventory confirmed main production hostname                                                                                             |
+| Read-only HTTP/API smoke helper                                                                                                             | Thirteen application paths, fourteen anonymous data denials and disabled callback response passed; no application-data writes                                       |
+| Existing signed-in Chrome session                                                                                                           | Settings readiness, new setup link, unavailable setup without phone input, public disclosure and authenticated return link inspected                                |
+
+The first two post-migration database checks ran concurrently and failed temporary CLI-role authentication (`28P01`). Sequential retries passed; no application data or credentials were changed to recover. A smoke assertion initially expected “inactive” but the deployed disclosure correctly says “not active yet”; the helper wording was corrected and the complete run passed. An alias assertion initially used an unsupported nested field; it was corrected to the observed `deploymentId` and passed. These were verification-tool errors, not observed application failures. The build emitted the dependency's `scmp` deprecation notice and existing `unrs-resolver` install-script warning; build and deployment succeeded.
+
+Catalog comparison normalizes platform-only `public.rls_auto_enable`, public-schema ACLs and hosted service-role grants on pre-existing functions/tables. All new SMS service-role function/table privileges remain part of the exact comparison, alongside columns, constraints, indexes, RLS, policies, private schema ACLs and triggers. Full-row checksums cover each historical table without exporting its records.
+
+## Hosted acceptance and activation boundary
+
+- `/login`, `/join` and `/sms-information` returned 200. The public page states separate verification permission and reminder consent, STOP/START/HELP behavior, privacy and unavailable customer-care setup.
+- Anonymous practice/settings, team, active/archived register, dashboard including hostile practice/date/horizon inputs, calendar, agenda, dummy detail and SMS setup returned 307 to `/login` with `private, no-store, max-age=0`.
+- All five authenticated SMS RPCs and all five service-only SMS RPCs, legacy recipient/register reads, maintenance register read and anonymous cycle SELECT returned 401 / PostgreSQL `42501`. Dummy identifiers and a reserved example phone were used; only an unprivileged publishable key was selected in memory. No key value was printed or retained.
+- `/api/sms/twilio/inbound` returned empty XML 503 with `private, no-store` for an invalid-signature request because callback configuration is absent. Configured-provider 403 signature handling remains verified locally; hosted signed STOP processing is not claimed.
+- The existing authenticated session showed incomplete phone/consent readiness in settings and **My reminder texts**. Personal setup showed “Text enrollment is not configured yet” and no phone input. No OTP, phone, consent, recipient assignment or other production mutation was submitted. No sign-in email was requested.
+- Final read-only verification confirmed the 14 existing historical row sets unchanged and zero rows in all seven SMS ledgers. Hosted populated enrollment, role transitions, real OTP delivery, real STOP, operator terms approval and user manual acceptance remain **unconfirmed**.
+- The security advisor retained three existing WARN findings: anonymous/authenticated execution of the platform `rls_auto_enable` definer, and leaked-password protection disabled. No new warning identity or ERROR was introduced.
+- Sanitized operational evidence is in ignored `reports/e4-s1-production-*`; temporary release/smoke helpers and archive are outside tracked source.
+
+## Recovery and repository finalization
+
+Retain the additive migration and historical data on application rollback; do not drop SMS history or restore consent/suppression. Live sending and callback configuration are absent today. Before any provider activation, ensure rollback retains this validated callback-capable deployment or an equivalent signed STOP route; the previous app does not provide it. Activation prerequisites remain in `thoughts/shared/handoffs/2026-10-08-e4-s1-live-activation.md`.
+
+README, plan status, activation handoff and this release record form a final documentation checkpoint. Runtime code, migration, dependencies and verification tools remain identical to the tested/promoted archive. README participates in the source hash, so the documentation checkpoint is not represented as another full gauntlet run. Final documentation formatting, resulting diff and Git secret scan are checked. Normal fast-forward finalization uses `git push origin HEAD:main` with independent remote identity verification, recorded in `reports/e4-s1-production-git-final.log`. Existing Git integration may rebuild identical runtime inputs; production alias/build state is checked again after push.
+
+E4-S2 scheduling is next. This release introduces no reminder jobs or active renewal delivery.

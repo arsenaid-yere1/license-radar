@@ -2,7 +2,7 @@
 
 Date: 2026-10-08 (America/Los_Angeles).
 Baseline: `886133312e5e7a8b89a327a43c5e918253a8bcc3`.
-Status: Phases 1–5 complete locally; all 33 required verification layers passed on checkpoint `761c9878ab4ce1fe3492a695f5745ed7a4f62749`. Phase 6 remains pending separate rollout authorization.
+Status: Phases 1–5 complete locally; all 33 required verification layers passed on checkpoint `761c9878ab4ce1fe3492a695f5745ed7a4f62749`. The user's subsequent “push to prod” authorized deployment: the additive migration and app are live, and read-only hosted checks passed. Provider configuration and authorized test-phone acceptance remain pending; live sending is disabled. See `thoughts/shared/handoffs/2026-10-08-e4-s1-production-release.md`.
 Research: `thoughts/shared/research/2026-10-08-e4-s1-phone-enrollment.md`.
 Verification: `thoughts/shared/plans/2026-10-08-e4-s1-phone-enrollment-verification.md`.
 Implementation evidence: `thoughts/shared/research/2026-10-08-e4-s1-implementation-evidence.md`.
@@ -281,5 +281,6 @@ Phases 1–5 and AC1–AC10 pass with current-source evidence, reviewed diff and
 - [x] Phase 3: Signed opt-out callbacks.
 - [x] Phase 4: Enrollment/readiness UI and offline browser provider.
 - [x] Phase 5: Full regression/verification evidence.
-- [ ] Phase 6: Separately requested live rollout/authorized test-phone acceptance.
+- [x] Phase 6 deployment: User-authorized additive migration, app promotion and read-only hosted checks.
+- [ ] Phase 6 activation: Provider configuration, reviewed terms and authorized test-phone acceptance.
 - [ ] User-confirmed manual acceptance.
