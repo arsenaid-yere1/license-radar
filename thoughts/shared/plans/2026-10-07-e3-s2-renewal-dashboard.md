@@ -2,7 +2,7 @@
 
 Date: 2026-10-07 (America/Los_Angeles).
 Baseline: `cc1088da1382f50cf1d4301db25d9f19073c9f95`.
-Status: Phases 1–3 implemented and verified locally on 2026-10-08; Phase 4 full gauntlet in progress.
+Status: All four implementation phases verified locally on 2026-10-08; all 32 layers passed. User manual acceptance and hosted release remain unconfirmed.
 Research: `thoughts/shared/research/2026-10-07-e3-s2-renewal-dashboard.md`.
 Verification: `thoughts/shared/plans/2026-10-07-e3-s2-renewal-dashboard-verification.md`.
 
@@ -185,7 +185,7 @@ AC1–AC10 have executable witnesses within the documented workflow boundary; al
 - [x] Phase 1: Urgency projection and independent date witnesses.
 - [x] Phase 2: Authenticated route and record return navigation.
 - [x] Phase 3: Dashboard presentation, entry links and browser acceptance.
-- [ ] Phase 4: Regression gates, documentation and evidence.
+- [x] Phase 4: Regression gates, documentation and evidence.
 - [ ] User-confirmed manual acceptance, separate from automated/agent verification.
 
 ## Implementation verification log (2026-10-08)
@@ -193,3 +193,5 @@ AC1–AC10 have executable witnesses within the documented workflow boundary; al
 Phases 1–3: full unit suite 270/270 in 38 files; targeted dashboard/calendar integration 9/9; targeted dashboard/calendar/maintenance browser regressions 16/16; types, lint and production build pass. Dashboard-only property mutation 100% (68 killed, 0 survivors, 33 compiler-invalid); independent Gregorian and generated boundary/order witnesses added. Agent inspected 1440px and 375px populated screenshots. Human manual acceptance remains unchecked. Phase 4 will report only final fresh source-bound gauntlet results in evidence.
 
 Spec is at `thoughts/shared/plans/2026-10-08-e3-s2-old-coder-spec.md`, including append-only fixture/property clarifications. The shared error reset does not re-fetch a server snapshot; recovery witness uses a fresh request, matching the existing calendar contract. Source restoration after temporary faults and historical RED results are recorded at `thoughts/shared/research/2026-10-08-e3-s2-red-history.md`.
+
+Phase 4 complete: fresh run `ba2dfac9-26c0-4b08-95b6-6988d64b9004` passed all 32 layers on `ca8c5fdcb92683f9a79d74b6155383b7dba27d78`, source SHA-256 `28e2f471536c536ae8bd56f8abd438ebfb4bd6b4a7a0bd0b443f799c105ad05c`. Final unit/API/browser counts: 270/107/48, shuffled suites also passed. All 1075 executable lines across 71 files covered. Both mutation selections detect every testable mutant; new dashboard properties independently kill all 68 executable dashboard mutants. Agent inspected fresh desktop/phone screenshots and reviewed the scoped diff. Supplementary local timing, test corrections, first failed attempt, and limits are preserved in `thoughts/shared/research/2026-10-08-e3-s2-implementation-evidence.md`. No pipeline layer skipped or weakened; no deployment performed. Human manual acceptance remains unchecked. E4-S1 phone enrollment is next.
