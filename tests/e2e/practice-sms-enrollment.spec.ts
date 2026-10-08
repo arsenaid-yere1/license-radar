@@ -26,10 +26,11 @@ test("Enrollment survives refresh and sign-in", async ({ page, context }) => {
   await page.getByRole("button", { name: "Request verification code" }).click();
   await expect(page.getByLabel("Six-digit verification code")).toBeVisible();
   await page.getByLabel("Six-digit verification code").fill("000000");
-  await page.getByRole("button", { name: "Verify phone" }).click();
+  await page.getByLabel("Six-digit verification code").press("Enter");
   await expect(page.locator('.sms-panel [role="alert"]')).toContainText(
     "That code was not approved",
   );
+  await expect(page.locator('.sms-panel [role="alert"]')).toBeFocused();
   expect(
     await page
       .getByLabel("Six-digit verification code")
@@ -165,6 +166,24 @@ test("Enrollment is accessible on mobile and desktop", async ({ page }) => {
   await page.goto("/practice/sms");
   for (const width of [375, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
+    await page.getByLabel("International phone number").focus();
+    await page.keyboard.press("Tab");
+    await expect(
+      page.getByRole("link", { name: "SMS terms and privacy" }),
+    ).toBeFocused();
+    await page.keyboard.press("Tab");
+    const permission = page.getByLabel(
+      "I request a verification text to this phone.",
+    );
+    await expect(permission).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(permission).toBeChecked();
+    await page.keyboard.press("Space");
+    await expect(permission).not.toBeChecked();
+    await page.keyboard.press("Tab");
+    await expect(
+      page.getByRole("button", { name: "Request verification code" }),
+    ).toBeFocused();
     const violations = (await new AxeBuilder({ page }).analyze()).violations;
     expect(violations.map((v) => v.id)).toEqual([]);
     expect(

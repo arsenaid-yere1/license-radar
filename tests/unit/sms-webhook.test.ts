@@ -208,6 +208,42 @@ test("Callback message and source syntax rejects anchored lookalikes", async () 
       ).toBe(403);
   expect(persist).not.toHaveBeenCalled();
 });
+test("Even identically repeated signed fields are rejected before persistence", async () => {
+  const persist = vi.fn();
+  for (const field of ["From", "Body"])
+    expect(
+      (
+        await handleSmsWebhook(
+          request(fields, {
+            body:
+              new URLSearchParams(fields).toString() +
+              `&${field}=${encodeURIComponent(fields[field as keyof typeof fields])}`,
+          }),
+          config,
+          persist,
+        )
+      ).status,
+    ).toBe(400);
+  expect(persist).not.toHaveBeenCalled();
+});
+test("All signed field names survive parsing, including prototype-like names", async () => {
+  const persist = vi.fn().mockResolvedValue({ status: "success" });
+  const extended = Object.fromEntries([
+    ...Object.entries(fields),
+    ["__proto__", "signed-value"],
+    ["constructor", "also-signed"],
+  ]);
+  expect(
+    (await handleSmsWebhook(request(extended), config, persist)).status,
+  ).toBe(200);
+  expect(persist).toHaveBeenCalledExactlyOnceWith(
+    config.accountSid,
+    config.messagingServiceSid,
+    fields.From,
+    fields.MessageSid,
+    "STOP",
+  );
+});
 test("Invalid UTF-8 and broken streams fail before signature or persistence", async () => {
   const persist = vi.fn();
   const malformed = new Request(config.url, {

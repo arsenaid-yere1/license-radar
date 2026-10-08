@@ -46,7 +46,7 @@ async function fieldsFrom(
     return reply(400);
   }
   if (body === null) return reply(400);
-  const fields: Record<string, string> = {};
+  const fields: Record<string, string> = Object.create(null);
   for (const [key, value] of new URLSearchParams(body)) {
     if (Object.hasOwn(fields, key)) return reply(400);
     fields[key] = value;
@@ -74,7 +74,7 @@ function validatedEvent(
       OptOutType: z.enum(["STOP", "START", "HELP"]).optional(),
     })
     .safeParse(fields);
-  if (!parsed.success) return null;
+  // Failed parsing has no data; the caller rejects that result once below.
   return parsed.data;
 }
 export async function handleSmsWebhook(
