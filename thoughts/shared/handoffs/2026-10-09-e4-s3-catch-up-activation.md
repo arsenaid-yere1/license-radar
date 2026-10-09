@@ -1,6 +1,6 @@
 # E4-S3 catch-up activation addendum
 
-Status: release verification and matching hosted deployment authorized by the user's explicit “push to prod”; preparation in progress. Provider/scheduler setup and real-recipient acceptance sends remain separate from this application/schema release.
+Status: all 35 source-bound release checks and matching archive/upload validation passed. Hosted deployment is authorized by the user's explicit “push to prod” but awaits required private-backup approval after automatic approval review rejected the export. Production remains unchanged. Provider/scheduler setup and real-recipient acceptance sends remain separate from this application/schema release.
 
 Use with `thoughts/shared/handoffs/2026-10-08-e4-s2-email-activation.md`. E4-S3 uses the same authenticated worker, sender, callback, default-off sending gate and permanent cycle/user/channel consumed permission. There is no automatic retry or second sending gate. SMS proof/consent/STOP history remains independent.
 

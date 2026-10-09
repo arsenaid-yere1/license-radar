@@ -1,6 +1,6 @@
-# E4-S3 implementation evidence — verification in progress
+# E4-S3 implementation evidence — local verification complete
 
-Status: release preparation in progress following the user's explicit “push to prod.” Full source-bound gauntlet is authorized; two incomplete attempts failed and no complete passing run is claimed. Their causes and correction are recorded in `thoughts/shared/handoffs/2026-10-09-e4-s3-production-release.md`. Do not treat preliminary layer results below as a completed 35-layer run.
+Status: the final fresh source-bound gauntlet passed **35/35 layers**. Matching archive/upload validation also passed. Production remains unchanged while the required private pre-migration backup awaits explicit approval after automatic approval review rejected the export. Failed-run history and hosted preflight are recorded in `thoughts/shared/handoffs/2026-10-09-e4-s3-production-release.md`.
 
 Spec: `thoughts/shared/plans/2026-10-09-e4-s3-old-coder-spec.md`.
 Plan: `thoughts/shared/plans/2026-10-09-e4-s3-catch-up-reminders.md`.
@@ -37,7 +37,7 @@ Must-not constraints map to those witnesses plus inherited access/SMS/register s
 
 ## Preliminary checks and failures
 
-Recorded runtime: Node 24.21.0, Supabase CLI 2.119.0, pinned dependencies from `package-lock.json`. Local services are guarded `license-radar-e1-s1`, API 55321/DB 55322/Mailpit 55324 and loopback email fixture 55326. Reused ignored local dependencies and fixture configuration on an isolated branch. No tool/dependency installation, checkpoint commit, hosted write or live send occurred.
+Recorded runtime: Node 24.21.0, Supabase CLI 2.119.0, pinned dependencies from `package-lock.json`. Local services are guarded `license-radar-e1-s1`, API 55321/DB 55322/Mailpit 55324 and loopback email fixture 55326. Reused ignored local dependencies and fixture configuration on an isolated branch. At that preliminary stage, no tool/dependency installation, checkpoint commit, hosted write or live send had occurred. The release checkpoint and completed source-bound run are recorded below; no hosted write or live send has occurred.
 
 Standalone browser checks set `PLAYWRIGHT_BROWSERS_PATH="$PWD/.browser-cache"` to reuse the repository's recorded browser. The complete gauntlet sets that itself. Standalone commands also prepend `.tools/node-v24.21.0-darwin-arm64/bin` to `PATH`.
 
@@ -63,12 +63,68 @@ Standalone browser checks set `PLAYWRIGHT_BROWSERS_PATH="$PWD/.browser-cache"` t
 - Current `npm run test:db` repeated after the browser/SQL campaigns: all 188 SQL assertions and all 112 applied integrity/permission controls passed and restored their changes. Final diff whitespace review passed.
 - Supabase `db advisors --local --type security --level warn --fail-on error`: no issues found. Changelog and function documentation refreshed before implementation; relevant PostgreSQL 17.11 change does not introduce one of the changed application capabilities. Version was not upgraded.
 
-## Required final run
+## Completed final run
 
-After all fixes and authorized local checkpointing, run `npm run gauntlet` with the recorded Node path. Preserve every required layer and existing 100% mutation/executable-coverage thresholds; never waive dirty-source or restoration checks. Save the exact commit/source hash and current run results here, replacing preliminary counts with actual final source-bound results. The individual passing results above do not constitute one complete source-bound gauntlet. Current-task checker sensitivity, all inherited populated upgrades, the standalone access adversarial campaign, shuffled integration/browser suites and the complete 35-layer source binding remain unverified until that run. Local checkpoint/release authorization is now supplied by the user's explicit “push to prod.”
+The single reproducible entry point is `npm run gauntlet`, with `.tools/node-v24.21.0-darwin-arm64/bin` prepended to `PATH`. The successful run used `/usr/bin/caffeinate -i npm run gauntlet` to prevent idle system sleep only for the verification process's lifetime. All thirty-five layers and existing 100% mutation/executable-line thresholds were retained. No layer was skipped; the end-of-run source hash matched the committed starting source.
 
-Local fixture evidence does not establish hosted rollout, inbox delivery, legal validity of practice-entered dates, operational restore or user acceptance. Catch-up can expose old/past-due backlog; activation is separately authorized under the handoff and existing email setup workflow.
+All final counts below come from that one fresh run after the test synchronization edit, not from preliminary campaigns:
+
+- Unit/coverage and shuffled unit: **393 tests across 61 files** passed in each campaign. Unit coverage: statements 1,852/1,894 (97.78%), branches 1,574/1,651 (95.33%), functions 450/465 (96.77%), lines 1,639/1,673 (97.96%).
+- Full integration, restored post-fault integration and shuffled integration: **180 tests across 14 files** passed in each campaign.
+- Full browser: **56 tests** passed; the discovered shuffled browser inventory also executed and passed all **56**, using fresh contexts.
+- Database: **188 assertions** across nine exact baseline inventories; **112 applied integrity/permission faults** were executed, rejected by their expected assertions and restored.
+- Checker controls: **44 passed**; **25 sensitivity faults** made the expected controls fail. All inherited populated upgrades and the new catch-up upgrade passed. The latter preserved **33 populated historical tables plus Auth**, original job/attempt fields and payloads, and verified rollback, normal backfill, outbox changes, legacy live claim and V1/V2 clients.
+- Full TypeScript mutation: **3,207 instrumented mutants across 49 files** — 1,864 assertion kills, five timeouts, zero survivors, zero no-coverage, 1,338 compile errors; **100%** tool score. Property-only: **967 across 13 files** — 675 assertion kills, one timeout, zero survivors, zero no-coverage, 291 compile errors; **100%** score. Timeouts count toward the tool's score; compile errors are excluded, and neither is described as an assertion kill.
+- SQL/API mutation: **122/122 applied, executed, killed by named assertions and independently restored**. Restored full integration and separate catalog fingerprint passed.
+- Access adversarial: **ten exact named API/browser scenarios passed**; the strict-input property and all nine selected browser witnesses failed the deliberate faults, with source/schema restoration verified and their restored suites passing.
+- Merged coverage gate: **1,673/1,673 inventoried executable lines across 99 files**, 1,026 mapped browser records and 840 mapped Node records. Branch coverage **2,743/3,105 (88.34%)**. The enforced 100% gate covers executable lines, not every branch.
+- Types, lint, formatting, SQLFluff, schema replay/restoration, generated types, production build and capability boundaries passed. Supply chain: zero runtime advisories; five development findings matched existing classifications; 682 license records; 16 Python packages with zero advisories. No dependency or tool installation was introduced.
+- Gitleaks: **59 commits** and current built assets scanned, **zero leaks**. These counts identify the verified checkpoint, before later documentation-only finalization.
+
+Local fixture evidence does not establish hosted rollout, inbox delivery, legal validity of practice-entered dates, operational restore or user acceptance. Catch-up can expose old/past-due backlog; provider/scheduler activation remains separate under the existing handoff. The user's release authorization does not retroactively establish human SPEC review or independent implementation verification.
 
 ## Release-verification correction
 
-The second source-bound attempt passed 18 layers, then unit coverage failed the inherited `Phone replacement invalidates prior proof` assertion because “Saved” rendered before the refresh effect ran. The test and SMS component matched production baseline exactly. The test now clears its refresh spy and awaits its unchanged refresh assertion with `waitFor`'s existing timeout. Removing the refresh effect caused the test to fail; the component was restored exactly. The randomized full unit suite passed 393 tests and the corrected file passed seven tests after restoration. The required final fresh run must include this test-only checkpoint; neither failed run is credited as complete.
+The second source-bound attempt passed 18 layers, then unit coverage failed the inherited `Phone replacement invalidates prior proof` assertion because “Saved” rendered before the refresh effect ran. The test and SMS component matched production baseline exactly. The test now clears its refresh spy and awaits its unchanged refresh assertion with `waitFor`'s existing timeout. Removing the refresh effect caused the test to fail; the component was restored exactly. The randomized full unit suite passed 393 tests and the corrected file passed seven tests after restoration. The successful final fresh run below includes this test-only checkpoint; neither failed run is credited as complete.
+
+## Current source-bound run
+
+Run `fb48ab01-d76a-4a49-91f6-5f4a491cbaff`, started `2026-10-09T21:45:18.044Z`, finished `2026-10-09T22:22:39.385Z`. Source checkpoint `9a3f37c676bf20e45f438e67b1dc45725a25b1ca`; SHA-256 `aa48a51bbb044f50c5739022d08e37b8ed4294934cf716504414a47f0c13e997`, 287 tracked non-thought inputs. Status: **passed — 35/35 required layers**, source unchanged.
+
+| Layer                        | Command                                                                                                                                        | Result            |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| checker-controls             | `npm run test:controls`                                                                                                                        | Exit 0; 236 ms    |
+| checker-sensitivity          | `node tools/checker-sensitivity.mjs`                                                                                                           | Exit 0; 28309 ms  |
+| types                        | `npm run typecheck`                                                                                                                            | Exit 0; 1441 ms   |
+| lint                         | `npm run lint`                                                                                                                                 | Exit 0; 2731 ms   |
+| format                       | `npm run format:check`                                                                                                                         | Exit 0; 1335 ms   |
+| sql-lint                     | `.venv-gauntlet/bin/sqlfluff lint supabase/migrations supabase/tests supabase/operators`                                                       | Exit 0; 6575 ms   |
+| access-upgrade               | `node tools/access-upgrade.mjs`                                                                                                                | Exit 0; 28478 ms  |
+| recipient-upgrade            | `node tools/recipient-upgrade.mjs`                                                                                                             | Exit 0; 28452 ms  |
+| register-upgrade             | `node tools/register-upgrade.mjs`                                                                                                              | Exit 0; 28102 ms  |
+| credential-dates-upgrade     | `node tools/credential-dates-upgrade.mjs`                                                                                                      | Exit 0; 27507 ms  |
+| register-maintenance-upgrade | `node tools/register-maintenance-upgrade.mjs`                                                                                                  | Exit 0; 28108 ms  |
+| sms-enrollment-upgrade       | `node tools/sms-enrollment-upgrade.mjs`                                                                                                        | Exit 0; 28919 ms  |
+| reminder-jobs-upgrade        | `node tools/reminder-jobs-upgrade.mjs`                                                                                                         | Exit 0; 28211 ms  |
+| reminder-catch-up-upgrade    | `node tools/reminder-catch-up-upgrade.mjs`                                                                                                     | Exit 0; 28131 ms  |
+| replay                       | `npm run db:reset`                                                                                                                             | Exit 0; 13657 ms  |
+| schema                       | `node tools/schema-fingerprint.mjs`                                                                                                            | Exit 0; 116 ms    |
+| database                     | `npm run test:db`                                                                                                                              | Exit 0; 16636 ms  |
+| integration                  | `npm run test:integration`                                                                                                                     | Exit 0; 77357 ms  |
+| unit-coverage                | `npm run test:coverage`                                                                                                                        | Exit 0; 4390 ms   |
+| mutation                     | `npm run mutation`                                                                                                                             | Exit 0; 586141 ms |
+| mutation-properties          | `npm run mutation:properties`                                                                                                                  | Exit 0; 368970 ms |
+| sql-mutants                  | `node tools/sql-mutants.mjs`                                                                                                                   | Exit 0; 269995 ms |
+| schema-restored              | `node tools/schema-fingerprint.mjs`                                                                                                            | Exit 0; 83 ms     |
+| generated-types              | `node tools/check-generated-types.mjs`                                                                                                         | Exit 0; 1115 ms   |
+| build                        | `npm run build`                                                                                                                                | Exit 0; 7498 ms   |
+| browser                      | `npm run test:e2e`                                                                                                                             | Exit 0; 161121 ms |
+| access-adversarial           | `node tools/access-adversarial.mjs`                                                                                                            | Exit 0; 145443 ms |
+| coverage                     | `node tools/check-coverage.mjs`                                                                                                                | Exit 0; 5138 ms   |
+| suite-health-unit            | `npm run test -- --sequence.seed=20261017`                                                                                                     | Exit 0; 3678 ms   |
+| suite-health-integration     | `npm run test:integration -- --sequence.seed=20261017`                                                                                         | Exit 0; 77671 ms  |
+| suite-health-browser         | `node tools/shuffle-browser.mjs`                                                                                                               | Exit 0; 232909 ms |
+| capabilities                 | `node tools/check-capabilities.mjs`                                                                                                            | Exit 0; 164 ms    |
+| supply-chain                 | `node tools/supply-chain.mjs`                                                                                                                  | Exit 0; 1998 ms   |
+| secrets-history              | `.tools/gitleaks git . --redact --no-banner --ignore-gitleaks-allow --report-format json --report-path reports/secrets-history.json`           | Exit 0; 375 ms    |
+| secrets-assets               | `.tools/gitleaks dir .next/static --redact --no-banner --ignore-gitleaks-allow --report-format json --report-path reports/secrets-assets.json` | Exit 0; 308 ms    |

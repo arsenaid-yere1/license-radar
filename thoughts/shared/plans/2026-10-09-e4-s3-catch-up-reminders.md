@@ -2,7 +2,7 @@
 
 Date: 2026-10-09 (America/Los_Angeles).
 Baseline: `ac3cc079fde95fc05341752b8a00de8cd0f9cc11`.
-Status: Implementation in progress; local scheduling/API/UI checks pass, complete release verification pending.
+Status: Implementation and all 35 current-source verification layers complete. Matching archive/upload validation passed; production deployment awaits the required private backup approval. Provider/scheduler and received-mail acceptance remain separate.
 Research: `thoughts/shared/research/2026-10-09-e4-s3-catch-up-reminders.md`.
 Verification: `thoughts/shared/plans/2026-10-09-e4-s3-catch-up-reminders-verification.md`.
 
@@ -201,6 +201,6 @@ No material product decision remains open for this email scope. Refetch current 
 - [x] Phase 1: scheduling invariants and populated upgrade.
 - [x] Phase 2: honest frozen payloads and submission races.
 - [x] Phase 3: compatible status projection and catch-up interface.
-- [ ] Phase 4: regression controls and rollout evidence.
+- [x] Phase 4: regression controls and rollout evidence (35/35 local layers; hosted release still pending backup approval).
 - [ ] Separately recorded live activation/received-mail acceptance.
 - [ ] User-confirmed manual acceptance.

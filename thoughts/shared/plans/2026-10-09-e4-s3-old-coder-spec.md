@@ -60,7 +60,7 @@ Observe behavioral RED before GREEN where practical; if a scenario already passe
 - [x] Phase 1 scheduling/upgrade.
 - [x] Phase 2 payload/permission/races.
 - [x] Phase 3 API/UI/browser.
-- [ ] Phase 4 controls/full gauntlet/evidence.
+- [x] Phase 4 controls/full gauntlet/evidence (35/35 source-bound layers).
 - [ ] Human manual acceptance (requires confirmation).
 - [ ] Separately authorized live activation/received-mail acceptance.
 
@@ -77,3 +77,5 @@ Observe behavioral RED before GREEN where practical; if a scenario already passe
 - V2 freshness clarification, 2026-10-09: CU14 now explicitly requires invalidated unconsumed date/timezone snapshots to remain unclassified/pending until fresh reconciliation. Consumed attempts still read their immutable attempt/job snapshots. The new scenario failed on stale catch-up fields before the V2 query fix.
 
 - Release verification synchronization, 2026-10-09: the unchanged inherited SMS unit witness exposed a render/effect race during the complete gauntlet. Its refresh spy is cleared per scenario and the same refresh assertion is awaited with the existing default timeout. A missing-refresh negative control fails, and the original component is restored. No product criteria, runtime SMS behavior, assertion or release threshold changed; the complete gauntlet is rerun on the new checkpoint.
+
+- Final local verification, 2026-10-09: run `fb48ab01-d76a-4a49-91f6-5f4a491cbaff` passed all 35 layers on checkpoint `9a3f37c676bf20e45f438e67b1dc45725a25b1ca`, source SHA-256 `aa48a51bbb044f50c5739022d08e37b8ed4294934cf716504414a47f0c13e997`. Matched archive and dry upload passed, including packaging negative controls. Hosted release remains pending explicit private-backup approval following automatic review rejection; human SPEC/manual and independent implementation verification remain unclaimed.
