@@ -1,6 +1,6 @@
 # E4-S3 implementation evidence — verification in progress
 
-Status: release preparation in progress following the user's explicit “push to prod.” Full source-bound gauntlet is authorized and has not run yet. Do not treat preliminary layer results below as a completed 35-layer run.
+Status: release preparation in progress following the user's explicit “push to prod.” Full source-bound gauntlet is authorized; two incomplete attempts failed and no complete passing run is claimed. Their causes and correction are recorded in `thoughts/shared/handoffs/2026-10-09-e4-s3-production-release.md`. Do not treat preliminary layer results below as a completed 35-layer run.
 
 Spec: `thoughts/shared/plans/2026-10-09-e4-s3-old-coder-spec.md`.
 Plan: `thoughts/shared/plans/2026-10-09-e4-s3-catch-up-reminders.md`.
@@ -68,3 +68,7 @@ Standalone browser checks set `PLAYWRIGHT_BROWSERS_PATH="$PWD/.browser-cache"` t
 After all fixes and authorized local checkpointing, run `npm run gauntlet` with the recorded Node path. Preserve every required layer and existing 100% mutation/executable-coverage thresholds; never waive dirty-source or restoration checks. Save the exact commit/source hash and current run results here, replacing preliminary counts with actual final source-bound results. The individual passing results above do not constitute one complete source-bound gauntlet. Current-task checker sensitivity, all inherited populated upgrades, the standalone access adversarial campaign, shuffled integration/browser suites and the complete 35-layer source binding remain unverified until that run. Local checkpoint/release authorization is now supplied by the user's explicit “push to prod.”
 
 Local fixture evidence does not establish hosted rollout, inbox delivery, legal validity of practice-entered dates, operational restore or user acceptance. Catch-up can expose old/past-due backlog; activation is separately authorized under the handoff and existing email setup workflow.
+
+## Release-verification correction
+
+The second source-bound attempt passed 18 layers, then unit coverage failed the inherited `Phone replacement invalidates prior proof` assertion because “Saved” rendered before the refresh effect ran. The test and SMS component matched production baseline exactly. The test now clears its refresh spy and awaits its unchanged refresh assertion with `waitFor`'s existing timeout. Removing the refresh effect caused the test to fail; the component was restored exactly. The randomized full unit suite passed 393 tests and the corrected file passed seven tests after restoration. The required final fresh run must include this test-only checkpoint; neither failed run is credited as complete.

@@ -108,6 +108,7 @@ test("Enrollment survives refresh and sign-in", async () => {
   expect(action.mock.calls[0][1].get("requestId")).toMatch(/^[a-f0-9-]{36}$/);
 });
 test("Phone replacement invalidates prior proof", async () => {
+  refresh.mockClear();
   const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
   const action = vi.fn().mockResolvedValue({
     status: "success",
@@ -142,7 +143,7 @@ test("Phone replacement invalidates prior proof", async () => {
     expect(screen.getByRole("status").textContent).toBe("Saved"),
   );
   expect(action.mock.calls[0][1].get("changeConfirmed")).toBe("on");
-  expect(refresh).toHaveBeenCalled();
+  await waitFor(() => expect(refresh).toHaveBeenCalled());
 });
 test("Withdrawal is immediate and idempotent", async () => {
   const confirm = vi.spyOn(window, "confirm"),
