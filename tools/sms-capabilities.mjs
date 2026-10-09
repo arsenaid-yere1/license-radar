@@ -9,6 +9,17 @@ const allowed = new Set([
   "recordCheck",
   "applyOptOut",
   "smsStorageConfigured",
+  "reminderStorageConfigured",
+  "drainReminderAccounts",
+  "reconcileReminderJobs",
+  "claimReminderJob",
+  "beginReminderSubmission",
+  "recordReminderSubmission",
+  "expireReminderSubmissions",
+  "findReminderBinding",
+  "applyReminderEvent",
+  "startReminderRun",
+  "finishReminderRun",
 ]);
 export function assertSmsCapabilities(files) {
   const parsed = new Map(

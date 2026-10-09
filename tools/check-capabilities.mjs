@@ -39,7 +39,7 @@ walk("src");
 const report = {
   capabilities: result,
   scope:
-    "Application source uses configured Supabase Auth/Data API and authenticated RPCs, cryptographic invitation generation/hashing and register request identifiers, tab-scoped session storage, clipboard copying, cookies, and two public configuration values. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem, and verification subprocesses. SMS adds server-only provider verification and signed opt-out persistence through one constrained privileged module. Live configuration is opt-in; automatic runs use a fixed loopback fixture. No renewal dispatch, hosting or renewal portal actions.",
+    "Application source uses configured Supabase Auth/Data API and authenticated RPCs, cryptography, tab-scoped session storage, clipboard copying and cookies. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem and verification subprocesses. SMS verification/STOP and email reminder dispatch/events share one constrained server-only privileged client. Email sends use one fixed Resend origin or an explicit loopback fixture; callbacks verify official Svix signatures. Live email is opt-in and independent of optional SMS. No hosting or renewal portal actions.",
   limits:
     "Text inspection detects listed spellings; it is not a complete transitive capability proof. Schema fingerprint and dependency inventory provide separate evidence.",
 };

@@ -49,12 +49,13 @@ async function connect() {
   return db;
 }
 let credentialColumns;
+let cycleColumns;
 async function snapshot(db) {
   const result = {};
   for (const table of tables)
     result[table] = (
       await db.query(
-        `select ${table === "public.credentials" ? credentialColumns.join(",") : "*"} from ${table} order by ${table.endsWith("settings") ? "practice_id" : table.endsWith("coverage") ? "credential_id,clinician_id" : "id"}`,
+        `select ${table === "public.credentials" ? credentialColumns.join(",") : table === "public.credential_cycles" ? cycleColumns.join(",") : "*"} from ${table} order by ${table.endsWith("settings") ? "practice_id" : table.endsWith("coverage") ? "credential_id,clinician_id" : "id"}`,
       )
     ).rows;
   return result;
@@ -168,6 +169,11 @@ try {
   credentialColumns = (
     await db.query(
       "select column_name from information_schema.columns where table_schema='public' and table_name='credentials' order by ordinal_position",
+    )
+  ).rows.map((row) => row.column_name);
+  cycleColumns = (
+    await db.query(
+      "select column_name from information_schema.columns where table_schema='public' and table_name='credential_cycles' order by ordinal_position",
     )
   ).rows.map((row) => row.column_name);
   for (const practice of (
@@ -291,6 +297,15 @@ try {
   await db.end();
   run("node_modules/.bin/supabase", ["migration", "up", "--local"]);
   db = await connect();
+  assert.equal(
+    (
+      await db.query(
+        "select count(*)::int n from public.credential_cycles where completed_at is not null",
+      )
+    ).rows[0].n,
+    0,
+    "Email migration must not complete historical cycles",
+  );
   assert.deepEqual(await snapshot(db), before);
   assert.equal(
     (

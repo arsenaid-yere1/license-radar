@@ -27,7 +27,12 @@
   {
     "id": "sql-lint",
     "command": ".venv-gauntlet/bin/sqlfluff",
-    "args": ["lint", "supabase/migrations", "supabase/tests"]
+    "args": [
+      "lint",
+      "supabase/migrations",
+      "supabase/tests",
+      "supabase/operators"
+    ]
   },
   {
     "id": "access-upgrade",
@@ -58,6 +63,11 @@
     "id": "sms-enrollment-upgrade",
     "command": "node",
     "args": ["tools/sms-enrollment-upgrade.mjs"]
+  },
+  {
+    "id": "reminder-jobs-upgrade",
+    "command": "node",
+    "args": ["tools/reminder-jobs-upgrade.mjs"]
   },
   {
     "id": "replay",

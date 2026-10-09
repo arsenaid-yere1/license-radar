@@ -39,6 +39,10 @@
     "license-renewal-radar@0.1.0": {
       "license": "UNLICENSED",
       "reason": "Private local application, not a third-party dependency."
+    },
+    "fast-sha256@1.3.0": {
+      "license": "Unlicense",
+      "reason": "Read the installed LICENSE: explicit public-domain dedication and permission to use/copy/modify/distribute for any purpose, with no warranty. Unmodified HMAC/SHA-256 dependency of standardwebhooks via the pinned Svix verifier; lockfile and notices retained. This classification is exact-package/version scoped."
     }
   },
   "advisories": {

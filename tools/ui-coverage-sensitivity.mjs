@@ -78,6 +78,27 @@ const faults = [
     file: "tests/unit/register-maintenance-forms.test.tsx",
     name: "M13 a fresh active read omits an archived record after a historical update reply",
   },
+  {
+    source: "src/components/reminders/preference-form.tsx",
+    from: "saved && saved.version > server.version ? saved : server",
+    to: "saved ?? server",
+    file: "tests/unit/reminder-routes.test.tsx",
+    name: "RU05 refreshed server versions and current viewer authority replace stale saved feedback",
+  },
+  {
+    source: "src/components/reminders/preference-form.tsx",
+    from: 'pending || !["idle", "success"].includes(state.status)',
+    to: "pending",
+    file: "tests/unit/reminder-routes.test.tsx",
+    name: "RU03 saving a personal preference creates an opaque request, focuses feedback, refreshes, and blocks ambiguous retry",
+  },
+  {
+    source: "src/app/practice/reminders/page.tsx",
+    from: '["queued", "claimed"].includes(row.state)',
+    to: "true",
+    file: "tests/unit/reminder-routes.test.tsx",
+    name: "RU06 consumed outcomes never advertise a future sending window",
+  },
 ];
 export function mutationFailureEvidence(messages) {
   return messages.map((message) => ({

@@ -56,6 +56,9 @@ export default async function CredentialDetail({
             Practice timezone: {access.access.practice.timezone}
           </p>
           <p className="hint">Text reminders are not active yet.</p>
+          <a className="text-link" href="/practice/reminders">
+            Email schedule and delivery status
+          </a>
           <a
             className="text-link"
             href={`/practice/register#record-${record.id}`}

@@ -47,6 +47,7 @@ export type Database = {
       credential_cycles: {
         Row: {
           action_deadline: string | null;
+          completed_at: string | null;
           created_at: string;
           credential_id: string;
           cycle_number: number;
@@ -58,6 +59,7 @@ export type Database = {
         };
         Insert: {
           action_deadline?: string | null;
+          completed_at?: string | null;
           created_at?: string;
           credential_id: string;
           cycle_number?: number;
@@ -69,6 +71,7 @@ export type Database = {
         };
         Update: {
           action_deadline?: string | null;
+          completed_at?: string | null;
           created_at?: string;
           credential_id?: string;
           cycle_number?: number;
@@ -284,6 +287,18 @@ export type Database = {
         Args: { p_token_digest: string };
         Returns: Json;
       };
+      apply_email_reminder_event: {
+        Args: {
+          p_attempt_id: string;
+          p_event_id: string;
+          p_from: string;
+          p_namespace: string;
+          p_provider_id: string;
+          p_status: string;
+          p_to: string;
+        };
+        Returns: Json;
+      };
       apply_sms_provider_opt_out: {
         Args: {
           p_account_sid: string;
@@ -305,6 +320,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      begin_email_reminder: {
+        Args: { p_claim_token: string; p_config: Json; p_job_id: string };
+        Returns: Json;
+      };
       cancel_practice_invitation: {
         Args: { p_expected_version: number; p_invitation_id: string };
         Returns: Json;
@@ -317,6 +336,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      claim_email_reminder: { Args: Record<PropertyKey, never>; Returns: Json };
       claim_sms_verification_check: {
         Args: {
           p_actor_id: string;
@@ -403,6 +423,34 @@ export type Database = {
         };
         Returns: Json;
       };
+      drain_email_reminder_accounts: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      email_reminder_binding: {
+        Args: {
+          p_attempt_id: string;
+          p_namespace: string;
+          p_provider_id: string;
+        };
+        Returns: Json;
+      };
+      expire_email_submissions: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      finish_email_reminder_run: {
+        Args: { p_counts: Json; p_run_id: string; p_success: boolean };
+        Returns: boolean;
+      };
+      get_email_reminder_schedule: {
+        Args: { p_after?: string; p_namespace: string; p_practice_id: string };
+        Returns: Json;
+      };
+      get_my_email_reminder_preference: {
+        Args: { p_practice_id: string };
+        Returns: Json;
+      };
       get_my_practice_sms_enrollment: {
         Args: { p_practice_id: string };
         Returns: Json;
@@ -442,6 +490,20 @@ export type Database = {
         Args: { p_token_digest: string };
         Returns: Json;
       };
+      reconcile_email_reminders: {
+        Args: { p_namespace: string };
+        Returns: Json;
+      };
+      record_email_reminder: {
+        Args: {
+          p_attempt_id: string;
+          p_error: string;
+          p_outcome: string;
+          p_provider_id: string;
+          p_token: string;
+        };
+        Returns: Json;
+      };
       record_sms_verification_check: {
         Args: {
           p_actor_id: string;
@@ -474,6 +536,15 @@ export type Database = {
         Args: { p_expected_version: number; p_membership_id: string };
         Returns: Json;
       };
+      set_my_email_reminder_preference: {
+        Args: {
+          p_enabled: boolean;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
       set_practice_reminder_recipient: {
         Args: {
           p_expected_version: number;
@@ -481,6 +552,10 @@ export type Database = {
           p_practice_id: string;
         };
         Returns: Json;
+      };
+      start_email_reminder_run: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
       };
       update_practice: {
         Args: {

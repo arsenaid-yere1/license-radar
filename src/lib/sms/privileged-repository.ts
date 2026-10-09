@@ -1,8 +1,10 @@
 import "server-only";
+import type { EmailOutcome } from "@/lib/reminders/messages";
 import { createClient } from "@supabase/supabase-js";
 async function call(
   name: string,
   args: Record<string, unknown>,
+  timeout?: number,
 ): Promise<unknown> {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,7 +13,10 @@ async function call(
     const client = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data, error } = await client.rpc(name, args);
+    const rpc = client.rpc(name, args);
+    const { data, error } = await (timeout
+      ? rpc.abortSignal(AbortSignal.timeout(timeout))
+      : rpc);
     return error ? null : data;
   } catch {
     return null;
@@ -92,5 +97,102 @@ export async function applyOptOut(
 export function smsStorageConfigured() {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY,
+  );
+}
+
+// Email operations share the constrained client, never an exported raw client/RPC.
+export function reminderStorageConfigured() {
+  return smsStorageConfigured();
+}
+export async function drainReminderAccounts() {
+  return call("drain_email_reminder_accounts", {}, 5000);
+}
+export async function reconcileReminderJobs(namespace: string) {
+  return call("reconcile_email_reminders", { p_namespace: namespace }, 5000);
+}
+export async function claimReminderJob() {
+  return call("claim_email_reminder", {}, 5000);
+}
+export async function beginReminderSubmission(
+  jobId: string,
+  token: string,
+  config: { namespace: string; from: string; replyTo: string; appUrl: string },
+) {
+  return call(
+    "begin_email_reminder",
+    { p_job_id: jobId, p_claim_token: token, p_config: config },
+    5000,
+  );
+}
+export async function recordReminderSubmission(
+  attemptId: string,
+  token: string,
+  outcome: EmailOutcome,
+) {
+  return call(
+    "record_email_reminder",
+    {
+      p_attempt_id: attemptId,
+      p_token: token,
+      p_outcome: outcome.outcome,
+      p_provider_id: outcome.providerId,
+      p_error: outcome.error,
+    },
+    5000,
+  );
+}
+export async function expireReminderSubmissions() {
+  return call("expire_email_submissions", {}, 5000);
+}
+export async function findReminderBinding(
+  namespace: string,
+  providerId: string,
+  attemptId: string | null,
+) {
+  return call(
+    "email_reminder_binding",
+    {
+      p_namespace: namespace,
+      p_provider_id: providerId,
+      p_attempt_id: attemptId,
+    },
+    5000,
+  );
+}
+export async function applyReminderEvent(
+  namespace: string,
+  eventId: string,
+  providerId: string,
+  attemptId: string,
+  status: string,
+  from: string,
+  to: string,
+) {
+  return call(
+    "apply_email_reminder_event",
+    {
+      p_namespace: namespace,
+      p_event_id: eventId,
+      p_provider_id: providerId,
+      p_attempt_id: attemptId,
+      p_status: status,
+      p_from: from,
+      p_to: to,
+    },
+    5000,
+  );
+}
+export async function startReminderRun() {
+  return call("start_email_reminder_run", {}, 5000);
+}
+export async function finishReminderRun(
+  runId: string,
+  success: boolean,
+  counts: Record<string, number>,
+) {
+  return call(
+    "finish_email_reminder_run",
+    { p_run_id: runId, p_success: success, p_counts: counts },
+    5000,
   );
 }

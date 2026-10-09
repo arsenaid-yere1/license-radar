@@ -972,6 +972,79 @@ for (const [id, signature, from, to, pattern] of [
     apply: () => functionFault(signature, from, to),
   });
 }
+const reminders = "tests/integration/practice-reminder-jobs.test.ts";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "email-sixty-days",
+    "private.reminder_target(date,text)",
+    "p_date - 60",
+    "p_date - 59",
+    "^ER02|^ER24",
+  ],
+  [
+    "email-local-nine",
+    "private.reminder_target(date,text)",
+    "time '09:00'",
+    "time '10:00'",
+    "^ER02|^ER24",
+  ],
+  [
+    "email-preference-version",
+    "private.set_my_email_reminder_preference(uuid,uuid,boolean,integer)",
+    "pref.version <> p_expected_version",
+    "false",
+    "^ER05",
+  ],
+  [
+    "email-account-tracking",
+    "private.track_reminder_email_account()",
+    "if tg_op = 'UPDATE' and",
+    "if tg_op = 'UPDATE' or",
+    "^ER06",
+  ],
+  [
+    "email-outbox-rollback",
+    "private.dirty_email_reminders(uuid,text,uuid)",
+    "insert into private.reminder_reconcile_outbox",
+    "return; insert into private.reminder_reconcile_outbox",
+    "^ER14",
+  ],
+  [
+    "email-send-window",
+    "private.claim_email_reminder_at(timestamp with time zone)",
+    "if private.reminder_next_window(job.nominal_target, job.timezone, p_now) > p_now then",
+    "if false then",
+    "^ER17",
+  ],
+  [
+    "email-empty-queue-expiration",
+    "private.expire_email_submissions_at(timestamp with time zone)",
+    "where outcome = 'submitting' and deadline <= p_now",
+    "where false and outcome = 'submitting' and deadline <= p_now",
+    "^ER07",
+  ],
+  [
+    "email-terminal-preservation",
+    "private.apply_email_reminder_event(text,text,uuid,uuid,text,text,text)",
+    "when delivery in ('bounced','suppressed') then delivery",
+    "when false then delivery",
+    "^ER08",
+  ],
+  [
+    "email-stable-consumed-guard",
+    "private.email_reminder_context(uuid,uuid,text,timestamp with time zone)",
+    "when exists (select 1 from private.reminder_message_attempts a",
+    "when false and exists (select 1 from private.reminder_message_attempts a",
+    "^ER23",
+  ],
+])
+  mutants.push({
+    id,
+    file: reminders,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+
 mkdirSync("reports/sql-mutants", { recursive: true });
 const records = [];
 function execute(file, pattern, path) {

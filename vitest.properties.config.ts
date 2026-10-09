@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: [
+      "src/lib/reminders/properties.test.ts",
       "src/lib/sms/properties.test.ts",
       "src/lib/dashboard/properties.test.ts",
       "src/lib/calendar/properties.test.ts",

@@ -68,7 +68,7 @@ export function prepare() {
   writeFileSync(".env.test.json", JSON.stringify(safe), { mode: 0o600 });
   writeFileSync(
     ".env.local",
-    `NEXT_PUBLIC_SUPABASE_URL=${c.API_URL}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${c.PUBLISHABLE_KEY}\nSUPABASE_SECRET_KEY=${c.SECRET_KEY ?? c.SERVICE_ROLE_KEY}\nSMS_PROVIDER_FIXTURE=local-e4-s1\nSMS_FIXTURE_URL=http://127.0.0.1:55325\nSMS_APP_URL=http://127.0.0.1:3000\nSMS_FIXTURE_TOKEN=local-fixture-only-e4-s1\n`,
+    `NEXT_PUBLIC_SUPABASE_URL=${c.API_URL}\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${c.PUBLISHABLE_KEY}\nSUPABASE_SECRET_KEY=${c.SECRET_KEY ?? c.SERVICE_ROLE_KEY}\nSMS_PROVIDER_FIXTURE=local-e4-s1\nSMS_FIXTURE_URL=http://127.0.0.1:55325\nSMS_APP_URL=http://127.0.0.1:3000\nSMS_FIXTURE_TOKEN=local-fixture-only-e4-s1\nEMAIL_PROVIDER_FIXTURE=local-e4-s2\nEMAIL_FIXTURE_URL=http://127.0.0.1:55326\nEMAIL_FIXTURE_TOKEN=local-fixture-only-e4-s2\nREMINDER_APP_URL=http://127.0.0.1:3000\nEMAIL_REMINDERS_ENABLED=true\n`,
     { mode: 0o600 },
   );
   chmodSync(".env.test.json", 0o600);

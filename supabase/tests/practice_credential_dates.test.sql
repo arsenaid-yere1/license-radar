@@ -111,9 +111,11 @@ select throws_ok(
     where practice_id = (select date_fixture.practice_id from date_fixture)$q$,
     '23514', null, 'D10 strict earlier ordering'
 );
+-- Complete the duplicate fixture so this tests cycle-number uniqueness separately
+-- from the new one-incomplete-cycle invariant.
 select throws_ok(
-    $q$insert into public.credential_cycles(practice_id, credential_id)
-    select practice_id, credential_id from public.credential_cycles
+    $q$insert into public.credential_cycles(practice_id, credential_id, completed_at)
+    select practice_id, credential_id, clock_timestamp() from public.credential_cycles
     where practice_id = (select date_fixture.practice_id from date_fixture)$q$,
     '23505', null, 'D10 initial cycle uniqueness'
 );

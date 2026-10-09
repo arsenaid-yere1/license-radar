@@ -2,6 +2,8 @@ import config from "./stryker.config.mjs";
 const configOptions = {
   ...config,
   mutate: [
+    "src/lib/reminders/schema.ts",
+    "src/lib/reminders/messages.ts",
     "src/lib/sms/schema.ts",
     "src/lib/dashboard/summary.ts",
     "src/lib/calendar/events.ts",

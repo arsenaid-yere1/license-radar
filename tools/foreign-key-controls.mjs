@@ -12,6 +12,7 @@ const files = [
   { path: "supabase/tests/practice_credential_dates.test.sql", plan: 22 },
   { path: "supabase/tests/practice_register_maintenance.test.sql", plan: 27 },
   { path: "supabase/tests/practice_sms_enrollment.test.sql", plan: 20 },
+  { path: "supabase/tests/practice_reminder_jobs.test.sql", plan: 19 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -541,6 +542,62 @@ for (const [id, mutation, expected] of [
   ],
 ])
   cases.push({ id, file: files[7], mutation, expected });
+for (const [id, mutation, expected] of [
+  [
+    "email-job-rls",
+    "alter table private.reminder_jobs disable row level security",
+    ["ER10 all email ledgers have RLS"],
+  ],
+  [
+    "email-storage-grant",
+    "grant select on private.reminder_message_attempts to service_role",
+    ["ER10 no direct email storage access"],
+  ],
+  [
+    "email-dispatch-auth",
+    "grant execute on function public.begin_email_reminder(uuid,uuid,jsonb) to authenticated",
+    ["ER10 ordinary callers cannot dispatch"],
+  ],
+  [
+    "email-forged-clock",
+    "grant execute on function private.begin_email_reminder_at(uuid,uuid,jsonb,timestamptz) to service_role",
+    ["ER01 service cannot forge clock"],
+  ],
+  [
+    "email-wrapper-definer",
+    "alter function public.begin_email_reminder(uuid,uuid,jsonb) security definer",
+    ["ER10 public facade invoker"],
+  ],
+  [
+    "email-consumed-guard",
+    "alter table private.reminder_message_attempts drop constraint reminder_message_attempts_cycle_id_user_id_channel_key",
+    [
+      "ER07 consumed guard is cycle user channel, independent of membership and revision",
+    ],
+  ],
+  [
+    "email-one-incomplete",
+    "drop index public.credential_cycles_one_incomplete",
+    ["ER18 only one incomplete cycle"],
+  ],
+  [
+    "email-job-cycle-fk",
+    "alter table private.reminder_jobs drop constraint reminder_jobs_practice_id_credential_id_cycle_id_fkey",
+    [
+      "ER18 email restrictive references",
+      "ER18 job cycle and selected-user identity composite references",
+    ],
+  ],
+  [
+    "email-job-member-fk",
+    "alter table private.reminder_jobs drop constraint reminder_jobs_practice_id_membership_id_user_id_fkey",
+    [
+      "ER18 email restrictive references",
+      "ER18 job cycle and selected-user identity composite references",
+    ],
+  ],
+])
+  cases.push({ id, file: files[8], mutation, expected });
 const reports = [];
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });

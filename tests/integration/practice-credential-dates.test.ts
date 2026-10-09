@@ -537,7 +537,7 @@ it("A01 D10 cycles and detailed RPC enforce tenant role and private grants", asy
     }
     for (const [sql, args, code] of [
       [
-        "insert into public.credential_cycles(practice_id,credential_id) values($1,$2)",
+        "insert into public.credential_cycles(practice_id,credential_id,completed_at) values($1,$2,clock_timestamp())",
         [b.practice.id, r.id],
         "23503",
       ],

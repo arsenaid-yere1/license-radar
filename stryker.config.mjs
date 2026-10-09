@@ -1,5 +1,16 @@
 const configOptions = {
   mutate: [
+    "src/lib/reminders/schema.ts",
+    "src/lib/reminders/messages.ts",
+    "src/lib/reminders/config.ts",
+    "src/lib/reminders/http.ts",
+    "src/lib/reminders/email-provider.ts",
+    "src/lib/reminders/email-webhook.ts",
+    "src/lib/reminders/worker.ts",
+    "src/lib/reminders/operations.ts",
+    "src/lib/reminders/repository.ts",
+    "src/app/practice/reminders/actions.ts",
+
     "src/lib/sms/schema.ts",
     "src/lib/sms/repository.ts",
     "src/lib/sms/operations.ts",

@@ -61,3 +61,21 @@ test("SMS checker fails closed for missing source", () => {
     /unresolved client import/,
   );
 });
+test("Email named operations cannot cross the client boundary", () => {
+  const files = sources(
+    'import {beginReminderSubmission} from "@/lib/sms/privileged-repository"',
+  );
+  files.set(
+    boundary,
+    'import "server-only"; export async function beginReminderSubmission() {}',
+  );
+  assert.throws(
+    () => assertSmsCapabilities(files),
+    /client reaches server capability/,
+  );
+  assert.throws(
+    () =>
+      assertSmsCapabilities(sources("process.env.NEXT_PUBLIC_RESEND_API_KEY")),
+    /public secret\/authority/,
+  );
+});

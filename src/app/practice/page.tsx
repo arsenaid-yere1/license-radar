@@ -94,6 +94,15 @@ export default async function Settings() {
           <Link href="/practice/sms" className="text-link">
             My reminder texts
           </Link>
+          <Link href="/practice/reminders" className="text-link">
+            Email reminders and my preferences
+          </Link>
+          <p className="hint">
+            Email is the primary reminder channel. Selecting a recipient
+            includes renewal email responsibility at their confirmed sign-in
+            address; they can disable their own reminder emails. Texts require
+            separate configuration and enrollment.
+          </p>
           <RecipientPanel
             recipient={sms.recipient}
             action={recipientAction}
