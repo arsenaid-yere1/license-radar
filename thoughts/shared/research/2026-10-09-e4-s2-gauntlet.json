@@ -1,0 +1,183 @@
+{
+  "runId": "0952905c-e4e7-4a43-9376-4c929bd35512",
+  "started": "2026-10-09T16:15:27.090Z",
+  "source": {
+    "commit": "5d0dbd14863a76a7683fad87ac534490f6444cd3",
+    "sourceHash": "5322943041bbccf2710159d95af1134351c64da95c0f1a936975f0d2cdcc547a",
+    "files": 282
+  },
+  "results": [
+    {
+      "id": "checker-controls",
+      "exitCode": 0,
+      "durationMs": 226
+    },
+    {
+      "id": "checker-sensitivity",
+      "exitCode": 0,
+      "durationMs": 25605
+    },
+    {
+      "id": "types",
+      "exitCode": 0,
+      "durationMs": 1123
+    },
+    {
+      "id": "lint",
+      "exitCode": 0,
+      "durationMs": 2608
+    },
+    {
+      "id": "format",
+      "exitCode": 0,
+      "durationMs": 1255
+    },
+    {
+      "id": "sql-lint",
+      "exitCode": 0,
+      "durationMs": 5796
+    },
+    {
+      "id": "access-upgrade",
+      "exitCode": 0,
+      "durationMs": 27628
+    },
+    {
+      "id": "recipient-upgrade",
+      "exitCode": 0,
+      "durationMs": 27763
+    },
+    {
+      "id": "register-upgrade",
+      "exitCode": 0,
+      "durationMs": 28071
+    },
+    {
+      "id": "credential-dates-upgrade",
+      "exitCode": 0,
+      "durationMs": 27361
+    },
+    {
+      "id": "register-maintenance-upgrade",
+      "exitCode": 0,
+      "durationMs": 27986
+    },
+    {
+      "id": "sms-enrollment-upgrade",
+      "exitCode": 0,
+      "durationMs": 28165
+    },
+    {
+      "id": "reminder-jobs-upgrade",
+      "exitCode": 0,
+      "durationMs": 28745
+    },
+    {
+      "id": "replay",
+      "exitCode": 0,
+      "durationMs": 13823
+    },
+    {
+      "id": "schema",
+      "exitCode": 0,
+      "durationMs": 110
+    },
+    {
+      "id": "database",
+      "exitCode": 0,
+      "durationMs": 15180
+    },
+    {
+      "id": "integration",
+      "exitCode": 0,
+      "durationMs": 70915
+    },
+    {
+      "id": "unit-coverage",
+      "exitCode": 0,
+      "durationMs": 4072
+    },
+    {
+      "id": "mutation",
+      "exitCode": 0,
+      "durationMs": 558338
+    },
+    {
+      "id": "mutation-properties",
+      "exitCode": 0,
+      "durationMs": 766641
+    },
+    {
+      "id": "sql-mutants",
+      "exitCode": 0,
+      "durationMs": 255015
+    },
+    {
+      "id": "schema-restored",
+      "exitCode": 0,
+      "durationMs": 79
+    },
+    {
+      "id": "generated-types",
+      "exitCode": 0,
+      "durationMs": 1107
+    },
+    {
+      "id": "build",
+      "exitCode": 0,
+      "durationMs": 7363
+    },
+    {
+      "id": "browser",
+      "exitCode": 0,
+      "durationMs": 165729
+    },
+    {
+      "id": "access-adversarial",
+      "exitCode": 0,
+      "durationMs": 145507
+    },
+    {
+      "id": "coverage",
+      "exitCode": 0,
+      "durationMs": 5086
+    },
+    {
+      "id": "suite-health-unit",
+      "exitCode": 0,
+      "durationMs": 3221
+    },
+    {
+      "id": "suite-health-integration",
+      "exitCode": 0,
+      "durationMs": 71677
+    },
+    {
+      "id": "suite-health-browser",
+      "exitCode": 0,
+      "durationMs": 225741
+    },
+    {
+      "id": "capabilities",
+      "exitCode": 0,
+      "durationMs": 170
+    },
+    {
+      "id": "supply-chain",
+      "exitCode": 0,
+      "durationMs": 3738
+    },
+    {
+      "id": "secrets-history",
+      "exitCode": 0,
+      "durationMs": 411
+    },
+    {
+      "id": "secrets-assets",
+      "exitCode": 0,
+      "durationMs": 302
+    }
+  ],
+  "status": "passed",
+  "finished": "2026-10-09T16:57:53.685Z"
+}

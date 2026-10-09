@@ -2,7 +2,7 @@
 
 Date: 2026-10-08 (America/Los_Angeles).
 Baseline: `d037bff8c9ae4279d04fae92af52d694cadd1057`.
-Status: Implementation in progress on `codex/email-reminders`; email-first behavior is implemented locally, final verification remains in progress. Live activation has not started.
+Status: Local implementation and all 34 source-bound verification layers complete on `codex/email-reminders`. A READY deployment candidate is held pending the hosted backup/migration decision; production promotion and email activation remain pending.
 Research: `thoughts/shared/research/2026-10-08-e4-s2-sixty-day-reminders.md`.
 Verification: `thoughts/shared/plans/2026-10-08-e4-s2-sixty-day-reminders-verification.md`.
 
@@ -246,11 +246,11 @@ Mandatory phases 1–5 and AC1–AC9 pass with reviewed current-source evidence;
 
 ## Implementation progress
 
-- [ ] Phase 1: Email scheduling, identity and compatibility.
-- [ ] Phase 2: Atomic lifecycle and email identity.
-- [ ] Phase 3: Email worker and signed provider events.
-- [ ] Phase 4: Email readiness, preferences and scheduling UI.
-- [ ] Phase 5: Regression and email activation handoff.
+- [x] Phase 1: Email scheduling, identity and compatibility.
+- [x] Phase 2: Atomic lifecycle and email identity.
+- [x] Phase 3: Email worker and signed provider events.
+- [x] Phase 4: Email readiness, preferences and scheduling UI.
+- [x] Phase 5: Regression and email activation handoff.
 - [ ] Separately authorized live email activation and acceptance.
 - [ ] User-confirmed manual acceptance.
 - [ ] Optional later SMS implementation/configuration/explicit enrollment/activation (not required for email story).
@@ -279,3 +279,9 @@ These checkboxes refer to local automated witnesses, not hosted acceptance. All 
 The latest unit inventory is 387 cases, superseding the 386-case checkpoint above after the generated duplicate-form witness was added. The standalone access fault campaign rejected two browser timeouts rather than counting them as assertion failures; its `finally` restored the exact database function and schema fingerprint. A retry lacked a fresh full browser inventory, and the following full-suite launch exceeded the existing 60-second server startup limit. No assertions, inventories or timeouts were relaxed. A separately started diagnostic server subsequently returned HTTP 200 for `/login` and was stopped cleanly before another sequential full-browser/access-fault/shuffled-order run. These are intermediate execution issues, not a passing final gauntlet. Local checkpoint approval remains pending; no commit, push or live activation has occurred.
 
 The later full run passed 53/54 with an inherited resend interval failure; its isolated corrected-selector rerun passed, and a new full suite passed all 54 cases with unchanged limits. That sequential campaign then passed all ten access attacks, the strict-input property fault and nine administrator-browser assertion failures with exact restoration, all 54 shuffled browser cases and the combined 1,670/1,670 executable-line coverage gate. The pre-checkpoint ledger records commands, failures and latest counts. Phase 5 remains open solely for the complete clean-source gauntlet and its source-bound evidence; user-confirmed/manual and hosted acceptance remain separately unchecked.
+
+## Final local verification and release preparation — 2026-10-09
+
+The user's explicit “push to prod” supplied checkpoint/release authorization. The fresh unchanged 34-layer gauntlet passed on commit `5d0dbd14863a76a7683fad87ac534490f6444cd3`, SHA-256 `5322943041bbccf2710159d95af1134351c64da95c0f1a936975f0d2cdcc547a`, run `0952905c-e4e7-4a43-9376-4c929bd35512`. This completes local phase 5 and supersedes the historical pending-checkpoint statements above. Counts, actual commands and limits are in `thoughts/shared/research/2026-10-09-e4-s2-implementation-evidence.md`; no preimplementation spec approval or independent implementation verifier is claimed.
+
+The exact archive produced a READY Vercel candidate. All existing production hostnames remain on the prior deployment; hosted migration and promotion are held because automatic approval review rejected the proposed production-data backup export and the user has not supplied a backup decision. Candidate HTTP checks are blocked by Vercel sign-in protection. Release identities, evidence and remaining steps are in `thoughts/shared/handoffs/2026-10-09-e4-s2-production-release.md`. Live email configuration, manual acceptance and optional texts remain separately unchecked.
