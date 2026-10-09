@@ -2,7 +2,7 @@
 
 Date: 2026-10-09 (America/Los_Angeles).
 Baseline: `ac3cc079fde95fc05341752b8a00de8cd0f9cc11`.
-Status: Implementation and all 35 current-source verification layers complete. Matching archive/upload validation passed; production deployment awaits the required private backup approval. Provider/scheduler and received-mail acceptance remain separate.
+Status: Implementation and all 35 current-source verification layers complete. Matching archive/upload validation, authorized private backup, additive production migration and matching application promotion passed. Hosted verification passed 60 checks and signed-in read-only inspection; historical data and Auth identity were preserved. Provider/scheduler and received-mail acceptance remain separate.
 Research: `thoughts/shared/research/2026-10-09-e4-s3-catch-up-reminders.md`.
 Verification: `thoughts/shared/plans/2026-10-09-e4-s3-catch-up-reminders-verification.md`.
 
@@ -201,6 +201,6 @@ No material product decision remains open for this email scope. Refetch current 
 - [x] Phase 1: scheduling invariants and populated upgrade.
 - [x] Phase 2: honest frozen payloads and submission races.
 - [x] Phase 3: compatible status projection and catch-up interface.
-- [x] Phase 4: regression controls and rollout evidence (35/35 local layers; hosted release still pending backup approval).
+- [x] Phase 4: regression controls and rollout evidence (35/35 local layers; matching schema/application deployed, 60 hosted checks passed).
 - [ ] Separately recorded live activation/received-mail acceptance.
 - [ ] User-confirmed manual acceptance.

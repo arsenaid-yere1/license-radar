@@ -1,6 +1,6 @@
 # E4-S3 catch-up activation addendum
 
-Status: all 35 source-bound release checks and matching archive/upload validation passed. Hosted deployment is authorized by the user's explicit “push to prod” but awaits required private-backup approval after automatic approval review rejected the export. Production remains unchanged. Provider/scheduler setup and real-recipient acceptance sends remain separate from this application/schema release.
+Status: all 35 source-bound release checks and matching archive/upload validation passed. The user’s “push to prod” response authorized the concrete private backup/completion request; automatic approval review approved it and the backup completed. The exact additive migration and matching app are deployed. All 60 hosted checks, signed-in read-only inspection and historical-data/Auth preservation passed. Sending remains disabled. Provider/scheduler setup and real-recipient acceptance sends remain separate from this application/schema release.
 
 Use with `thoughts/shared/handoffs/2026-10-08-e4-s2-email-activation.md`. E4-S3 uses the same authenticated worker, sender, callback, default-off sending gate and permanent cycle/user/channel consumed permission. There is no automatic retry or second sending gate. SMS proof/consent/STOP history remains independent.
 
@@ -25,4 +25,4 @@ Turn sending off and stop the worker before reverting the app. Retain additive f
 
 ## Acceptance boundaries
 
-Local fixture submissions, callback simulations, browser/Axe checks and agent screenshot inspection are separately recorded in the implementation evidence. Human manual acceptance, hosted deployment, scheduler registration and real received-mail acceptance remain pending. Delivery recovery remains E4-S4; renewal completion remains E5 work.
+Local fixture submissions, callback simulations, browser/Axe checks and agent screenshot inspection are separately recorded in the implementation evidence. Hosted deployment and read-only checks passed; human manual acceptance, scheduler registration and real received-mail acceptance remain pending. Delivery recovery remains E4-S4; renewal completion remains E5 work.
