@@ -1012,7 +1012,7 @@ for (const [id, signature, from, to, pattern] of [
   [
     "email-send-window",
     "private.claim_email_reminder_at(timestamp with time zone)",
-    "if private.reminder_next_window(job.nominal_target, job.timezone, p_now) > p_now then",
+    "if private.reminder_next_window(job.dispatch_target, job.timezone, p_now) > p_now then",
     "if false then",
     "^ER17",
   ],
@@ -1041,6 +1041,58 @@ for (const [id, signature, from, to, pattern] of [
   mutants.push({
     id,
     file: reminders,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+
+const catchUp = "tests/integration/practice-reminder-catch-up.test.ts";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "catch-up-classification",
+    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "onset > target",
+    "onset >= target",
+    "^CU01",
+  ],
+  [
+    "catch-up-stable-target",
+    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "private.reminder_next_window(onset, practice.timezone, onset)",
+    "private.reminder_next_window(p_now, practice.timezone, p_now)",
+    "^CU04",
+  ],
+  [
+    "catch-up-local-window",
+    "private.reminder_valid_window(timestamptz,text,timestamptz)",
+    "local_anchor::time < time '17:00'",
+    "local_anchor::time <= time '17:00'",
+    "^CU03",
+  ],
+  [
+    "catch-up-consumed-guard",
+    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "when exists (select 1 from private.reminder_message_attempts a",
+    "when false and exists (select 1 from private.reminder_message_attempts a",
+    "^CU06|^CU07",
+  ],
+  [
+    "catch-up-snapshot",
+    "private.begin_email_reminder_at(uuid,uuid,jsonb,timestamptz)",
+    "or (context->>'dispatchTarget')::timestamptz is distinct from job.dispatch_target",
+    "",
+    "^CU09 snapshot",
+  ],
+  [
+    "catch-up-cursor",
+    "private.reconcile_email_reminders_at(text,timestamptz)",
+    "and (outbox.cursor_id is null or id > outbox.cursor_id)",
+    "and true",
+    "^CU10",
+  ],
+])
+  mutants.push({
+    id,
+    file: catchUp,
     pattern,
     apply: () => functionFault(signature, from, to),
   });

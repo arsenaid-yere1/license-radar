@@ -447,6 +447,10 @@ export type Database = {
         Args: { p_after?: string; p_namespace: string; p_practice_id: string };
         Returns: Json;
       };
+      get_email_reminder_schedule_v2: {
+        Args: { p_after?: string; p_namespace: string; p_practice_id: string };
+        Returns: Json;
+      };
       get_my_email_reminder_preference: {
         Args: { p_practice_id: string };
         Returns: Json;

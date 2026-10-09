@@ -191,7 +191,7 @@ it("ER02 calendar targets use effective dates, local nine, leap years and skippe
     )[0].n,
   ).toBe(0);
 });
-it("ER03 missing dates and late eligibility are visible blocks, never catch-up sends", async () => {
+it("ER03 missing dates remain blocked and valid late eligibility queues catch-up", async () => {
   const missing = await setup(null);
   expect(missing.job).toMatchObject({
     state: "blocked",
@@ -209,12 +209,26 @@ it("ER03 missing dates and late eligibility are visible blocks, never catch-up s
   await reconcile(a.practice.id);
   expect(
     (
-      await sql("select state,reason from private.reminder_jobs where id=$1", [
-        a.job.id,
-      ])
+      await sql(
+        "select state,reason,schedule_kind,dispatch_target from private.reminder_jobs where id=$1",
+        [a.job.id],
+      )
     )[0],
-  ).toEqual({ state: "blocked", reason: "catch-up-unavailable" });
+  ).toEqual({
+    state: "queued",
+    reason: null,
+    schedule_kind: "catch-up",
+    dispatch_target: new Date("2030-01-01T09:00:01Z"),
+  });
   expect(await claim(a)).toBeNull();
+  expect(
+    (
+      await sql<{ value: unknown }>(
+        "select private.claim_email_reminder_at($1) value",
+        ["2030-01-01T09:00:01Z"],
+      )
+    )[0].value,
+  ).not.toBeNull();
 });
 it("ER04 reconciliation and concurrent claims grant exactly one immutable submission", async () => {
   const a = await setup();

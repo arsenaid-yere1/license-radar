@@ -10,8 +10,12 @@ import { SignOutForm } from "@/components/auth/sign-out-form";
 import { EmailPreferenceForm } from "@/components/reminders/preference-form";
 import { emailPreferenceAction } from "./actions";
 export const dynamic = "force-dynamic";
+const kindLabels = {
+  normal: "60-day reminder",
+  "catch-up": "Catch-up reminder",
+};
 const reasons: Record<string, string> = {
-  "catch-up-unavailable": "Catch-up not available yet",
+  "already-attempted": "Email attempt already used for this recipient",
   "missing-date": "Add a due date",
   "invalid-target": "Scheduled date unavailable",
   "no-recipient": "Choose a reminder recipient",
@@ -72,7 +76,9 @@ export default async function Reminders({
           <p className="lede">
             Email reminders are scheduled 60 calendar days before the action
             deadline, or the end date when no deadline is entered, at 9 AM in{" "}
-            {practice.timezone}.
+            {practice.timezone}. Eligible late entries or reminder setup are
+            scheduled for catch-up in the next permitted local sending window,
+            from 9 AM to before 5 PM.
           </p>
           <p>
             {configured
@@ -101,6 +107,9 @@ export default async function Reminders({
         />
         <section className="panel">
           <h2>Email schedule and status</h2>
+          <Link className="text-link" href="/practice/reminders">
+            Refresh status
+          </Link>
           {configured && stale && (
             <p role="status">
               The reminder worker has not reported success in the last 15
@@ -144,30 +153,56 @@ function ReminderRow({
       <dl>
         <dt>
           {row.datePurpose === "action-deadline"
-            ? "Action deadline"
-            : "End date"}
+            ? "Current action deadline"
+            : "Current end date"}
         </dt>
         <dd>{row.dueDate ?? "No date entered"}</dd>
-        <dt>Scheduled local time</dt>
+        <dt>Original 60-day target</dt>
         <dd>
           {localTime(row.target, row.timezone)} · {row.timezone}
         </dd>
+        <dt>Reminder kind</dt>
+        <dd>
+          {row.scheduleKind
+            ? kindLabels[row.scheduleKind]
+            : "Scheduling review pending"}
+        </dd>
+        <CatchUpTarget row={row} />
         <dt>Email status</dt>
         <dd>
           {row.delivery ?? row.state}
-          {row.reason &&
-            ` · ${reasons[row.reason] ?? "Waiting for eligibility review"}`}
+          {row.reason && ` · ${reasons[row.reason] ?? "Eligibility changed"}`}
         </dd>
-        {["queued", "claimed"].includes(row.state) &&
-          row.nextSendAt &&
-          row.nextSendAt !== row.target && (
-            <>
-              <dt>Next sending window</dt>
-              <dd>{localTime(row.nextSendAt, row.timezone)}</dd>
-            </>
-          )}
+        {["queued", "claimed"].includes(row.state) && row.nextSendAt && (
+          <>
+            <dt>Next sending window</dt>
+            <dd>{localTime(row.nextSendAt, row.timezone)}</dd>
+          </>
+        )}
       </dl>
+      {["submitting", "accepted", "failed", "uncertain"].includes(
+        row.state,
+      ) && (
+        <p className="hint">
+          The prior email keeps its original scheduling details. Date changes do
+          not send another email automatically.
+        </p>
+      )}
     </article>
+  );
+}
+
+function CatchUpTarget({
+  row,
+}: {
+  row: import("@/lib/reminders/schema").Schedule["rows"][number];
+}) {
+  if (row.scheduleKind !== "catch-up" || !row.dispatchTarget) return null;
+  return (
+    <>
+      <dt>Catch-up target</dt>
+      <dd>{localTime(row.dispatchTarget, row.timezone)}</dd>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(19);
+select plan(25);
 select
     is((
         select count(*)::integer
@@ -125,5 +125,38 @@ select is((
         and array_length(conkey, 1) = 3
 ),
 2, 'ER18 job cycle and selected-user identity composite references');
+select ok(has_function_privilege(
+    'authenticated',
+    'public.get_email_reminder_schedule_v2(uuid,text,uuid)', 'execute'
+),
+'CU14 active readers have named v2 projection');
+select ok(not has_function_privilege(
+    'anon',
+    'public.get_email_reminder_schedule_v2(uuid,text,uuid)', 'execute'
+),
+'CU14 anonymous v2 projection denied');
+select ok(not has_function_privilege(
+    'service_role',
+    'private.reminder_valid_window(timestamptz,text,timestamptz)', 'execute'
+),
+'CU03 service cannot forge window clock');
+select is(private.reminder_next_window(
+    '2030-01-01 10:00+00', 'UTC',
+    '2030-01-01 10:00+00'
+), '2030-01-01 10:00+00'::timestamptz,
+'CU03 catch-up dispatch can use current permitted instant');
+select is(private.reminder_next_window(
+    '9999-12-31 17:00+00', 'UTC',
+    '9999-12-31 17:00+00'
+), null::timestamptz,
+'CU03 unsupported next date remains visibly unavailable');
+select ok((
+    select not prosecdef
+    from pg_proc
+    where
+        oid
+        = 'public.get_email_reminder_schedule_v2(uuid,text,uuid)'::regprocedure
+),
+'CU14 public v2 facade is invoker');
 select finish from finish();
 rollback;

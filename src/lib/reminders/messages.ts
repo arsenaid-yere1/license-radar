@@ -24,7 +24,10 @@ export const emailPayloadSchema = z.strictObject({
   from: z.email().max(254),
   to: z.tuple([z.email().max(254)]),
   reply_to: z.email().max(254),
-  subject: z.literal("Credential renewal reminder: 60 days"),
+  subject: z.enum([
+    "Credential renewal reminder: 60 days",
+    "Credential renewal catch-up reminder",
+  ]),
   text: z.string().min(1).max(2000),
   html: z.string().min(1).max(3000),
   tags: z.tuple([

@@ -133,7 +133,7 @@ it("EP03 malformed/private responses fail closed, expected stale conflicts remai
     status: "success",
     schedule,
   });
-  expect(c.rpc).toHaveBeenCalledWith("get_email_reminder_schedule", {
+  expect(c.rpc).toHaveBeenCalledWith("get_email_reminder_schedule_v2", {
     p_practice_id: id,
     p_namespace: "configured",
     p_after: id,

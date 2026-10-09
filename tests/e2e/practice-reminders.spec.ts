@@ -229,3 +229,109 @@ test("Lost provider response remains uncertain without replay; a signed complain
     });
   }
 });
+test("CU16 late setup sends one catch-up email without SMS and remains consumed after preference reenabling", async ({
+  page,
+}) => {
+  const own = await normalFixture(page);
+  // Restore real persisted late eligibility; ordinary fixture setup is only shared account/zone scaffolding.
+  await pool.query(
+    "update public.credential_cycles set end_date=(clock_timestamp() at time zone (select timezone from public.practices where id=$1))::date,updated_at=clock_timestamp() where practice_id=$1",
+    [own.id],
+  );
+  await pool.query(
+    "select private.dirty_email_reminders($1,'late-browser-fixture')",
+    [own.id],
+  );
+  await pool.query(
+    "update private.reminder_reconcile_outbox set updated_at='2000-01-01' where practice_id=$1",
+    [own.id],
+  );
+  expect((await run(page)).status()).toBe(200);
+  const messages = await emailFixture("state", { to: own.email });
+  expect(messages).toHaveLength(1);
+  expect(messages[0].subject).toBe("Credential renewal catch-up reminder");
+  expect(messages[0].text).toContain("This renewal is due today.");
+  await page.goto("/practice/reminders");
+  await expect(
+    page.getByText("Catch-up reminder", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Catch-up target", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Original 60-day target", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Date changes do not send another email automatically/),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Next sending window", { exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Disable my reminder emails" })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Enable my reminder emails" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Enable my reminder emails" }).click();
+  await expect(
+    page.getByRole("button", { name: "Disable my reminder emails" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Refresh status" }).click();
+  expect((await run(page)).status()).toBe(200);
+  expect(await emailFixture("state", { to: own.email })).toHaveLength(1);
+  expect(
+    (
+      await pool.query(
+        "select count(*)::int n from private.practice_sms_enrollments where practice_id=$1",
+        [own.id],
+      )
+    ).rows[0].n,
+  ).toBe(0);
+  for (const width of [375, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(
+      (await new AxeBuilder({ page }).analyze()).violations.map((v) => v.id),
+    ).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `reports/catch-up-reminders-${width}.png`,
+      fullPage: true,
+    });
+  }
+});
+test("CU11 catch-up lost provider response stays uncertain across repeated workers and refresh", async ({
+  page,
+}) => {
+  const own = await normalFixture(page);
+  await pool.query(
+    "update public.credential_cycles set end_date=(clock_timestamp() at time zone (select timezone from public.practices where id=$1))::date,updated_at=clock_timestamp() where practice_id=$1",
+    [own.id],
+  );
+  await pool.query(
+    "select private.dirty_email_reminders($1,'late-browser-uncertain')",
+    [own.id],
+  );
+  await pool.query(
+    "update private.reminder_reconcile_outbox set updated_at='2000-01-01' where practice_id=$1",
+    [own.id],
+  );
+  await emailFixture("mode", { to: own.email, mode: "lost" });
+  expect((await run(page)).status()).toBe(200);
+  expect((await run(page)).status()).toBe(200);
+  const messages = await emailFixture("state", { to: own.email });
+  expect(messages).toHaveLength(1);
+  expect(messages[0].subject).toBe("Credential renewal catch-up reminder");
+  await page.goto("/practice/reminders");
+  await expect(page.getByText("uncertain", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Next sending window", { exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "Refresh status" }).click();
+  expect((await run(page)).status()).toBe(200);
+  expect(await emailFixture("state", { to: own.email })).toHaveLength(1);
+});

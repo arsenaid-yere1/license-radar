@@ -27,6 +27,8 @@ export const scheduleSchema = z
             timezone: z.string(),
             target: z.string().nullable(),
             nextSendAt: z.string().nullable(),
+            scheduleKind: z.enum(["normal", "catch-up"]).nullable(),
+            dispatchTarget: z.string().nullable(),
             state: z.enum([
               "pending",
               "blocked",

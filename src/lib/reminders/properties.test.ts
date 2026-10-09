@@ -116,6 +116,8 @@ it("RP03 status projections are bounded and reject private fields at every level
     timezone: "UTC",
     target: "2030-01-01T09:00:00Z",
     nextSendAt: null,
+    scheduleKind: "normal",
+    dispatchTarget: null,
     state: "queued",
     delivery: null,
     reason: null,
@@ -172,6 +174,8 @@ it("RP04 status enumerations preserve every valid value and reject empty replace
     timezone: "UTC",
     target: null,
     nextSendAt: null,
+    scheduleKind: "normal",
+    dispatchTarget: null,
     state: "queued",
     delivery: null,
     reason: null,
@@ -285,6 +289,63 @@ it("RP06 generated missing or duplicate preference fields never select one poste
         expect(preferenceFormInput(form)).toBeNull();
         form.set(field, new File(["fixture"], "field.txt"));
         expect(preferenceFormInput(form)).toBeNull();
+      },
+    ),
+    options,
+  );
+});
+
+it("CU14 v2 accepts exactly normal, catch-up or unclassified scheduling", () => {
+  const row = {
+    id,
+    title: "Record",
+    cycleId: other,
+    dueDate: null,
+    datePurpose: "end-date",
+    timezone: "UTC",
+    target: null,
+    dispatchTarget: null,
+    nextSendAt: null,
+    state: "pending",
+    delivery: null,
+    reason: null,
+  };
+  const schedule = {
+    rows: [],
+    nextCursor: null,
+    emailReadiness: "ready",
+    smsOptional: true,
+    lastSuccessAt: null,
+    oldestDueAt: null,
+    preference: { enabled: true, version: 1, canEnable: true },
+  };
+  for (const scheduleKind of ["normal", "catch-up", null])
+    expect(
+      scheduleSchema.safeParse({
+        ...schedule,
+        rows: [{ ...row, scheduleKind }],
+      }).success,
+    ).toBe(true);
+  for (const scheduleKind of ["late", "", 1])
+    expect(
+      scheduleSchema.safeParse({
+        ...schedule,
+        rows: [{ ...row, scheduleKind }],
+      }).success,
+    ).toBe(false);
+});
+it("CU13 frozen payloads accept exactly the ordinary and catch-up subjects", () => {
+  const allowed = [
+    "Credential renewal reminder: 60 days",
+    "Credential renewal catch-up reminder",
+  ];
+  fc.assert(
+    fc.property(
+      fc.oneof(fc.constantFrom(...allowed), fc.string()),
+      (subject) => {
+        expect(
+          emailPayloadSchema.safeParse({ ...payload, subject }).success,
+        ).toBe(allowed.includes(subject));
       },
     ),
     options,

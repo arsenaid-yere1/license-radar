@@ -12,7 +12,7 @@ export async function getReminderSchedule(
   after: string | null = null,
 ) {
   try {
-    const { data, error } = await client.rpc("get_email_reminder_schedule", {
+    const { data, error } = await client.rpc("get_email_reminder_schedule_v2", {
       p_practice_id: practiceId,
       p_namespace: namespace,
       p_after: after,

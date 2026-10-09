@@ -42,8 +42,9 @@ export function EmailPreferenceForm({
       </p>
       <p className="hint">
         This preference changes renewal emails. Your sign-in emails, assignment
-        and text consent stay separate. Re-enabling after a scheduled target
-        needs future catch-up support.
+        and text consent stay separate. Reenabling can schedule catch-up for an
+        eligible record. Previously attempted emails do not resend
+        automatically.
       </p>
       {(current.enabled || current.canEnable) && (
         <form action={submit}>

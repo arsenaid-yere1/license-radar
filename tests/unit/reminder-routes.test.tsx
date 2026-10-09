@@ -49,7 +49,9 @@ const row = {
   nextSendAt: "2030-01-02T09:00:00Z",
   state: "queued",
   delivery: null,
-  reason: "catch-up-unavailable",
+  reason: null,
+  scheduleKind: "catch-up",
+  dispatchTarget: "2030-01-01T10:00:00Z",
 };
 const schedule = {
   rows: [row],
@@ -90,8 +92,13 @@ it("RU02 dates, catch-up, channel readiness, cursor and stale health are truthfu
   const view = render(await page(id));
   expect(boundary.read).toHaveBeenLastCalledWith({}, id, "unconfigured", id);
   expect(screen.getByText(/Email sending is off/)).toBeTruthy();
-  expect(screen.getByText(/Catch-up not available yet/)).toBeTruthy();
-  expect(screen.getByText("Action deadline")).toBeTruthy();
+  expect(screen.getByText("Catch-up reminder")).toBeTruthy();
+  expect(screen.getByText("Original 60-day target")).toBeTruthy();
+  expect(screen.getByText("Catch-up target")).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "Refresh status" }).getAttribute("href"),
+  ).toBe("/practice/reminders");
+  expect(screen.getByText("Current action deadline")).toBeTruthy();
   expect(screen.getByText("Next sending window")).toBeTruthy();
   expect(
     screen.getByRole("link", { name: "Next records" }).getAttribute("href"),
@@ -121,7 +128,7 @@ it("RU02 dates, catch-up, channel readiness, cursor and stale health are truthfu
   });
   render(await page());
   expect(screen.getByText(/worker has not reported success/)).toBeTruthy();
-  expect(screen.getByText("End date")).toBeTruthy();
+  expect(screen.getByText("Current end date")).toBeTruthy();
   expect(screen.getByText("No date entered")).toBeTruthy();
   expect(screen.getByText(/uncertain/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Next records" })).toBeNull();
@@ -246,4 +253,49 @@ it("RU06 consumed outcomes never advertise a future sending window", async () =>
     expect(screen.getByText("Next sending window")).toBeTruthy();
     view.unmount();
   }
+});
+
+it("CU15 consumed catch-up explains immutable scheduling separately from current dates", async () => {
+  boundary.read.mockResolvedValue({
+    status: "success",
+    schedule: {
+      ...schedule,
+      rows: [
+        {
+          ...row,
+          state: "accepted",
+          dueDate: "2030-04-01",
+          reason: "already-attempted",
+        },
+      ],
+    },
+  });
+  render(await page());
+  expect(screen.getByText("Current action deadline")).toBeTruthy();
+  expect(screen.getByText("2030-04-01")).toBeTruthy();
+  expect(screen.queryByText(/Waiting for eligibility review/)).toBeNull();
+  expect(
+    screen.getByText(/Date changes do not send another email automatically/),
+  ).toBeTruthy();
+  expect(screen.queryByText("Next sending window")).toBeNull();
+});
+it("CU15 endpoint suppression before an attempt does not invent prior email history", async () => {
+  boundary.read.mockResolvedValue({
+    status: "success",
+    schedule: {
+      ...schedule,
+      rows: [{ ...row, state: "suppressed", reason: "email-suppressed" }],
+    },
+  });
+  render(await page());
+  expect(screen.queryByText(/The prior email keeps/)).toBeNull();
+  expect(screen.queryByText("Next sending window")).toBeNull();
+});
+
+it("CU15 preference copy explains available catch-up and the consumed guard", () => {
+  render(<EmailPreferenceForm preference={preference} action={vi.fn()} />);
+  expect(screen.getByText(/Reenabling can schedule catch-up/)).toBeTruthy();
+  expect(
+    screen.getByText(/Previously attempted emails do not resend automatically/),
+  ).toBeTruthy();
 });

@@ -12,7 +12,7 @@ const files = [
   { path: "supabase/tests/practice_credential_dates.test.sql", plan: 22 },
   { path: "supabase/tests/practice_register_maintenance.test.sql", plan: 27 },
   { path: "supabase/tests/practice_sms_enrollment.test.sql", plan: 20 },
-  { path: "supabase/tests/practice_reminder_jobs.test.sql", plan: 19 },
+  { path: "supabase/tests/practice_reminder_jobs.test.sql", plan: 25 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -595,6 +595,24 @@ for (const [id, mutation, expected] of [
       "ER18 email restrictive references",
       "ER18 job cycle and selected-user identity composite references",
     ],
+  ],
+])
+  cases.push({ id, file: files[8], mutation, expected });
+for (const [id, mutation, expected] of [
+  [
+    "catch-up-anonymous-read",
+    "grant execute on function public.get_email_reminder_schedule_v2(uuid,text,uuid) to anon",
+    ["CU14 anonymous v2 projection denied"],
+  ],
+  [
+    "catch-up-window-clock",
+    "grant execute on function private.reminder_valid_window(timestamptz,text,timestamptz) to service_role",
+    ["CU03 service cannot forge window clock"],
+  ],
+  [
+    "catch-up-wrapper-definer",
+    "alter function public.get_email_reminder_schedule_v2(uuid,text,uuid) security definer",
+    ["CU14 public v2 facade is invoker"],
   ],
 ])
   cases.push({ id, file: files[8], mutation, expected });

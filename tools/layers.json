@@ -70,6 +70,11 @@
     "args": ["tools/reminder-jobs-upgrade.mjs"]
   },
   {
+    "id": "reminder-catch-up-upgrade",
+    "command": "node",
+    "args": ["tools/reminder-catch-up-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]

@@ -394,3 +394,21 @@ test("maintenance fingerprint detects removed receipt storage archive field and 
     );
   }
 });
+
+test("catch-up upgrade is mandatory in both gauntlet inventories", () => {
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  const gauntlet = readFileSync("tools/gauntlet.mjs", "utf8");
+  assert(layers.some((l) => l.id === "reminder-catch-up-upgrade"));
+  assert(gauntlet.includes('"reminder-catch-up-upgrade"'));
+  const required = layers.map((l) => l.id);
+  assert.throws(
+    () =>
+      assertLayers(
+        required,
+        layers
+          .filter((l) => l.id !== "reminder-catch-up-upgrade")
+          .map((l) => ({ id: l.id, exitCode: 0 })),
+      ),
+    /Missing layer/,
+  );
+});

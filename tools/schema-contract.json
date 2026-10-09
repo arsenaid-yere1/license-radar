@@ -1242,6 +1242,22 @@
     },
     {
       "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "schedule_kind",
+      "data_type": "text",
+      "column_default": "'normal'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "dispatch_target",
+      "data_type": "timestamp with time zone",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
       "table_name": "reminder_message_attempts",
       "column_name": "id",
       "data_type": "uuid",
@@ -1365,6 +1381,30 @@
       "table_name": "reminder_message_attempts",
       "column_name": "error_category",
       "data_type": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "schedule_kind",
+      "data_type": "text",
+      "column_default": "'normal'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "nominal_target",
+      "data_type": "timestamp with time zone",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "dispatch_target",
+      "data_type": "timestamp with time zone",
       "column_default": null,
       "is_nullable": "YES"
     },
@@ -2427,7 +2467,7 @@
     {
       "nspname": "private",
       "proname": "begin_email_reminder_at",
-      "definition": "CREATE OR REPLACE FUNCTION private.begin_email_reminder_at(p_job_id uuid, p_claim_token uuid, p_config jsonb, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare job private.reminder_jobs; context jsonb; endpoint private.reminder_email_endpoints;\n    attempt private.reminder_message_attempts; namespace text := p_config->>'namespace'; payload jsonb; link text; body text;\nbegin\n    -- No arbitrary destination/message input. Only constrained server configuration is accepted.\n    if jsonb_typeof(p_config) is distinct from 'object' then return '{\"status\":\"invalid\"}'::jsonb; end if;\n    if exists (select 1 from jsonb_each_text(p_config) where value is null or char_length(value) > 512)\n        or (select count(*) from jsonb_object_keys(p_config)) <> 4\n        or not (p_config ?& array['namespace','from','replyTo','appUrl'])\n        or namespace !~ '^[a-zA-Z0-9_-]{1,80}$'\n        or p_config->>'from' !~ '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9.-]+$'\n        or p_config->>'replyTo' !~ '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9.-]+$'\n        or p_config->>'appUrl' !~ '^https://[a-zA-Z0-9.-]+(:[0-9]+)?$|^http://127[.]0[.]0[.]1:3000$'\n        then return '{\"status\":\"invalid\"}'::jsonb; end if;\n    select * into job from private.reminder_jobs where id = p_job_id;\n    if not found or not private.lock_email_recipient(job.practice_id) then return '{\"status\":\"unavailable\"}'::jsonb; end if;\n    select * into endpoint from private.reminder_email_endpoints where id = job.endpoint_id for update nowait;\n    select * into job from private.reminder_jobs where id = p_job_id for update nowait;\n    if job.state <> 'claimed' or job.claim_token is distinct from p_claim_token or job.claim_until <= p_now then\n        return '{\"status\":\"stale\"}'::jsonb;\n    end if;\n    context := private.email_reminder_context(job.practice_id, job.credential_id, namespace, p_now);\n    if context is null or context->>'reason' is not null\n        or (context->>'cycleId')::uuid <> job.cycle_id or (context->>'dateRevision')::integer <> job.date_revision\n        or (context->>'membershipId')::uuid <> job.membership_id or (context->>'userId')::uuid <> job.user_id\n        or (context->>'selectionVersion')::integer <> job.selection_version\n        or (context->>'accountRevision')::bigint <> job.account_revision\n        or (context->>'preferenceVersion')::integer <> job.preference_version\n        or (context->>'endpointId')::uuid is distinct from job.endpoint_id\n        or (context->>'endpointEpoch')::bigint is distinct from job.endpoint_epoch\n        or endpoint.suppressed or endpoint.provider_namespace <> namespace\n        or endpoint.email is distinct from context->>'email'\n        or (context->>'target')::timestamptz is distinct from job.nominal_target\n        or context->>'timezone' <> job.timezone\n        or job.next_send_at > p_now then\n        update private.reminder_jobs set state = 'canceled', reason = coalesce(context->>'reason', 'eligibility-changed'),\n            claim_token = null, claim_until = null, invalidated_at = p_now, updated_at = p_now where id = job.id;\n        return '{\"status\":\"stale\"}'::jsonb;\n    end if;\n    if private.reminder_next_window(job.nominal_target, job.timezone, p_now) > p_now then\n        update private.reminder_jobs set state = 'queued', claim_token = null, claim_until = null,\n            next_send_at = private.reminder_next_window(job.nominal_target, job.timezone, p_now), updated_at = p_now where id = job.id;\n        return '{\"status\":\"window-closed\"}'::jsonb;\n    end if;\n    attempt.id := gen_random_uuid(); attempt.token := gen_random_uuid();\n    link := (p_config->>'appUrl') || '/practice/register/' || job.credential_id::text;\n    body := 'A credential renewal needs attention. This reminder was scheduled 60 days before its due date. ' ||\n        case when context->>'datePurpose' = 'action-deadline' then 'Action deadline: ' else 'End date: ' end ||\n        to_char(job.due_date, 'YYYY-MM-DD') || E'.\\nSign in to review the record: ' || link ||\n        E'\\nThese dates were entered by your practice. Review requirements with the issuer.\\nManage reminder emails: ' ||\n        (p_config->>'appUrl') || '/practice/reminders';\n    payload := jsonb_build_object('from', p_config->>'from', 'to', jsonb_build_array(endpoint.email),\n        'reply_to', p_config->>'replyTo', 'subject', 'Credential renewal reminder: 60 days', 'text', body,\n        'html', '<p>A credential renewal needs attention. This reminder was scheduled 60 days before its due date.</p><p>' ||\n            case when context->>'datePurpose' = 'action-deadline' then 'Action deadline: ' else 'End date: ' end ||\n            to_char(job.due_date, 'YYYY-MM-DD') || '.</p><p><a href=\"' || link || '\">Sign in to review the record</a></p>' ||\n            '<p>These dates were entered by your practice. Review requirements with the issuer.</p><p><a href=\"' ||\n            (p_config->>'appUrl') || '/practice/reminders\">Manage reminder emails</a></p>',\n        'tags', jsonb_build_array(jsonb_build_object('name','reminder_attempt','value',attempt.id::text)));\n    insert into private.reminder_message_attempts (id, practice_id, job_id, cycle_id, user_id, token,\n        endpoint_id, provider_namespace, payload, started_at, deadline)\n    values (attempt.id, job.practice_id, job.id, job.cycle_id, job.user_id, attempt.token,\n        endpoint.id, namespace, payload, p_now, p_now + interval '30 seconds') on conflict (cycle_id, user_id, channel) do nothing;\n    if not found then return '{\"status\":\"consumed\"}'::jsonb; end if;\n    update private.reminder_jobs set state = 'submitting', claim_token = null, claim_until = null, updated_at = p_now where id = job.id;\n    insert into private.reminder_job_events (practice_id, job_id, operation) values (job.practice_id, job.id, 'begin-submit');\n    return jsonb_build_object('status','submit', 'attemptId', attempt.id, 'token', attempt.token,\n        'payload', payload, 'key', 'reminder-email/' || attempt.id::text);\nexception when lock_not_available then return '{\"status\":\"busy\"}'::jsonb;\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.begin_email_reminder_at(p_job_id uuid, p_claim_token uuid, p_config jsonb, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare job private.reminder_jobs; context jsonb; endpoint private.reminder_email_endpoints;\n    attempt private.reminder_message_attempts; namespace text := p_config->>'namespace'; payload jsonb; link text; body text; introduction text; urgency text; subject text;\nbegin\n    -- No arbitrary destination/message input. Only constrained server configuration is accepted.\n    if jsonb_typeof(p_config) is distinct from 'object' then return '{\"status\":\"invalid\"}'::jsonb; end if;\n    if exists (select 1 from jsonb_each_text(p_config) where value is null or char_length(value) > 512)\n        or (select count(*) from jsonb_object_keys(p_config)) <> 4\n        or not (p_config ?& array['namespace','from','replyTo','appUrl'])\n        or namespace !~ '^[a-zA-Z0-9_-]{1,80}$'\n        or p_config->>'from' !~ '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9.-]+$'\n        or p_config->>'replyTo' !~ '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9.-]+$'\n        or p_config->>'appUrl' !~ '^https://[a-zA-Z0-9.-]+(:[0-9]+)?$|^http://127[.]0[.]0[.]1:3000$'\n        then return '{\"status\":\"invalid\"}'::jsonb; end if;\n    select * into job from private.reminder_jobs where id = p_job_id;\n    if not found or not private.lock_email_recipient(job.practice_id) then return '{\"status\":\"unavailable\"}'::jsonb; end if;\n    select * into endpoint from private.reminder_email_endpoints where id = job.endpoint_id for update nowait;\n    select * into job from private.reminder_jobs where id = p_job_id for update nowait;\n    if job.state <> 'claimed' or job.claim_token is distinct from p_claim_token or job.claim_until <= p_now then\n        return '{\"status\":\"stale\"}'::jsonb;\n    end if;\n    context := private.email_reminder_context(job.practice_id, job.credential_id, namespace, p_now);\n    if context is null or context->>'reason' is not null\n        or (context->>'cycleId')::uuid <> job.cycle_id or (context->>'dateRevision')::integer <> job.date_revision\n        or (context->>'membershipId')::uuid <> job.membership_id or (context->>'userId')::uuid <> job.user_id\n        or (context->>'selectionVersion')::integer <> job.selection_version\n        or (context->>'accountRevision')::bigint <> job.account_revision\n        or (context->>'preferenceVersion')::integer <> job.preference_version\n        or (context->>'endpointId')::uuid is distinct from job.endpoint_id\n        or (context->>'endpointEpoch')::bigint is distinct from job.endpoint_epoch\n        or endpoint.suppressed or endpoint.provider_namespace <> namespace\n        or endpoint.email is distinct from context->>'email'\n        or (context->>'target')::timestamptz is distinct from job.nominal_target\n        or context->>'scheduleKind' is distinct from job.schedule_kind\n        or (context->>'dispatchTarget')::timestamptz is distinct from job.dispatch_target\n        or context->>'timezone' <> job.timezone\n        or job.next_send_at > p_now then\n        update private.reminder_jobs set state = 'canceled', reason = coalesce(context->>'reason', 'eligibility-changed'),\n            claim_token = null, claim_until = null, invalidated_at = p_now, updated_at = p_now where id = job.id;\n        return '{\"status\":\"stale\"}'::jsonb;\n    end if;\n    if private.reminder_next_window(job.dispatch_target, job.timezone, p_now) > p_now then\n        update private.reminder_jobs set state = 'queued', claim_token = null, claim_until = null,\n            next_send_at = private.reminder_next_window(job.dispatch_target, job.timezone, p_now), updated_at = p_now where id = job.id;\n        return '{\"status\":\"window-closed\"}'::jsonb;\n    end if;\n    attempt.id := gen_random_uuid(); attempt.token := gen_random_uuid();\n    link := (p_config->>'appUrl') || '/practice/register/' || job.credential_id::text;\n    introduction := case when job.schedule_kind = 'catch-up' then\n        'A credential renewal needs attention. Record details or reminder setup became eligible after the ordinary reminder target.'\n        else 'A credential renewal needs attention. This reminder was scheduled 60 days before its due date.' end;\n    subject := case when job.schedule_kind = 'catch-up' then 'Credential renewal catch-up reminder'\n        else 'Credential renewal reminder: 60 days' end;\n    urgency := case when job.due_date < (p_now at time zone job.timezone)::date then 'This renewal is past due.'\n        when job.due_date = (p_now at time zone job.timezone)::date then 'This renewal is due today.'\n        else 'This renewal is due on ' || to_char(job.due_date, 'YYYY-MM-DD') || '.' end;\n    body := introduction || ' ' || urgency || ' ' ||\n        case when context->>'datePurpose' = 'action-deadline' then 'Action deadline: ' else 'End date: ' end ||\n        to_char(job.due_date, 'YYYY-MM-DD') || E'.\\nSign in to review the record: ' || link ||\n        E'\\nThese dates were entered by your practice. Review requirements with the issuer.\\nManage reminder emails: ' ||\n        (p_config->>'appUrl') || '/practice/reminders';\n    payload := jsonb_build_object('from', p_config->>'from', 'to', jsonb_build_array(endpoint.email),\n        'reply_to', p_config->>'replyTo', 'subject', subject, 'text', body,\n        'html', '<p>' || introduction || '</p><p>' || urgency || '</p><p>' ||\n            case when context->>'datePurpose' = 'action-deadline' then 'Action deadline: ' else 'End date: ' end ||\n            to_char(job.due_date, 'YYYY-MM-DD') || '.</p><p><a href=\"' || link || '\">Sign in to review the record</a></p>' ||\n            '<p>These dates were entered by your practice. Review requirements with the issuer.</p><p><a href=\"' ||\n            (p_config->>'appUrl') || '/practice/reminders\">Manage reminder emails</a></p>',\n        'tags', jsonb_build_array(jsonb_build_object('name','reminder_attempt','value',attempt.id::text)));\n    insert into private.reminder_message_attempts (id, practice_id, job_id, cycle_id, user_id, token,\n        endpoint_id, provider_namespace, payload, started_at, deadline, schedule_kind, nominal_target, dispatch_target)\n    values (attempt.id, job.practice_id, job.id, job.cycle_id, job.user_id, attempt.token,\n        endpoint.id, namespace, payload, p_now, p_now + interval '30 seconds', job.schedule_kind, job.nominal_target, job.dispatch_target) on conflict (cycle_id, user_id, channel) do nothing;\n    if not found then return '{\"status\":\"consumed\"}'::jsonb; end if;\n    update private.reminder_jobs set state = 'submitting', claim_token = null, claim_until = null, updated_at = p_now where id = job.id;\n    insert into private.reminder_job_events (practice_id, job_id, operation) values (job.practice_id, job.id, 'begin-submit');\n    return jsonb_build_object('status','submit', 'attemptId', attempt.id, 'token', attempt.token,\n        'payload', payload, 'key', 'reminder-email/' || attempt.id::text);\nexception when lock_not_available then return '{\"status\":\"busy\"}'::jsonb;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -2463,7 +2503,7 @@
     {
       "nspname": "private",
       "proname": "claim_email_reminder_at",
-      "definition": "CREATE OR REPLACE FUNCTION private.claim_email_reminder_at(p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare candidate record; job private.reminder_jobs; token uuid := gen_random_uuid();\nbegin\n    for candidate in select id, practice_id, endpoint_id from private.reminder_jobs\n        where state in ('queued', 'claimed') and next_send_at <= p_now\n            and (state = 'queued' or claim_until <= p_now) order by next_send_at, id limit 100 loop\n        if not private.lock_email_recipient(candidate.practice_id) then continue; end if;\n        perform 1 from private.reminder_email_endpoints where id = candidate.endpoint_id for update nowait;\n        select * into job from private.reminder_jobs where id = candidate.id for update skip locked;\n        if not found or job.state not in ('queued', 'claimed') or job.next_send_at > p_now\n            or (job.state = 'claimed' and job.claim_until > p_now) then continue; end if;\n        if private.reminder_next_window(job.nominal_target, job.timezone, p_now) > p_now then\n            update private.reminder_jobs set state = 'queued', claim_token = null, claim_until = null,\n                next_send_at = private.reminder_next_window(job.nominal_target, job.timezone, p_now), updated_at = p_now where id = job.id;\n            continue;\n        end if;\n        update private.reminder_jobs set state = 'claimed', claim_token = token, claim_until = p_now + interval '30 seconds', updated_at = p_now\n        where id = job.id;\n        return jsonb_build_object('jobId', job.id, 'token', token);\n    end loop;\n    return null;\nexception when lock_not_available then return null;\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.claim_email_reminder_at(p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare candidate record; job private.reminder_jobs; token uuid := gen_random_uuid();\nbegin\n    for candidate in select id, practice_id, endpoint_id from private.reminder_jobs\n        where state in ('queued', 'claimed') and next_send_at <= p_now\n            and (state = 'queued' or claim_until <= p_now) order by next_send_at, id limit 100 loop\n        if not private.lock_email_recipient(candidate.practice_id) then continue; end if;\n        perform 1 from private.reminder_email_endpoints where id = candidate.endpoint_id for update nowait;\n        select * into job from private.reminder_jobs where id = candidate.id for update skip locked;\n        if not found or job.state not in ('queued', 'claimed') or job.next_send_at > p_now\n            or (job.state = 'claimed' and job.claim_until > p_now) then continue; end if;\n        if private.reminder_next_window(job.dispatch_target, job.timezone, p_now) is null then\n            update private.reminder_jobs set state = 'blocked', reason = 'invalid-target', claim_token = null, claim_until = null where id = job.id;\n            continue;\n        end if;\n        if private.reminder_next_window(job.dispatch_target, job.timezone, p_now) > p_now then\n            update private.reminder_jobs set state = 'queued', claim_token = null, claim_until = null,\n                next_send_at = private.reminder_next_window(job.dispatch_target, job.timezone, p_now), updated_at = p_now where id = job.id;\n            continue;\n        end if;\n        update private.reminder_jobs set state = 'claimed', claim_token = token, claim_until = p_now + interval '30 seconds', updated_at = p_now\n        where id = job.id;\n        return jsonb_build_object('jobId', job.id, 'token', token);\n    end loop;\n    return null;\nexception when lock_not_available then return null;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -2589,7 +2629,7 @@
     {
       "nspname": "private",
       "proname": "email_reminder_context",
-      "definition": "CREATE OR REPLACE FUNCTION private.email_reminder_context(p_practice_id uuid, p_credential_id uuid, p_namespace text, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    practice public.practices; credential public.credentials; cycle public.credential_cycles;\n    settings private.practice_reminder_settings; member public.practice_memberships;\n    account private.reminder_email_account_state; pref private.reminder_email_preferences;\n    endpoint private.reminder_email_endpoints; confirmed timestamptz; address text;\n    due date; target timestamptz; onset timestamptz; zone_changed timestamptz; reason text;\nbegin\n    select * into practice from public.practices where id = p_practice_id;\n    select * into credential from public.credentials where practice_id = p_practice_id and id = p_credential_id;\n    select * into cycle from public.credential_cycles where practice_id = p_practice_id and credential_id = p_credential_id\n    order by cycle_number desc limit 1;\n    if credential.id is null or cycle.id is null then return null; end if;\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    select * into member from public.practice_memberships where practice_id = p_practice_id and id = settings.membership_id;\n    if member.id is null then return null; end if;\n    select * into account from private.reminder_email_account_state where user_id = member.user_id;\n    select lower(trim(email)), email_confirmed_at into address, confirmed from auth.users where id = member.user_id;\n    select * into pref from private.reminder_email_preferences where practice_id = p_practice_id and user_id = member.user_id;\n    select * into endpoint from private.reminder_email_endpoints where provider_namespace = p_namespace and email = address;\n    select max(occurred_at) into zone_changed from private.practice_audit_events\n    where practice_id = p_practice_id and before_timezone is distinct from after_timezone;\n    due := coalesce(cycle.action_deadline, cycle.end_date);\n    target := private.reminder_target(due, practice.timezone);\n    onset := greatest(cycle.updated_at, settings.updated_at, account.eligible_since, pref.eligible_since, zone_changed);\n    reason := case\n        when credential.archived_at is not null then 'archived'\n        when cycle.completed_at is not null then 'cycle-completed'\n        when member.state <> 'active' or member.role not in ('administrator', 'manager') then 'member-unavailable'\n        when confirmed is null or address is null or account.email is null then 'email-unconfirmed'\n        when pref.enabled is false then 'email-disabled'\n        when endpoint.suppressed then 'email-suppressed'\n        when due is null then 'missing-date'\n        when target is null then 'invalid-target'\n        when exists (select 1 from private.reminder_message_attempts a\n            where a.cycle_id = cycle.id and a.user_id = member.user_id and a.channel = 'email') then 'already-attempted'\n        when onset > target then 'catch-up-unavailable'\n        else null end;\n    return jsonb_build_object('practiceId', p_practice_id, 'credentialId', p_credential_id, 'cycleId', cycle.id,\n        'dateRevision', cycle.date_revision, 'membershipId', member.id, 'userId', member.user_id,\n        'selectionVersion', settings.version, 'accountRevision', account.revision,\n        'preferenceVersion', coalesce(pref.version, 1), 'email', address, 'timezone', practice.timezone,\n        'dueDate', due, 'datePurpose', case when cycle.action_deadline is not null then 'action-deadline' else 'end-date' end,\n        'target', target, 'eligibleSince', onset, 'endpointId', endpoint.id, 'endpointEpoch', endpoint.epoch,\n        'nextSendAt', private.reminder_next_window(target, practice.timezone, p_now), 'reason', reason);\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.email_reminder_context(p_practice_id uuid, p_credential_id uuid, p_namespace text, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    practice public.practices; credential public.credentials; cycle public.credential_cycles;\n    settings private.practice_reminder_settings; member public.practice_memberships;\n    account private.reminder_email_account_state; pref private.reminder_email_preferences;\n    endpoint private.reminder_email_endpoints; confirmed timestamptz; address text;\n    due date; target timestamptz; onset timestamptz; zone_changed timestamptz; reason text; kind text; dispatch timestamptz; next_send timestamptz;\nbegin\n    select * into practice from public.practices where id = p_practice_id;\n    select * into credential from public.credentials where practice_id = p_practice_id and id = p_credential_id;\n    select * into cycle from public.credential_cycles where practice_id = p_practice_id and credential_id = p_credential_id\n    order by cycle_number desc limit 1;\n    if credential.id is null or cycle.id is null then return null; end if;\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    select * into member from public.practice_memberships where practice_id = p_practice_id and id = settings.membership_id;\n    if member.id is null then return null; end if;\n    select * into account from private.reminder_email_account_state where user_id = member.user_id;\n    select lower(trim(email)), email_confirmed_at into address, confirmed from auth.users where id = member.user_id;\n    select * into pref from private.reminder_email_preferences where practice_id = p_practice_id and user_id = member.user_id;\n    select * into endpoint from private.reminder_email_endpoints where provider_namespace = p_namespace and email = address;\n    select max(occurred_at) into zone_changed from private.practice_audit_events\n    where practice_id = p_practice_id and before_timezone is distinct from after_timezone;\n    due := coalesce(cycle.action_deadline, cycle.end_date);\n    target := private.reminder_target(due, practice.timezone);\n    onset := greatest(cycle.updated_at, settings.updated_at, account.eligible_since, pref.eligible_since, zone_changed);\n    kind := case when onset > target then 'catch-up' else 'normal' end;\n    dispatch := case when kind = 'catch-up' then private.reminder_next_window(onset, practice.timezone, onset) else target end;\n    next_send := private.reminder_next_window(dispatch, practice.timezone, p_now);\n    reason := case\n        when credential.archived_at is not null then 'archived'\n        when cycle.completed_at is not null then 'cycle-completed'\n        when member.state <> 'active' or member.role not in ('administrator', 'manager') then 'member-unavailable'\n        when confirmed is null or address is null or account.email is null then 'email-unconfirmed'\n        when pref.enabled is false then 'email-disabled'\n        when endpoint.suppressed then 'email-suppressed'\n        when due is null then 'missing-date'\n        when target is null or dispatch is null or next_send is null then 'invalid-target'\n        when exists (select 1 from private.reminder_message_attempts a\n            where a.cycle_id = cycle.id and a.user_id = member.user_id and a.channel = 'email') then 'already-attempted'\n        else null end;\n    return jsonb_build_object('practiceId', p_practice_id, 'credentialId', p_credential_id, 'cycleId', cycle.id,\n        'dateRevision', cycle.date_revision, 'membershipId', member.id, 'userId', member.user_id,\n        'selectionVersion', settings.version, 'accountRevision', account.revision,\n        'preferenceVersion', coalesce(pref.version, 1), 'email', address, 'timezone', practice.timezone,\n        'dueDate', due, 'datePurpose', case when cycle.action_deadline is not null then 'action-deadline' else 'end-date' end,\n        'target', target, 'eligibleSince', onset, 'endpointId', endpoint.id, 'endpointEpoch', endpoint.epoch,\n        'scheduleKind', kind, 'dispatchTarget', dispatch, 'nextSendAt', next_send, 'reason', reason);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -2632,6 +2672,12 @@
       "nspname": "private",
       "proname": "get_email_reminder_schedule",
       "definition": "CREATE OR REPLACE FUNCTION private.get_email_reminder_schedule(p_practice_id uuid, p_namespace text, p_after uuid DEFAULT NULL::uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET statement_timeout TO '5s'\nAS $function$\ndeclare rows jsonb; last_id uuid; has_more boolean; health timestamptz; settings private.practice_reminder_settings;\n    readiness text; selected_user uuid; pref private.reminder_email_preferences; selected_email text; confirmed timestamptz;\nbegin\n    perform private.require_recipient_member(p_practice_id, false);\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    select m.user_id into selected_user from public.practice_memberships m\n    where m.practice_id = p_practice_id and m.id = settings.membership_id and m.state = 'active' and m.role in ('administrator','manager');\n    select lower(trim(u.email)), u.email_confirmed_at into selected_email, confirmed from auth.users u where u.id = selected_user;\n    select * into pref from private.reminder_email_preferences where practice_id = p_practice_id and user_id = selected_user;\n    readiness := case when settings.membership_id is null then 'no-recipient'\n        when selected_user is null then 'member-unavailable' when confirmed is null or selected_email is null then 'email-unconfirmed'\n        when pref.enabled is false then 'email-disabled'\n        when exists (select 1 from private.reminder_email_endpoints e where e.provider_namespace = p_namespace and e.email = selected_email and e.suppressed) then 'email-suppressed'\n        else 'ready' end;\n    with page as (\n        select c.id, c.title, cy.id cycle_id, coalesce(cy.action_deadline,cy.end_date) due,\n            case when cy.action_deadline is not null then 'action-deadline' else 'end-date' end purpose,\n            p.timezone, private.reminder_target(coalesce(cy.action_deadline,cy.end_date),p.timezone) target,\n            j.state, j.reason, j.next_send_at, a.delivery, a.outcome,\n            c.archived_at, cy.completed_at\n        from public.credentials c join public.practices p on p.id = c.practice_id\n        join lateral (select * from public.credential_cycles where practice_id = c.practice_id and credential_id = c.id order by cycle_number desc limit 1) cy on true\n        left join lateral (select * from private.reminder_jobs where practice_id = c.practice_id and credential_id = c.id\n            and cycle_id = cy.id and membership_id = settings.membership_id order by date_revision desc limit 1) j on true\n        left join private.reminder_message_attempts a on a.cycle_id = cy.id and a.user_id = selected_user and a.channel = 'email'\n        where c.practice_id = p_practice_id and (p_after is null or c.id > p_after) order by c.id limit 100\n    ) select coalesce(jsonb_agg(jsonb_build_object('id',id,'title',title,'cycleId',cycle_id,'dueDate',due,'datePurpose',purpose,\n        'timezone',timezone,'target',target,'nextSendAt',next_send_at,'state',coalesce(outcome,state,'pending'),\n        'delivery',delivery,'reason',case when archived_at is not null then 'archived' when completed_at is not null then 'cycle-completed'\n            when readiness <> 'ready' then readiness when due is null then 'missing-date' else reason end) order by id),'[]'::jsonb),\n        (array_agg(id order by id desc))[1] into rows,last_id from page;\n    select exists (select 1 from public.credentials where practice_id = p_practice_id and id > last_id) into has_more;\n    select max(finished_at) into health from private.reminder_worker_runs where success;\n    return jsonb_build_object('rows',rows,'nextCursor',case when has_more then last_id end,'emailReadiness',readiness,\n        'smsOptional',true,'lastSuccessAt',health,\n        'oldestDueAt',(select min(next_send_at) from private.reminder_jobs where practice_id = p_practice_id and state in ('queued','claimed')),\n        'preference',private.get_my_email_reminder_preference(p_practice_id));\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "get_email_reminder_schedule_v2",
+      "definition": "CREATE OR REPLACE FUNCTION private.get_email_reminder_schedule_v2(p_practice_id uuid, p_namespace text, p_after uuid DEFAULT NULL::uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET statement_timeout TO '5s'\nAS $function$\ndeclare rows jsonb; last_id uuid; has_more boolean; health timestamptz; settings private.practice_reminder_settings;\n    readiness text; selected_user uuid; pref private.reminder_email_preferences; selected_email text; confirmed timestamptz;\nbegin\n    perform private.require_recipient_member(p_practice_id, false);\n    select * into settings from private.practice_reminder_settings where practice_id = p_practice_id;\n    select m.user_id into selected_user from public.practice_memberships m\n    where m.practice_id = p_practice_id and m.id = settings.membership_id and m.state = 'active' and m.role in ('administrator','manager');\n    select lower(trim(u.email)), u.email_confirmed_at into selected_email, confirmed from auth.users u where u.id = selected_user;\n    select * into pref from private.reminder_email_preferences where practice_id = p_practice_id and user_id = selected_user;\n    readiness := case when settings.membership_id is null then 'no-recipient'\n        when selected_user is null then 'member-unavailable' when confirmed is null or selected_email is null then 'email-unconfirmed'\n        when pref.enabled is false then 'email-disabled'\n        when exists (select 1 from private.reminder_email_endpoints e where e.provider_namespace = p_namespace and e.email = selected_email and e.suppressed) then 'email-suppressed'\n        else 'ready' end;\n    with page as (\n        select c.id, c.title, cy.id cycle_id, coalesce(cy.action_deadline,cy.end_date) due,\n            case when cy.action_deadline is not null then 'action-deadline' else 'end-date' end purpose,\n            coalesce(sent.timezone, p.timezone) timezone, coalesce(a.nominal_target, private.reminder_target(coalesce(cy.action_deadline,cy.end_date),p.timezone)) target,\n            coalesce(a.schedule_kind, j.schedule_kind) schedule_kind, coalesce(a.dispatch_target, j.dispatch_target) dispatch_target,\n            j.state, j.reason, j.next_send_at, a.delivery, a.outcome,\n            c.archived_at, cy.completed_at\n        from public.credentials c join public.practices p on p.id = c.practice_id\n        join lateral (select * from public.credential_cycles where practice_id = c.practice_id and credential_id = c.id order by cycle_number desc limit 1) cy on true\n        left join lateral (select * from private.reminder_jobs where practice_id = c.practice_id and credential_id = c.id\n            and cycle_id = cy.id and date_revision = cy.date_revision and invalidated_at is null\n            and membership_id = settings.membership_id order by date_revision desc limit 1) j on true\n        left join private.reminder_message_attempts a on a.cycle_id = cy.id and a.user_id = selected_user and a.channel = 'email'\n        left join private.reminder_jobs sent on sent.id = a.job_id and sent.practice_id = c.practice_id\n        where c.practice_id = p_practice_id and (p_after is null or c.id > p_after) order by c.id limit 100\n    ) select coalesce(jsonb_agg(jsonb_build_object('id',id,'title',title,'cycleId',cycle_id,'dueDate',due,'datePurpose',purpose,\n        'timezone',timezone,'target',target,'scheduleKind',schedule_kind,'dispatchTarget',dispatch_target,'nextSendAt',next_send_at,'state',coalesce(outcome,state,'pending'),\n        'delivery',delivery,'reason',case when archived_at is not null then 'archived' when completed_at is not null then 'cycle-completed'\n            when readiness <> 'ready' then readiness when due is null then 'missing-date' else reason end) order by id),'[]'::jsonb),\n        (array_agg(id order by id desc))[1] into rows,last_id from page;\n    select exists (select 1 from public.credentials where practice_id = p_practice_id and id > last_id) into has_more;\n    select max(finished_at) into health from private.reminder_worker_runs where success;\n    return jsonb_build_object('rows',rows,'nextCursor',case when has_more then last_id end,'emailReadiness',readiness,\n        'smsOptional',true,'lastSuccessAt',health,\n        'oldestDueAt',(select min(next_send_at) from private.reminder_jobs where practice_id = p_practice_id and state in ('queued','claimed')),\n        'preference',private.get_my_email_reminder_preference(p_practice_id));\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -2751,7 +2797,7 @@
     {
       "nspname": "private",
       "proname": "reconcile_email_reminders_at",
-      "definition": "CREATE OR REPLACE FUNCTION private.reconcile_email_reminders_at(p_namespace text, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare candidate record; outbox private.reminder_reconcile_outbox; row record; context jsonb;\n    endpoint private.reminder_email_endpoints; last_id uuid; scanned integer := 0; account_count integer;\nbegin\n    if p_namespace is null or p_namespace !~ '^[a-zA-Z0-9_-]{1,80}$' then raise exception 'invalid namespace'; end if;\n    account_count := 0;\n    for candidate in select practice_id from private.reminder_reconcile_outbox order by updated_at, practice_id limit 10 loop\n        if not private.lock_email_recipient(candidate.practice_id) then continue; end if;\n        select * into outbox from private.reminder_reconcile_outbox where practice_id = candidate.practice_id;\n        if not found then continue; end if;\n        last_id := outbox.cursor_id;\n        for row in select id from public.credentials where practice_id = candidate.practice_id\n            and (outbox.cursor_id is null or id > outbox.cursor_id) order by id limit 100 loop\n            scanned := scanned + 1;\n            last_id := row.id;\n            context := private.email_reminder_context(candidate.practice_id, row.id, p_namespace, p_now);\n            if context is null then continue; end if;\n            if context->>'email' is not null then\n                insert into private.reminder_email_endpoints (provider_namespace, email)\n                values (p_namespace, context->>'email') on conflict do nothing;\n                select * into endpoint from private.reminder_email_endpoints\n                where provider_namespace = p_namespace and email = context->>'email' for update nowait;\n                context := private.email_reminder_context(candidate.practice_id, row.id, p_namespace, p_now);\n            else endpoint := null; end if;\n            insert into private.reminder_jobs (practice_id, credential_id, cycle_id, date_revision, membership_id,\n                user_id, due_date, timezone, nominal_target, next_send_at, eligible_since, selection_version,\n                account_revision, preference_version, endpoint_id, endpoint_epoch, state, reason)\n            values (candidate.practice_id, row.id, (context->>'cycleId')::uuid, (context->>'dateRevision')::integer,\n                (context->>'membershipId')::uuid, (context->>'userId')::uuid, (context->>'dueDate')::date,\n                context->>'timezone', (context->>'target')::timestamptz, (context->>'nextSendAt')::timestamptz,\n                (context->>'eligibleSince')::timestamptz, (context->>'selectionVersion')::integer,\n                (context->>'accountRevision')::bigint, (context->>'preferenceVersion')::integer,\n                endpoint.id, endpoint.epoch, case when context->>'reason' is null then 'queued' else 'blocked' end, context->>'reason')\n            on conflict (cycle_id, date_revision, membership_id, lead_days, channel) do update\n            set due_date = excluded.due_date, timezone = excluded.timezone, nominal_target = excluded.nominal_target,\n                next_send_at = excluded.next_send_at, eligible_since = excluded.eligible_since,\n                selection_version = excluded.selection_version, account_revision = excluded.account_revision,\n                preference_version = excluded.preference_version, endpoint_id = excluded.endpoint_id, endpoint_epoch = excluded.endpoint_epoch,\n                state = excluded.state, reason = excluded.reason, claim_token = null, claim_until = null,\n                invalidated_at = null, updated_at = p_now\n            where reminder_jobs.state in ('blocked', 'queued', 'canceled')\n                and not exists (select 1 from private.reminder_message_attempts a where a.cycle_id = excluded.cycle_id and a.user_id = excluded.user_id);\n        end loop;\n        -- Domain mutations hold the same practice lock and reset this cursor/generation.\n        if exists (select 1 from public.credentials where practice_id = candidate.practice_id and id > last_id) then\n            update private.reminder_reconcile_outbox set cursor_id = last_id, updated_at = p_now where practice_id = candidate.practice_id and generation = outbox.generation;\n        else\n            delete from private.reminder_reconcile_outbox where practice_id = candidate.practice_id and generation = outbox.generation;\n        end if;\n        return jsonb_build_object('scanned', scanned, 'accounts', account_count);\n    end loop;\n    return jsonb_build_object('scanned', 0, 'accounts', account_count);\nexception when lock_not_available then return jsonb_build_object('scanned', 0, 'accounts', 0, 'busy', true);\nend;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.reconcile_email_reminders_at(p_namespace text, p_now timestamp with time zone)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare candidate record; outbox private.reminder_reconcile_outbox; row record; context jsonb;\n    endpoint private.reminder_email_endpoints; last_id uuid; scanned integer := 0; account_count integer; previous private.reminder_jobs; scheduled_job_id uuid; announce boolean;\nbegin\n    if p_namespace is null or p_namespace !~ '^[a-zA-Z0-9_-]{1,80}$' then raise exception 'invalid namespace'; end if;\n    account_count := 0;\n    for candidate in select practice_id from private.reminder_reconcile_outbox order by updated_at, practice_id limit 10 loop\n        if not private.lock_email_recipient(candidate.practice_id) then continue; end if;\n        select * into outbox from private.reminder_reconcile_outbox where practice_id = candidate.practice_id;\n        if not found then continue; end if;\n        last_id := outbox.cursor_id;\n        for row in select id from public.credentials where practice_id = candidate.practice_id\n            and (outbox.cursor_id is null or id > outbox.cursor_id) order by id limit 100 loop\n            scanned := scanned + 1;\n            last_id := row.id;\n            context := private.email_reminder_context(candidate.practice_id, row.id, p_namespace, p_now);\n            if context is null then continue; end if;\n            if context->>'email' is not null then\n                insert into private.reminder_email_endpoints (provider_namespace, email)\n                values (p_namespace, context->>'email') on conflict do nothing;\n                select * into endpoint from private.reminder_email_endpoints\n                where provider_namespace = p_namespace and email = context->>'email' for update nowait;\n                context := private.email_reminder_context(candidate.practice_id, row.id, p_namespace, p_now);\n            else endpoint := null; end if;\n            select * into previous from private.reminder_jobs\n            where cycle_id = (context->>'cycleId')::uuid and date_revision = (context->>'dateRevision')::integer\n                and membership_id = (context->>'membershipId')::uuid and lead_days = 60 and channel = 'email';\n            announce := context->>'scheduleKind' = 'catch-up' and context->>'reason' is null\n                and (previous.id is null or previous.schedule_kind <> 'catch-up'\n                    or previous.dispatch_target is distinct from (context->>'dispatchTarget')::timestamptz\n                    or previous.selection_version is distinct from (context->>'selectionVersion')::integer\n                    or previous.account_revision is distinct from (context->>'accountRevision')::bigint\n                    or previous.preference_version is distinct from (context->>'preferenceVersion')::integer\n                    or previous.timezone is distinct from context->>'timezone');\n            insert into private.reminder_jobs (practice_id, credential_id, cycle_id, date_revision, membership_id,\n                user_id, due_date, timezone, nominal_target, next_send_at, eligible_since, selection_version,\n                account_revision, preference_version, endpoint_id, endpoint_epoch, schedule_kind, dispatch_target, state, reason)\n            values (candidate.practice_id, row.id, (context->>'cycleId')::uuid, (context->>'dateRevision')::integer,\n                (context->>'membershipId')::uuid, (context->>'userId')::uuid, (context->>'dueDate')::date,\n                context->>'timezone', (context->>'target')::timestamptz, (context->>'nextSendAt')::timestamptz,\n                (context->>'eligibleSince')::timestamptz, (context->>'selectionVersion')::integer,\n                (context->>'accountRevision')::bigint, (context->>'preferenceVersion')::integer,\n                endpoint.id, endpoint.epoch, context->>'scheduleKind', (context->>'dispatchTarget')::timestamptz, case when context->>'reason' is null then 'queued' else 'blocked' end, context->>'reason')\n            on conflict (cycle_id, date_revision, membership_id, lead_days, channel) do update\n            set due_date = excluded.due_date, timezone = excluded.timezone, nominal_target = excluded.nominal_target,\n                next_send_at = excluded.next_send_at, eligible_since = excluded.eligible_since,\n                schedule_kind = excluded.schedule_kind, dispatch_target = excluded.dispatch_target,\n                selection_version = excluded.selection_version, account_revision = excluded.account_revision,\n                preference_version = excluded.preference_version, endpoint_id = excluded.endpoint_id, endpoint_epoch = excluded.endpoint_epoch,\n                state = excluded.state, reason = excluded.reason, claim_token = null, claim_until = null,\n                invalidated_at = null, updated_at = p_now\n            where reminder_jobs.state in ('blocked', 'queued', 'canceled')\n                and not exists (select 1 from private.reminder_message_attempts a where a.cycle_id = excluded.cycle_id and a.user_id = excluded.user_id)\n            returning id into scheduled_job_id;\n            if scheduled_job_id is not null and announce then\n                insert into private.reminder_job_events (practice_id, job_id, operation)\n                values (candidate.practice_id, scheduled_job_id, 'catch-up-scheduled');\n            end if;\n        end loop;\n        -- Domain mutations hold the same practice lock and reset this cursor/generation.\n        if exists (select 1 from public.credentials where practice_id = candidate.practice_id and id > last_id) then\n            update private.reminder_reconcile_outbox set cursor_id = last_id, updated_at = p_now where practice_id = candidate.practice_id and generation = outbox.generation;\n        else\n            delete from private.reminder_reconcile_outbox where practice_id = candidate.practice_id and generation = outbox.generation;\n        end if;\n        return jsonb_build_object('scanned', scanned, 'accounts', account_count);\n    end loop;\n    return jsonb_build_object('scanned', 0, 'accounts', account_count);\nexception when lock_not_available then return jsonb_build_object('scanned', 0, 'accounts', 0, 'busy', true);\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -2805,13 +2851,19 @@
     {
       "nspname": "private",
       "proname": "reminder_next_window",
-      "definition": "CREATE OR REPLACE FUNCTION private.reminder_next_window(p_target timestamp with time zone, p_zone text, p_now timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n    select case when p_target >= p_now then p_target\n        when (p_now at time zone p_zone)::time < time '09:00' then\n            ((p_now at time zone p_zone)::date + time '09:00') at time zone p_zone\n        when (p_now at time zone p_zone)::time >= time '17:00' then\n            ((p_now at time zone p_zone)::date + 1 + time '09:00') at time zone p_zone\n        else p_now end;\n$function$\n",
+      "definition": "CREATE OR REPLACE FUNCTION private.reminder_next_window(p_target timestamp with time zone, p_zone text, p_now timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n    select private.reminder_valid_window(p_target, p_zone, p_now);\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
       "nspname": "private",
       "proname": "reminder_target",
       "definition": "CREATE OR REPLACE FUNCTION private.reminder_target(p_date date, p_timezone text)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare local_target timestamp; target timestamptz;\nbegin\n    if p_date is null or p_date < date '0001-03-02' or p_date > date '9999-12-31' then return null; end if;\n    local_target := p_date - 60 + time '09:00';\n    target := local_target at time zone p_timezone;\n    if target at time zone p_timezone <> local_target then return null; end if;\n    return target;\nend;\n$function$\n",
+      "privileges": "{postgres=X/postgres}"
+    },
+    {
+      "nspname": "private",
+      "proname": "reminder_valid_window",
+      "definition": "CREATE OR REPLACE FUNCTION private.reminder_valid_window(p_target timestamp with time zone, p_zone text, p_now timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare anchor timestamptz; local_anchor timestamp; day date; local_candidate timestamp;\n    candidate timestamptz; offset_day integer;\nbegin\n    if p_target is null or p_now is null then return null; end if;\n    anchor := greatest(p_target, p_now);\n    local_anchor := anchor at time zone p_zone;\n    if local_anchor::date < date '0001-01-01' or local_anchor::date > date '9999-12-31' then return null; end if;\n    if local_anchor::time >= time '09:00' and local_anchor::time < time '17:00' then return anchor; end if;\n    day := local_anchor::date + case when local_anchor::time >= time '17:00' then 1 else 0 end;\n    for offset_day in 0..7 loop\n        if day + offset_day > date '9999-12-31' then return null; end if;\n        local_candidate := day + offset_day + time '09:00';\n        candidate := local_candidate at time zone p_zone;\n        if candidate >= anchor and candidate at time zone p_zone = local_candidate then return candidate; end if;\n    end loop;\n    return null;\nend;\n$function$\n",
       "privileges": "{postgres=X/postgres}"
     },
     {
@@ -3040,6 +3092,12 @@
       "nspname": "public",
       "proname": "get_email_reminder_schedule",
       "definition": "CREATE OR REPLACE FUNCTION public.get_email_reminder_schedule(p_practice_id uuid, p_namespace text, p_after uuid DEFAULT NULL::uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_email_reminder_schedule(p_practice_id, p_namespace, p_after);\n$function$\n",
+      "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+    },
+    {
+      "nspname": "public",
+      "proname": "get_email_reminder_schedule_v2",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_email_reminder_schedule_v2(p_practice_id uuid, p_namespace text, p_after uuid DEFAULT NULL::uuid)\n RETURNS jsonb\n LANGUAGE sql\n SET search_path TO ''\nAS $function$\n    select private.get_email_reminder_schedule_v2(p_practice_id, p_namespace, p_after);\n$function$\n",
       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
     },
     {
@@ -7409,6 +7467,34 @@
       "grantee": "postgres",
       "table_schema": "private",
       "table_name": "reminder_jobs",
+      "column_name": "dispatch_target",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "dispatch_target",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "dispatch_target",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "dispatch_target",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
       "column_name": "due_date",
       "privilege_type": "INSERT"
     },
@@ -7773,6 +7859,34 @@
       "grantee": "postgres",
       "table_schema": "private",
       "table_name": "reminder_jobs",
+      "column_name": "schedule_kind",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "schedule_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "schedule_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
+      "column_name": "schedule_kind",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_jobs",
       "column_name": "selection_version",
       "privilege_type": "INSERT"
     },
@@ -8025,6 +8139,34 @@
       "grantee": "postgres",
       "table_schema": "private",
       "table_name": "reminder_message_attempts",
+      "column_name": "dispatch_target",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "dispatch_target",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "dispatch_target",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "dispatch_target",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
       "column_name": "endpoint_id",
       "privilege_type": "INSERT"
     },
@@ -8131,6 +8273,34 @@
       "table_schema": "private",
       "table_name": "reminder_message_attempts",
       "column_name": "job_id",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "nominal_target",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "nominal_target",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "nominal_target",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "nominal_target",
       "privilege_type": "UPDATE"
     },
     {
@@ -8271,6 +8441,34 @@
       "table_schema": "private",
       "table_name": "reminder_message_attempts",
       "column_name": "provider_namespace",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "schedule_kind",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "schedule_kind",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "schedule_kind",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "table_schema": "private",
+      "table_name": "reminder_message_attempts",
+      "column_name": "schedule_kind",
       "privilege_type": "UPDATE"
     },
     {
@@ -12716,6 +12914,12 @@
     {
       "nspname": "private",
       "relname": "reminder_jobs",
+      "conname": "reminder_jobs_dispatch_target",
+      "definition": "CHECK (((state <> ALL (ARRAY['queued'::text, 'claimed'::text])) OR (dispatch_target IS NOT NULL)))"
+    },
+    {
+      "nspname": "private",
+      "relname": "reminder_jobs",
       "conname": "reminder_jobs_endpoint_id_fkey",
       "definition": "FOREIGN KEY (endpoint_id) REFERENCES private.reminder_email_endpoints(id) ON DELETE RESTRICT"
     },
@@ -12758,8 +12962,20 @@
     {
       "nspname": "private",
       "relname": "reminder_jobs",
+      "conname": "reminder_jobs_schedule_kind_check",
+      "definition": "CHECK ((schedule_kind = ANY (ARRAY['normal'::text, 'catch-up'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "reminder_jobs",
       "conname": "reminder_jobs_state_check",
       "definition": "CHECK ((state = ANY (ARRAY['blocked'::text, 'queued'::text, 'claimed'::text, 'submitting'::text, 'accepted'::text, 'failed'::text, 'suppressed'::text, 'canceled'::text, 'uncertain'::text])))"
+    },
+    {
+      "nspname": "private",
+      "relname": "reminder_message_attempts",
+      "conname": "reminder_attempts_schedule_snapshot",
+      "definition": "CHECK (((nominal_target IS NOT NULL) AND (dispatch_target IS NOT NULL)))"
     },
     {
       "nspname": "private",
@@ -12808,6 +13024,12 @@
       "relname": "reminder_message_attempts",
       "conname": "reminder_message_attempts_provider_namespace_provider_id_key",
       "definition": "UNIQUE (provider_namespace, provider_id)"
+    },
+    {
+      "nspname": "private",
+      "relname": "reminder_message_attempts",
+      "conname": "reminder_message_attempts_schedule_kind_check",
+      "definition": "CHECK ((schedule_kind = ANY (ARRAY['normal'::text, 'catch-up'::text])))"
     },
     {
       "nspname": "private",

@@ -21,6 +21,7 @@ const requiredLayers = [
   "register-maintenance-upgrade",
   "sms-enrollment-upgrade",
   "reminder-jobs-upgrade",
+  "reminder-catch-up-upgrade",
   "replay",
   "schema",
   "database",
