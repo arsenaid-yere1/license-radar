@@ -1,6 +1,6 @@
 # E4-S2 email activation handoff
 
-Email sending is disabled by default in deployed configuration. Local fixture mode sends only to an in-process loopback recorder. No live email, hosted migration, DNS change, deployment or scheduler registration has been performed in this task. Optional SMS delivery remains inactive; phone verification/withdrawal/STOP retain their existing behavior.
+The additive email schema and application are deployed in the hosted pilot. The production migration preserved all 21 historical tables and Auth identity; the existing signed-in session loaded the new reminders/preferences page. Email sending remains disabled pending provider/callback/scheduler setup. Local fixture mode sends only to an in-process loopback recorder. No live reminder email, DNS change or scheduler registration has been performed. Optional SMS delivery remains inactive; phone verification/withdrawal/STOP retain their existing behavior. Release evidence: `thoughts/shared/handoffs/2026-10-09-e4-s2-production-release.md`.
 
 ## Reviewable implementation
 
@@ -28,7 +28,7 @@ Late records, new assignments, changed/verified addresses or re-enabled preferen
 
 Primary provider references: [Resend send API](https://resend.com/docs/api-reference/emails/send-email), [retrieve API](https://resend.com/docs/api-reference/emails/retrieve-email), [delivered event](https://resend.com/docs/webhooks/emails/delivered), [bounced event](https://resend.com/docs/webhooks/emails/bounced), [Svix verification](https://docs.svix.com/receiving/verifying-payloads/how).
 
-- [ ] Hosted backup/migration reviewed and applied.
+- [x] Hosted application backup/migration reviewed and applied; exact schema/data preservation verified.
 - [ ] Sender/domain/API/support/analytics verified.
 - [ ] Shared Auth-provider suppression decision recorded.
 - [ ] Canonical signed callbacks and restricted operator infrastructure verified.

@@ -6,7 +6,7 @@ A practice's inventory can extend beyond clinician credentials. The planned regi
 
 ## Project status
 
-**Early development: practice setup, staff access, reminder responsibility, register ownership, date entry, register maintenance, calendar, agenda, dashboard and SMS enrollment groundwork are live in the hosted pilot.** E4-S2 email scheduling/dispatch is implemented locally and undergoing final verification; hosted email activation is separate. Optional renewal texts remain inactive.
+**Early development: practice setup, staff access, reminder responsibility, register ownership, date entry, register maintenance, calendar, agenda, dashboard, SMS enrollment groundwork and E4-S2 email scheduling/preferences are live in the hosted pilot.** Email sending remains disabled until provider, callback and scheduler setup is complete. Optional renewal texts remain inactive.
 
 Today, users can:
 
@@ -31,7 +31,7 @@ The reminder preview in practice settings is an **example**, not a scheduled not
 
 ## Planned workflow
 
-1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. SMS enrollment and original rule-9 job cancellation/catch-up remain required E2/E4 work. Register ownership and E2-S2 date entry are live in the hosted pilot. E2-S3 editing, retained archiving, and advisory duplicate review are live in the hosted pilot. E3-S1 calendar and agenda are live in the hosted pilot, including exclusion of archived records. E3-S2 dashboard is live in the hosted pilot; E4-S1 enrollment groundwork is deployed with setup pending; E4-S2 adds email scheduling and atomic unsent-job invalidation locally.
+1. **Set up the team.** Invite staff, assign roles, and identify the office manager responsible for renewals. Staff memberships and invitations are implemented in E1-S2. E1-S3’s recipient foundation is live in the hosted pilot; eligible active administrators and managers can be selected. Register ownership and E2-S2 date entry are live in the hosted pilot. E2-S3 editing, retained archiving, and advisory duplicate review are live in the hosted pilot. E3-S1 calendar and agenda are live in the hosted pilot, including exclusion of archived records. E3-S2 dashboard is live in the hosted pilot; E4-S1 enrollment groundwork is deployed with setup pending; E4-S2 email scheduling, personal preferences and atomic unsent-job invalidation are deployed with sending disabled. Catch-up remains E4-S3 work.
 2. **Build the register.** Enter practice and clinician obligations, authoritative dates, renewal links, and responsible owners. Support recurring administrative deadlines as well as license and policy expiration dates.
 3. **See the workload.** Bring dates into a shared calendar and agenda, with views for upcoming, past-due, and missing-date items.
 4. **Send reminders.** Email the selected office manager at their current confirmed sign-in address 60 calendar days before the relevant date, using the practice's timezone. Texts are an optional additional channel after their separate setup, verification and explicit enrollment. Show failed or undelivered reminders so they can be addressed.
@@ -202,7 +202,7 @@ Rollback retains the additive schema, consent history and suppression ledger. Ke
 - [E4-S1 activation handoff](thoughts/shared/handoffs/2026-10-08-e4-s1-live-activation.md).
 - [E4-S1 production release](thoughts/shared/handoffs/2026-10-08-e4-s1-production-release.md).
 
-## E4-S2 email reminders (local implementation)
+## E4-S2 email reminders
 
 Email is the primary reminder channel, independent of phone/Twilio configuration. The selected active administrator/manager receives renewal emails at their current confirmed sign-in address unless they disable their own practice email preference or the endpoint is suppressed. Assignment does not grant text consent. `/practice/reminders` shows a bounded schedule/status list, due-date purpose, local target, worker health, personal withdrawal/reenablement and record links. All active roles can read it; viewers can disable their own emails but cannot enable them.
 
@@ -210,8 +210,10 @@ The target is 9 AM practice-local, 60 calendar days before the action deadline (
 
 A fixed Resend REST adapter sends a minimal date and authenticated record/preferences links, excluding record titles, clinician/practice names, credential numbers and bearer tokens. One opaque tag binds signed delivery events to the consumed attempt. Provider acceptance is separate from receiving mail-server delivery and renewal completion. Hard bounce/complaint/suppression cancels pending email to that endpoint; application preference/suppression never writes Auth settings or SMS consent. If Auth SMTP shares the Resend team, provider suppression can also affect sign-in mail; verify separate teams/providers when delivery isolation is required.
 
-Live sending defaults off. `.env.example` lists independent email settings; callbacks work with sending disabled. The [activation handoff](thoughts/shared/handoffs/2026-10-08-e4-s2-email-activation.md) covers verified sender/domain, API/webhook, independent worker authorization, Vault/Cron, health and disable templates. No hosted migration, live email or scheduler registration has occurred in E4-S2. Local fixture mode requires the exact local guards and refuses hosting/live credentials. Plain development does not start its provider: use `node --input-type=module -e 'await import("./tools/email-provider-fixture.mjs").then(m => m.startEmailFixture())'` in a separate terminal when exercising email manually, and stop it afterward.
+Live sending defaults off. The additive schema and application are deployed in the hosted pilot; all 34 verification layers and read-only hosted checks passed. Existing data and Auth identity were preserved. `.env.example` lists independent email settings; configured callbacks work with sending disabled. The [activation handoff](thoughts/shared/handoffs/2026-10-08-e4-s2-email-activation.md) covers verified sender/domain, API/webhook, independent worker authorization, Vault/Cron, health and disable templates. No live reminder email or scheduler registration has occurred. Local fixture mode requires the exact local guards and refuses hosting/live credentials. Plain development does not start its provider: use `node --input-type=module -e 'await import("./tools/email-provider-fixture.mjs").then(m => m.startEmailFixture())'` in a separate terminal when exercising email manually, and stop it afterward.
 
 - [E4-S2 implementation plan](thoughts/shared/plans/2026-10-08-e4-s2-sixty-day-reminders.md).
 - [E4-S2 executable specification](thoughts/shared/plans/2026-10-08-e4-s2-old-coder-spec.md).
 - [E4-S2 activation handoff](thoughts/shared/handoffs/2026-10-08-e4-s2-email-activation.md).
+- [E4-S2 implementation evidence — 34 layers passed](thoughts/shared/research/2026-10-09-e4-s2-implementation-evidence.md).
+- [E4-S2 production release](thoughts/shared/handoffs/2026-10-09-e4-s2-production-release.md).

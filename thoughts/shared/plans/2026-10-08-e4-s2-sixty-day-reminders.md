@@ -2,7 +2,7 @@
 
 Date: 2026-10-08 (America/Los_Angeles).
 Baseline: `d037bff8c9ae4279d04fae92af52d694cadd1057`.
-Status: Local implementation and all 34 source-bound verification layers complete on `codex/email-reminders`. A READY deployment candidate is held pending the hosted backup/migration decision; production promotion and email activation remain pending.
+Status: Local implementation and all 34 source-bound verification layers complete. The additive schema and application are deployed in production after an authorized private backup and preservation checks. Email provider/scheduler activation and live delivery acceptance remain pending.
 Research: `thoughts/shared/research/2026-10-08-e4-s2-sixty-day-reminders.md`.
 Verification: `thoughts/shared/plans/2026-10-08-e4-s2-sixty-day-reminders-verification.md`.
 
@@ -285,3 +285,5 @@ The later full run passed 53/54 with an inherited resend interval failure; its i
 The user's explicit “push to prod” supplied checkpoint/release authorization. The fresh unchanged 34-layer gauntlet passed on commit `5d0dbd14863a76a7683fad87ac534490f6444cd3`, SHA-256 `5322943041bbccf2710159d95af1134351c64da95c0f1a936975f0d2cdcc547a`, run `0952905c-e4e7-4a43-9376-4c929bd35512`. This completes local phase 5 and supersedes the historical pending-checkpoint statements above. Counts, actual commands and limits are in `thoughts/shared/research/2026-10-09-e4-s2-implementation-evidence.md`; no preimplementation spec approval or independent implementation verifier is claimed.
 
 The exact archive produced a READY Vercel candidate. All existing production hostnames remain on the prior deployment; hosted migration and promotion are held because automatic approval review rejected the proposed production-data backup export and the user has not supplied a backup decision. Candidate HTTP checks are blocked by Vercel sign-in protection. Release identities, evidence and remaining steps are in `thoughts/shared/handoffs/2026-10-09-e4-s2-production-release.md`. Live email configuration, manual acceptance and optional texts remain separately unchecked.
+
+The user's subsequent “yes” explicitly approved the private local backup and completion of deployment. The application schema/data backup completed with restricted permissions; exactly the email migration was applied and all 21 historical datasets, Auth identity, new defaults and nine schema sections verified. The tested candidate was promoted, production route/access checks passed, and the existing signed-in session loaded reminders/preferences with sending off. This supersedes the release hold above; provider activation and human/live delivery acceptance remain pending.
