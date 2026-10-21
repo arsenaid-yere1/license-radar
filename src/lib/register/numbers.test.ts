@@ -50,6 +50,7 @@ it("RN01 RN09 number labels and validation errors are truthful and safe", async 
     dea_registration: "DEA registration number",
     malpractice_policy: "Policy number",
     pci_compliance_certificate: "Certificate number",
+    insurance_payer_provider_directory: "Directory / provider reference",
   });
   const parsed = recordNumberSchema.safeParse("unsafe\nvalue");
   expect(parsed.success).toBe(false);

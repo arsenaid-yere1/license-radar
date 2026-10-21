@@ -8,6 +8,7 @@ export const recordNumberLabels = {
   dea_registration: "DEA registration number",
   malpractice_policy: "Policy number",
   pci_compliance_certificate: "Certificate number",
+  insurance_payer_provider_directory: "Directory / provider reference",
 } as const satisfies Record<CredentialType, string>;
 
 export const recordNumberSchema = z

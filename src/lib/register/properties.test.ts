@@ -96,6 +96,7 @@ it("P02 ownership and canonical coverage accept precisely eligible combinations"
           "dea_registration",
           "malpractice_policy",
           "pci_compliance_certificate",
+          "insurance_payer_provider_directory",
         ])
           for (const ownerKind of ["practice", "clinician"])
             for (const ownerClinicianId of [undefined, id]) {
@@ -270,6 +271,7 @@ it("P01 adversarial Unicode and P02 public type labels remain truthful", () => {
     dea_registration: "DEA registration",
     malpractice_policy: "Malpractice policy",
     pci_compliance_certificate: "PCI compliance certificate",
+    insurance_payer_provider_directory: "Insurance payer provider directory",
   });
   fc.assert(
     fc.property(
@@ -354,6 +356,7 @@ it("P05 maintenance tokens and full authored combinations have canonical round t
           "dea_registration",
           "malpractice_policy",
           "pci_compliance_certificate",
+          "insurance_payer_provider_directory",
         ])
           for (const ownerKind of ["practice", "clinician"]) {
             const raw = {

@@ -140,6 +140,11 @@
     "args": ["tools/pci-certificates-upgrade.mjs"]
   },
   {
+    "id": "payer-directories-upgrade",
+    "command": "node",
+    "args": ["tools/payer-directories-upgrade.mjs"]
+  },
+  {
     "id": "gmail-controls",
     "command": "node",
     "args": ["tools/gmail-controls.mjs"]

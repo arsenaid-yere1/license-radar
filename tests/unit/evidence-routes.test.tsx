@@ -142,3 +142,44 @@ it("EV04 manager can resume only a sanitized own pending request", async () => {
   );
   expect(input?.value).toBe(fileId);
 });
+
+it("DIR04 directory historical and unknown evidence headings use cycle due-date purpose", async () => {
+  for (const endDate of [null, "2030-03-02"]) {
+    b.read.mockResolvedValue({
+      ...data,
+      current: false,
+      cycle: {
+        ...data.cycle,
+        type: "insurance_payer_provider_directory",
+        endDate,
+      },
+    });
+    const view = render(await load());
+    expect(
+      screen.getByText(
+        endDate
+          ? /Next directory update due: Mar 2, 2030/
+          : /Next directory update due: Not entered/,
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/Expiration:/)).toBeNull();
+    view.unmount();
+  }
+});
+
+it("DIR08 disabled storage keeps directory cycle context without upload controls", async () => {
+  b.enabled.mockReturnValue(false);
+  b.read.mockResolvedValue({
+    ...data,
+    cycle: {
+      ...data.cycle,
+      type: "insurance_payer_provider_directory",
+      endDate: null,
+    },
+  });
+  render(await load());
+  expect(
+    screen.getByText(/Next directory update due: Not entered/),
+  ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Upload evidence" })).toBeNull();
+});

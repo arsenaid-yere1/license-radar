@@ -93,7 +93,8 @@ export default async function Reminders({
           </h1>
           <p className="lede">
             Email reminders are scheduled 60 calendar days before the action
-            deadline, or the end date when no deadline is entered, at 9 AM in{" "}
+            deadline, or the saved expiration, coverage end, or next directory
+            update due date when no earlier deadline is entered, at 9 AM in{" "}
             {practice.timezone}. Eligible late entries or reminder setup are
             scheduled for catch-up in the next permitted local sending window,
             from 9 AM to before 5 PM.
@@ -192,7 +193,7 @@ function ReminderRow({
         <dt>
           {row.datePurpose === "action-deadline"
             ? "Current action deadline"
-            : "Current end date"}
+            : "Current due date"}
         </dt>
         <dd>{row.dueDate ?? "No date entered"}</dd>
         <dt>Original 60-day target</dt>

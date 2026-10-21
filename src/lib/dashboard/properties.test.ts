@@ -55,6 +55,7 @@ it("QP01 exact independent partitions, overlap, order, immutability and progress
             "dea_registration",
             "malpractice_policy",
             "pci_compliance_certificate",
+            "insurance_payer_provider_directory",
           ),
           owner: fc.boolean(),
         }),
@@ -117,7 +118,9 @@ it("QP01 exact independent partitions, overlap, order, immutability and progress
                         ? "earlier action deadline"
                         : r.type === "malpractice_policy"
                           ? "coverage end"
-                          : "expiration",
+                          : r.type === "insurance_payer_provider_directory"
+                            ? "directory update due"
+                            : "expiration",
                   },
             days,
             urgency,

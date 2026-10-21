@@ -121,7 +121,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 46-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, credential numbers, SMS, email/catch-up/recovery, renewal/evidence and Gmail upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans. `node tools/verify-workspace.mjs` runs the same registered layers against an identified uncommitted workspace.
+`npm run gauntlet` runs the 48-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, credential numbers, SMS, email/catch-up/recovery, renewal/evidence, Gmail, and payer-directory upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans. `node tools/verify-workspace.mjs` runs the same registered layers against an identified uncommitted workspace.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -333,3 +333,13 @@ The renewal register supports **PCI compliance certificate** records owned by th
 PCI records use the existing calendar, dashboard, renewal link/progress, confirmed renewal and retained history. The earlier action deadline drives tracking when present; otherwise expiration does. Certificate files can be attached to a cycle through existing evidence when configured. Uploading a file does not confirm renewal or establish compliance; no annual interval is inferred.
 
 Apply the additive PCI migration before the matching application. Existing rows and immutable receipts are retained. Once PCI records exist, rollback must retain PCI-capable register/history/evidence readers; archiving does not make old readers compatible. Keep the ownership constraint and validators, and use a compatible forward fix. This local feature does not activate hosted uploads or notification providers and has not been deployed by this task.
+
+## Insurance payer provider directory renewals (local implementation)
+
+The renewal register supports **Insurance payer provider directory** records owned by the practice or one saved clinician, with one record per payer obligation. Enter a required title and optional **Payer name**, **Directory / provider reference**, **Jurisdiction**, and **Next directory update due date**. A separate earlier action deadline can be entered and must precede the next due date when both are known. Unknown dates stay blank. References are text, not verified payer or provider identifiers; directory records have no covered-clinician list.
+
+Calendar, dashboard, history, and evidence describe directory due dates instead of expirations. The earlier action deadline drives tracking when supplied. The shared missing-date dashboard group is labeled **Missing renewal date**, and the reminder schedule uses **Current due date** where no earlier action deadline applies. Existing sixty-day/catch-up reminders and recipient settings are reused.
+
+Record confirmed renewal only after staff have confirmed the directory update, and enter a new future directory due date in the practice timezone. A blank new earlier deadline clears the previous deadline. The old cycle, dates, evidence, and notification history remain retained. No dates or recurring intervals are inferred. The optional renewal link and configured cycle evidence support manual tracking; this feature neither updates payer portals nor verifies an attestation.
+
+Apply the additive directory migration before the matching app. Existing records and immutable receipts remain intact. Once directory rows exist, rollback must retain fifth-type-capable register/history/evidence readers; archive alone does not make older readers compatible. Local verification does not activate hosted notifications or evidence storage. Deployment and real-inbox acceptance are separate.

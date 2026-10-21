@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { EvidencePage, EvidenceFile } from "@/lib/evidence/schema";
 import { evidenceMessage } from "@/lib/evidence/messages";
-import { formatCredentialDate } from "@/lib/register/dates";
+import { formatCredentialDate, cycleEndLabel } from "@/lib/register/dates";
 import { Shell } from "@/components/shell";
 import { EvidenceUploadForm } from "./upload-form";
 import { EvidenceRemoveForm } from "./remove-form";
@@ -161,10 +161,7 @@ function EvidenceHeading({
         {page.archivedAt ? " · Archived record" : ""}
       </p>
       <p className="hint">
-        {page.cycle.type === "malpractice_policy"
-          ? "Coverage end"
-          : "Expiration"}
-        :{" "}
+        {cycleEndLabel(page.cycle.type)}:{" "}
         {page.cycle.endDate
           ? formatCredentialDate(page.cycle.endDate)
           : "Not entered"}{" "}

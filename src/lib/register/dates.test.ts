@@ -201,10 +201,16 @@ it("D06 projections require coherent cycle data and preserve date purposes", () 
     "dea_registration",
     "malpractice_policy",
     "pci_compliance_certificate",
+    "insurance_payer_provider_directory",
   ]) {
     expect(trackingDate("2026-12-02", null, type)).toEqual({
       date: "2026-12-02",
-      purpose: type === "malpractice_policy" ? "coverage end" : "expiration",
+      purpose:
+        type === "malpractice_policy"
+          ? "coverage end"
+          : type === "insurance_payer_provider_directory"
+            ? "directory update due"
+            : "expiration",
     });
     expect(trackingDate("2026-12-02", "2026-11-01", type)).toEqual({
       date: "2026-11-01",
@@ -265,6 +271,11 @@ it("P03 independent UTC calendar oracle preserves dates and adjacent invalid bou
 
 it("D11 type-specific field purposes are exact", () => {
   expect(detailLabels).toEqual({
+    insurance_payer_provider_directory: {
+      issuer: "Payer name",
+      jurisdiction: "Jurisdiction",
+      end: "Next directory update due date",
+    },
     pci_compliance_certificate: {
       issuer: "Certificate issuer",
       jurisdiction: "Jurisdiction",
@@ -301,6 +312,7 @@ it("P04 ordered pairs, explicit unknowns, metadata boundaries and tracking purpo
         "dea_registration",
         "malpractice_policy",
         "pci_compliance_certificate",
+        "insurance_payer_provider_directory",
       ),
       (year, hasEnd, hasAction, length, char, type) => {
         const yearText = String(year).padStart(4, "0"),
@@ -334,7 +346,9 @@ it("P04 ordered pairs, explicit unknowns, metadata boundaries and tracking purpo
                   purpose:
                     type === "malpractice_policy"
                       ? "coverage end"
-                      : "expiration",
+                      : type === "insurance_payer_provider_directory"
+                        ? "directory update due"
+                        : "expiration",
                 }
               : null,
         );

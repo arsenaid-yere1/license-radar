@@ -1,3 +1,4 @@
+import { assertPayerDirectoryVerification } from "./payer-directory-controls.mjs";
 import { assertPciVerification } from "./pci-controls.mjs";
 import {
   assertHeartbeatCapabilities,
@@ -22,6 +23,11 @@ import {
 } from "./sms-capabilities.mjs";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 assertPciVerification(
+  JSON.parse(readFileSync("tools/layers.json", "utf8")),
+  mutationConfig,
+  propertiesConfig,
+);
+assertPayerDirectoryVerification(
   JSON.parse(readFileSync("tools/layers.json", "utf8")),
   mutationConfig,
   propertiesConfig,

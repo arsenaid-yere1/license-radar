@@ -11,6 +11,7 @@ export default defineConfig({
     environment: "node",
     include: [
       "src/lib/register/pci.test.ts",
+      "src/lib/register/payer-directory.test.ts",
       "src/lib/reminders/heartbeat-properties.test.ts",
       "src/lib/reminders/heartbeat.test.ts",
       "src/lib/reminders/gmail-properties.test.ts",

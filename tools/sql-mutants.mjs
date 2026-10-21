@@ -1263,6 +1263,35 @@ for (const signature of [
         "false",
       ),
   });
+// Each directory type gate must independently accept the approved fifth type.
+for (const signature of [
+  "private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text)",
+  "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
+  "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)",
+])
+  mutants.push({
+    id: "directory-type-" + signature.split("(")[0].slice(8),
+    file: "tests/integration/practice-payer-directories.test.ts",
+    pattern: "^DIR02 all API",
+    apply: () =>
+      functionFault(
+        signature,
+        "'insurance_payer_provider_directory'",
+        "'directory_disabled'",
+      ),
+  });
+mutants.push({
+  id: "directory-type-storage",
+  file: "tests/integration/practice-payer-directories.test.ts",
+  pattern: "^DIR02 all API",
+  apply: () =>
+    ddlFault(
+      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate')) not valid",
+      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate','insurance_payer_provider_directory'))",
+      "select convalidated from pg_constraint where conrelid='public.credentials'::regclass and conname='credentials_type_check'",
+      [{ convalidated: false }],
+    ),
+});
 const records = [];
 function execute(file, pattern, path) {
   rmSync(path, { force: true });

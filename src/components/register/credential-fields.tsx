@@ -1,6 +1,6 @@
 "use client";
 import { useId, useState } from "react";
-import { detailLabels } from "@/lib/register/dates";
+import { detailLabels, directoryDateError } from "@/lib/register/dates";
 import { recordNumberLabels } from "@/lib/register/numbers";
 import { Field, errorAttributes } from "./create-form";
 import {
@@ -165,9 +165,9 @@ export function CredentialFields({
           </Field>
         ))}
         <p className="hint">
-          Leave either date blank if it is unknown. An earlier action deadline
-          is the date you need to act, and must be before the expiration or
-          coverage end when both are known.
+          {type === "insurance_payer_provider_directory"
+            ? "Enter the next directory update due date confirmed by your practice. Leave unknown dates blank. An earlier action deadline must be before that due date when both are known. Dates are not calculated automatically."
+            : "Leave either date blank if it is unknown. An earlier action deadline is the date you need to act, and must be before the expiration or coverage end when both are known."}
         </p>
         {(["endDate", "actionDeadline"] as const).map((field) => (
           <Field
@@ -178,7 +178,7 @@ export function CredentialFields({
                 ? detailLabels[type].end
                 : "Earlier action deadline"
             }
-            error={errors[field]}
+            error={directoryDateError(type, errors[field])}
           >
             <input
               id={`${id}-${field}`}
@@ -193,7 +193,10 @@ export function CredentialFields({
               type="date"
               min="0001-01-01"
               max="9999-12-31"
-              {...errorAttributes(`${id}-${field}`, errors[field])}
+              {...errorAttributes(
+                `${id}-${field}`,
+                directoryDateError(type, errors[field]),
+              )}
             />
           </Field>
         ))}

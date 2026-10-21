@@ -1,3 +1,4 @@
+import { assertPayerDirectoryVerification } from "./payer-directory-controls.mjs";
 import { assertPciVerification } from "./pci-controls.mjs";
 import {
   assertHeartbeatLayers,
@@ -30,6 +31,7 @@ if (!process.version.startsWith("v24."))
 const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
 assertNumberVerification(layers, mutationConfig, propertiesConfig);
 assertPciVerification(layers, mutationConfig, propertiesConfig);
+assertPayerDirectoryVerification(layers, mutationConfig, propertiesConfig);
 assertCompletionLayer(layers);
 assertEvidenceLayers(layers);
 assertGmailLayers(layers);
@@ -61,6 +63,7 @@ const requiredLayers = [
   "gmail-reminders-upgrade",
   "credential-numbers-upgrade",
   "pci-certificates-upgrade",
+  "payer-directories-upgrade",
   "gmail-controls",
   "gmail-oauth-controls",
   "heartbeat-controls",

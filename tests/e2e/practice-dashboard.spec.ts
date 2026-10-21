@@ -104,7 +104,7 @@ async function counts(page: Page, past: number, due: number, missing: number) {
   for (const [title, n] of [
     ["Past due", past],
     ["Due within 60 days", due],
-    ["Missing expiration / coverage end", missing],
+    ["Missing renewal date", missing],
   ] as const) {
     await expect(
       page
@@ -232,10 +232,10 @@ test("Q01 Q02 Q03 Q06 Q11 Q12 Q14 exact dashboard lists, shared coverage, date p
     page.getByRole("region", { name: "Due within 60 days" }),
   ).toContainText("Due in 60 days");
   await expect(
-    page.getByRole("region", { name: "Missing expiration / coverage end" }),
+    page.getByRole("region", { name: "Missing renewal date" }),
   ).toContainText("Dates not entered");
   await expect(
-    page.getByRole("region", { name: "Missing expiration / coverage end" }),
+    page.getByRole("region", { name: "Missing renewal date" }),
   ).toContainText("Expiration date unknown");
   await expect(
     page.getByText("1 record with a tracking date more than 60 days away."),

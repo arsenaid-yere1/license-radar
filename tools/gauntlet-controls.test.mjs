@@ -133,7 +133,7 @@ test("uncommitted verification refuses source drift missing layers duplicates an
     () => assertWorkspaceUnchanged({}, {}),
     /Missing identified source/,
   );
-  assert.equal(layers.length, 47);
+  assert.equal(layers.length, 48);
   assert.doesNotThrow(() => assertWorkspaceLayers(layers));
   for (const id of requiredWorkspaceLayers)
     assert.throws(
@@ -734,4 +734,52 @@ test("PCI verification rejects omitted duplicate changed layer and missing share
       /Missing PCI/,
     );
   }
+});
+
+test("directory verification rejects omitted duplicate changed layer and missing shared mutation target", async () => {
+  const { assertPayerDirectoryVerification } =
+    await import("./payer-directory-controls.mjs");
+  const { default: production } = await import("../stryker.config.mjs"),
+    { default: properties } = await import("../stryker.properties.config.mjs");
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  const layer = {
+    id: "payer-directories-upgrade",
+    command: "node",
+    args: ["tools/payer-directories-upgrade.mjs"],
+  };
+  const valid = [...layers.filter((l) => l.id !== layer.id), layer];
+  const prod = {
+    ...production,
+    mutate: [...production.mutate, "src/lib/register/types.ts"],
+  };
+  const props = {
+    ...properties,
+    mutate: [...properties.mutate, "src/lib/register/types.ts"],
+  };
+  assert.doesNotThrow(() =>
+    assertPayerDirectoryVerification(valid, prod, props),
+  );
+  for (const bad of [
+    valid.filter((l) => l.id !== layer.id),
+    [...valid, layer],
+    valid.map((l) => (l.id === layer.id ? { ...l, args: [] } : l)),
+  ])
+    assert.throws(() => assertPayerDirectoryVerification(bad, prod, props));
+  for (const target of [
+    "src/lib/register/types.ts",
+    "src/lib/register/dates.ts",
+    "src/lib/register/numbers.ts",
+    "src/lib/calendar/events.ts",
+  ])
+    for (const which of [0, 1]) {
+      const configs = [prod, props].map((c) => ({
+        ...c,
+        mutate: [...c.mutate],
+      }));
+      configs[which].mutate = configs[which].mutate.filter((t) => t !== target);
+      assert.throws(
+        () => assertPayerDirectoryVerification(valid, ...configs),
+        /Missing directory/,
+      );
+    }
 });

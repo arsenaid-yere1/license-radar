@@ -174,7 +174,7 @@ it("RU02 dates, catch-up, channel readiness, cursor and stale health are truthfu
   });
   render(await page());
   expect(screen.getByText(/worker has not reported success/)).toBeTruthy();
-  expect(screen.getByText("Current end date")).toBeTruthy();
+  expect(screen.getByText("Current due date")).toBeTruthy();
   expect(screen.getByText("No date entered")).toBeTruthy();
   expect(screen.getByText(/uncertain/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Next records" })).toBeNull();

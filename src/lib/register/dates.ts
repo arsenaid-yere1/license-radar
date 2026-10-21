@@ -35,11 +35,43 @@ export function trackingDate(
   if (end)
     return {
       date: end,
-      purpose: type === "malpractice_policy" ? "coverage end" : "expiration",
+      purpose: endDatePurpose(type),
     };
   return null;
 }
+export function endDatePurpose(type: string): string {
+  if (type === "malpractice_policy") return "coverage end";
+  if (type === "insurance_payer_provider_directory")
+    return "directory update due";
+  return "expiration";
+}
+export function cycleEndLabel(type: string): string {
+  if (type === "malpractice_policy") return "Coverage end";
+  if (type === "insurance_payer_provider_directory")
+    return "Next directory update due";
+  return "Expiration";
+}
+/** Keep canonical validation contracts intact; adapt only directory presentation. */
+export function directoryDateError(
+  type: string,
+  message: string | undefined,
+): string | undefined {
+  if (type !== "insurance_payer_provider_directory") return message;
+  switch (message) {
+    case "Enter an end date after today in the practice timezone.":
+      return "Enter a next directory update due date after today in the practice timezone.";
+    case "The action deadline must be earlier than the end date.":
+      return "The action deadline must be earlier than the next directory update due date.";
+    default:
+      return message;
+  }
+}
 export const detailLabels = {
+  insurance_payer_provider_directory: {
+    issuer: "Payer name",
+    jurisdiction: "Jurisdiction",
+    end: "Next directory update due date",
+  },
   pci_compliance_certificate: {
     issuer: "Certificate issuer",
     jurisdiction: "Jurisdiction",

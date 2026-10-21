@@ -6,7 +6,7 @@ import { getPracticeAccess } from "@/lib/practice/access";
 import { getRenewalHistory } from "@/lib/renewals/repository";
 import { historyCursor, type RenewalHistory } from "@/lib/renewals/history";
 import { typeLabels } from "@/lib/register/schema";
-import { formatCredentialDate } from "@/lib/register/dates";
+import { formatCredentialDate, cycleEndLabel } from "@/lib/register/dates";
 import { progressLabels } from "@/lib/renewals/state";
 import { Shell } from "@/components/shell";
 import { SignOutForm } from "@/components/auth/sign-out-form";
@@ -152,9 +152,7 @@ function Cycle({
         </h2>
         <p>{typeLabels[c.type]}</p>
         <dl>
-          <dt>
-            {c.type === "malpractice_policy" ? "Coverage end" : "Expiration"}
-          </dt>
+          <dt>{cycleEndLabel(c.type)}</dt>
           <dd>{c.endDate ? formatCredentialDate(c.endDate) : "Not entered"}</dd>
           <dt>Earlier action deadline</dt>
           <dd>

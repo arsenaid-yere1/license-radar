@@ -1,6 +1,6 @@
 "use client";
 import { Field, errorAttributes } from "@/components/register/create-form";
-import { detailLabels } from "@/lib/register/dates";
+import { detailLabels, directoryDateError } from "@/lib/register/dates";
 import type { RenewalCredential } from "@/lib/renewals/schema";
 export function CompletionFields({
   record,
@@ -16,8 +16,9 @@ export function CompletionFields({
   return (
     <>
       <p>
-        Record this renewal only after your practice has confirmed it. The
-        previous dates and history will be retained.
+        {record.type === "insurance_payer_provider_directory"
+          ? "Record completion only after your practice has confirmed the directory update. Enter its next confirmed due date; previous dates and history will be retained. This does not update the payer directory."
+          : "Record this renewal only after your practice has confirmed it. The previous dates and history will be retained."}
       </p>
       <p className="hint">
         {today ? `Today: ${today} · ` : ""}Practice timezone: {timezone}. New
@@ -25,8 +26,12 @@ export function CompletionFields({
       </p>
       <Field
         id="renewal-new-end"
-        label={`New ${detailLabels[record.type].end.toLowerCase()}`}
-        error={errors.endDate}
+        label={
+          record.type === "insurance_payer_provider_directory"
+            ? "New directory update due date"
+            : `New ${detailLabels[record.type].end.toLowerCase()}`
+        }
+        error={directoryDateError(record.type, errors.endDate)}
       >
         <input
           id="renewal-new-end"
@@ -39,7 +44,7 @@ export function CompletionFields({
       <Field
         id="renewal-new-action"
         label="New earlier action deadline (optional)"
-        error={errors.actionDeadline}
+        error={directoryDateError(record.type, errors.actionDeadline)}
       >
         <input
           id="renewal-new-action"

@@ -1,0 +1,737 @@
+[
+  {
+    "id": "isolation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "live-administrator",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "creator-fallback",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "active-user-uniqueness",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "last-administrator",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "last-administrator-domain",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "user-serialization",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "practice-serialization",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "profile-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "member-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "confirmed-email",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "matching-email",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "expiry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "transaction-start-expiry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "revocation-epoch",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "revocation-epoch-properties",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "accepted-role-replay",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "accepted-role-replay-properties",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "profile-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "membership-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "membership-audit-properties",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "invitation-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "invitation-audit-properties",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "profile-direct-dml",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "membership-direct-dml",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "private-invitation-projection",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "post-lock-live-authority",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "canonical-email-properties",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "reissued-expiry-period",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "invitation-input-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "reissue-fresh-digest",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "expiry-equality",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "inviter-revocation-does-not-cancel",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "profile-audit-access-rollback",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "private-roster-projection",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "timezone",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-role",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-tenant",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-live-authority",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-lock",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-invalidation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recipient-initialization",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-name-normalization",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-caller-scope",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-editor-role",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-live-authority",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-lock",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-replay",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-conflict",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-canonical-coverage",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-owner-reference",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-receipt",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-clinicians-isolation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-credentials-isolation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "register-policy_coverage-isolation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-checked-entry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-strict-order",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-lexical-format",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-initialization",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-post-lock-authority",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-practice-lock",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-payload-conflict",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-end-payload",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-action-payload",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-final-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-final-receipt",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-cycle-isolation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "dates-cycle-trigger",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-version-freshness",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-cycle-freshness",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-revision-freshness",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-replay",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-payload-conflict",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-caller-scope",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-receipt",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-noop-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-noop-write",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-date-revision",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-date-guard",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-archive-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-archive-state",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-legacy-active",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-list-active",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-duplicate-tenant",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-duplicate-owner",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-duplicate-archive",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-duplicate-order",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-duplicate-ascii",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-update-entry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-archive-entry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-live-authority",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "maintenance-practice-lock",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-without-consent",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-stop-proof",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-repeat-claim",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-send-cooldown",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-check-count",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-proof-commit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-proof-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-consent-receipt",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-withdraw-clear",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-lease",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "sms-unselected-invalidation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-sixty-days",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-local-nine",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-preference-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-account-tracking",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-outbox-rollback",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-send-window",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-empty-queue-expiration",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-terminal-preservation",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "email-stable-consumed-guard",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-terminal-check-stop",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-trusted-rate",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-rejection-allowlist",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-sticky-revoke",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-three-limit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "recovery-absolute-expiry",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-classification",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-stable-target",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-local-window",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-consumed-guard",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-snapshot",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "catch-up-cursor",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-null-url",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-editor",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-resource-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-context-version",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-date-revision",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-replay-payload",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-first-review",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-retain-review",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-cycle-timestamp",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-url",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "renewal-atomic-audit",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "pci-practice-owner-storage",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "pci-owner-credential_change_values",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "pci-owner-create_practice_credential",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "pci-owner-create_practice_credential_with_details",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "directory-type-credential_change_values",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "directory-type-create_practice_credential",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "directory-type-create_practice_credential_with_details",
+    "killed": true,
+    "restored": true
+  },
+  {
+    "id": "directory-type-storage",
+    "killed": true,
+    "restored": true
+  }
+]

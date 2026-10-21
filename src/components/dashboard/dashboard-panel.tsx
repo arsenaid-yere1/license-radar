@@ -20,9 +20,9 @@ const sections = [
   {
     key: "missingEnd",
     id: "missing-end",
-    title: "Missing expiration / coverage end",
-    hint: "These records need an expiration or coverage end date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
-    empty: "No records with missing expiration or coverage end.",
+    title: "Missing renewal date",
+    hint: "These records need an expiration, coverage end, or next directory update due date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
+    empty: "No records with a missing renewal date.",
   },
 ] as const;
 export function DashboardPanel({

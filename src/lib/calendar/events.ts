@@ -1,4 +1,4 @@
-import { trackingDate } from "@/lib/register/dates";
+import { trackingDate, endDatePurpose } from "@/lib/register/dates";
 import type { MaintenanceRegister } from "@/lib/register/schema";
 import type { CalendarQuery } from "./query";
 export type CalendarRecord = MaintenanceRegister["credentials"][number];
@@ -52,11 +52,7 @@ export function projectCalendar(
       );
     if (!tracking) undated.push(record);
     for (const [key, date, purpose] of [
-      [
-        "end",
-        cycle.end_date,
-        record.type === "malpractice_policy" ? "coverage end" : "expiration",
-      ],
+      ["end", cycle.end_date, endDatePurpose(record.type)],
       ["action", cycle.action_deadline, "earlier action deadline"],
     ]) {
       if (date && date.slice(0, 7) === query.month)

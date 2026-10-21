@@ -70,6 +70,8 @@ run("npm", [
   "test:integration",
   "--",
   "--exclude",
+  "tests/integration/practice-payer-directories.test.ts",
+  "--exclude",
   "tests/integration/practice-pci-certificates.test.ts",
 ]);
 let db = await connect(),

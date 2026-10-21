@@ -163,3 +163,29 @@ it("RC07 access transport and no-practice failures stop history reading", async 
     "We could not load renewal history. Try again.",
   );
 });
+
+it("DIR04 retained directory cycles use their own type and keep old-type headings", async () => {
+  b.read.mockResolvedValue({
+    ...data,
+    currentCycleId: next,
+    cycles: [
+      {
+        ...row,
+        id: next,
+        cycleNumber: 2,
+        type: "state_license",
+        endDate: null,
+      },
+      {
+        ...row,
+        type: "insurance_payer_provider_directory",
+        completedAt: "2030-01-01T00:00:00Z",
+        successorId: next,
+      },
+    ],
+  });
+  render(await load());
+  expect(screen.getByText("Next directory update due")).toBeTruthy();
+  expect(screen.getByText("Expiration")).toBeTruthy();
+  expect(screen.getByText("Insurance payer provider directory")).toBeTruthy();
+});
