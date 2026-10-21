@@ -16,6 +16,8 @@ const types = [
   "state_license",
   "dea_registration",
   "malpractice_policy",
+  "pci_compliance_certificate",
+  "insurance_payer_provider_directory",
 ] as const;
 const options = { seed: 20261007, numRuns: 1500 };
 it("CP01 exact independent event sets preserve cardinality, archive/filter boundaries, dates and identity", () => {
@@ -123,7 +125,9 @@ it("CP01 exact independent event sets preserve cardinality, archive/filter bound
                       purpose:
                         r.type === "malpractice_policy"
                           ? "coverage end"
-                          : "expiration",
+                          : r.type === "insurance_payer_provider_directory"
+                            ? "directory update due"
+                            : "expiration",
                       tracking: c.action_deadline === null,
                       dateRevision: c.date_revision,
                     },

@@ -3,6 +3,8 @@ import { z } from "zod";
 import {
   preferenceSchema,
   scheduleSchema,
+  scheduleV3Schema,
+  scheduleV4Schema,
   type PreferenceState,
 } from "./schema";
 export async function getReminderSchedule(
@@ -60,5 +62,47 @@ export async function setEmailPreference(
     return parsed.success ? parsed.data : { status: "unavailable" };
   } catch {
     return { status: "unavailable" };
+  }
+}
+
+export async function getReminderScheduleV3(
+  client: SupabaseClient,
+  practiceId: string,
+  namespace: string,
+  after: string | null = null,
+) {
+  try {
+    const { data, error } = await client.rpc("get_email_reminder_schedule_v3", {
+      p_practice_id: practiceId,
+      p_namespace: namespace,
+      p_after: after,
+    });
+    const parsed = scheduleV3Schema.safeParse(data);
+    return !error && parsed.success
+      ? { status: "success" as const, schedule: parsed.data }
+      : { status: "unavailable" as const };
+  } catch {
+    return { status: "unavailable" as const };
+  }
+}
+
+export async function getReminderScheduleV4(
+  client: SupabaseClient,
+  practiceId: string,
+  namespace: string,
+  after: string | null = null,
+) {
+  try {
+    const { data, error } = await client.rpc("get_email_reminder_schedule_v4", {
+      p_practice_id: practiceId,
+      p_namespace: namespace,
+      p_after: after,
+    });
+    const parsed = scheduleV4Schema.safeParse(data);
+    return !error && parsed.success
+      ? { status: "success" as const, schedule: parsed.data }
+      : { status: "unavailable" as const };
+  } catch {
+    return { status: "unavailable" as const };
   }
 }

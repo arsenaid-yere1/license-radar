@@ -101,6 +101,17 @@ export async function convertCoverage(file, source, functions, map) {
   converter.applyCoverage(functions);
   return converter.toIstanbul();
 }
+export function browserCompiledPath(url) {
+  const pathname = decodeURIComponent(new URL(url).pathname);
+  const prefix = "/_next/static/";
+  if (!pathname.startsWith(prefix))
+    throw new Error("Unexpected browser bundle path");
+  const root = resolve(".next/static"),
+    compiled = resolve(root, pathname.slice(prefix.length));
+  if (!compiled.startsWith(`${root}/`))
+    throw new Error("Escaped browser bundle path");
+  return compiled;
+}
 export async function checkCoverage() {
   const map = createCoverageMap();
   const inventory = createCoverageMap();
@@ -116,10 +127,7 @@ export async function checkCoverage() {
       readFileSync(`coverage/browser/${file}`, "utf8"),
     )) {
       if (!entry.url.includes("/_next/static/")) continue;
-      const compiled = resolve(
-        ".next/static",
-        new URL(entry.url).pathname.split("/_next/static/")[1],
-      );
+      const compiled = browserCompiledPath(entry.url);
       const mapPath = `${compiled}.map`;
       if (!existsSync(mapPath))
         throw new Error(`Missing browser source map: ${compiled}`);

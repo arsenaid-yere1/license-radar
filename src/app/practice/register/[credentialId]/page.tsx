@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
-import { getMaintenanceRegister } from "@/lib/register/repository";
+import { randomUUID } from "node:crypto";
+import { getRenewalRegister } from "@/lib/renewals/repository";
+import { RenewalDetail } from "@/components/renewals/detail";
+import { renewalAction } from "./actions";
 import { typeLabels, type MaintenanceCredential } from "@/lib/register/schema";
 import { practiceToday } from "@/lib/calendar/dates";
 import {
@@ -11,7 +15,7 @@ import {
   type SearchQuery,
 } from "@/lib/calendar/query";
 import { RecordDates } from "@/components/register/record-dates";
-import { Shell } from "@/components/shell";
+import { RecordNumber } from "@/components/register/record-number";
 import { SignOutForm } from "@/components/auth/sign-out-form";
 export const dynamic = "force-dynamic";
 export default async function CredentialDetail({
@@ -28,7 +32,7 @@ export default async function CredentialDetail({
   if (!access.access) redirect("/onboarding/practice");
   const id = z.uuid().safeParse((await params).credentialId);
   if (!id.success) notFound();
-  const result = await getMaintenanceRegister(
+  const result = await getRenewalRegister(
     client,
     access.access.practice.id,
     false,
@@ -42,34 +46,69 @@ export default async function CredentialDetail({
   const today = practiceToday(access.access.practice.timezone, new Date()),
     raw = (await searchParams) ?? {};
   return (
-    <Shell action={<SignOutForm />}>
-      <div className="calendar-heading">
-        <BackLink raw={raw} today={today} />
-        <span className="eyebrow">
-          {access.access.practice.name} / Renewal record
-        </span>
-        <h1>{record.title}</h1>
-        <article className="panel credential-detail">
+    <RenewalDetail
+      shellAction={<SignOutForm />}
+      record={record}
+      canEdit={access.access.role !== "viewer"}
+      action={renewalAction.bind(null, record.id)}
+      readKey={randomUUID()}
+      timezone={access.access.practice.timezone}
+      today={today}
+      backLink={<BackLink raw={raw} today={today} />}
+      heading={
+        <>
+          <span className="eyebrow">
+            {access.access.practice.name} / Renewal record
+          </span>
+          <h1>{record.title}</h1>
+        </>
+      }
+      summary={
+        <>
           <RecordSummary record={record} />
+          <RecordNumber record={record} />
           <RecordDates record={record} />
           <p className="hint">
             Practice timezone: {access.access.practice.timezone}
           </p>
           <p className="hint">Text reminders are not active yet.</p>
-          <a className="text-link" href="/practice/reminders">
+        </>
+      }
+      navigation={
+        <>
+          <Link
+            className="text-link"
+            href={`/practice/register/${record.id}/evidence/${record.current_cycle.id}`}
+          >
+            Renewal evidence
+          </Link>
+          <Link
+            className="text-link"
+            href={`/practice/register/${record.id}/history`}
+          >
+            Renewal history
+          </Link>
+          <Link className="text-link" href={`/practice/reminders/${record.id}`}>
+            Delivery history
+          </Link>
+          <Link
+            prefetch={false}
+            className="text-link"
+            href="/practice/reminders"
+          >
             Email schedule and delivery status
-          </a>
-          <a
+          </Link>
+          <Link
             className="text-link"
             href={`/practice/register#record-${record.id}`}
           >
             {access.access.role === "viewer"
               ? "View in register"
               : "Edit in register"}
-          </a>
-        </article>
-      </div>
-    </Shell>
+          </Link>
+        </>
+      }
+    />
   );
 }
 

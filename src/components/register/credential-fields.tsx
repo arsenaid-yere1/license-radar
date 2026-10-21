@@ -1,6 +1,7 @@
 "use client";
 import { useId, useState } from "react";
-import { detailLabels } from "@/lib/register/dates";
+import { detailLabels, directoryDateError } from "@/lib/register/dates";
+import { recordNumberLabels } from "@/lib/register/numbers";
 import { Field, errorAttributes } from "./create-form";
 import {
   typeLabels,
@@ -28,8 +29,13 @@ export function CredentialFields({
   >(null);
   function changeType(next: keyof typeof typeLabels) {
     setType(next);
+    if (next === "pci_compliance_certificate") {
+      setOwner("practice");
+      setPerson("");
+    }
     setCoverage([]);
     setDetails({
+      recordNumber: "",
       issuer: "",
       jurisdiction: "",
       endDate: "",
@@ -57,7 +63,10 @@ export function CredentialFields({
             const next = event.target.value as keyof typeof typeLabels;
             if (
               record &&
-              (Object.values(details).some(Boolean) || coverage.length)
+              (Object.values(details).some(Boolean) ||
+                coverage.length ||
+                (next === "pci_compliance_certificate" &&
+                  owner === "clinician"))
             )
               setPendingType(next);
             else changeType(next);
@@ -74,8 +83,9 @@ export function CredentialFields({
       {pendingType && (
         <div role="group" aria-label="Review type change">
           <p>
-            Changing type clears issuer, jurisdiction, dates, and covered
-            clinicians from this draft.
+            Changing type clears the record number, issuer, jurisdiction, dates,
+            and covered clinicians from this draft.
+            <OwnershipChangeNotice next={pendingType} owner={owner} />
           </p>
           <button
             type="button"
@@ -91,23 +101,48 @@ export function CredentialFields({
           </button>
         </div>
       )}
-      <Field id={`${id}-owner`} label="Record owner" error={errors.ownerKind}>
-        <select
-          id={`${id}-owner`}
-          name="ownerKind"
-          value={owner}
-          onChange={(event) => {
-            setOwner(event.target.value as "practice" | "clinician");
-            setPerson("");
-            setCoverage([]);
-          }}
-          {...errorAttributes(`${id}-owner`, errors.ownerKind)}
-        >
-          <option value="practice">This practice</option>
-          <option value="clinician">A clinician</option>
-        </select>
-      </Field>
+      {type === "pci_compliance_certificate" ? (
+        <PracticeOwner error={errors.ownerKind} />
+      ) : (
+        <Field id={`${id}-owner`} label="Record owner" error={errors.ownerKind}>
+          <select
+            id={`${id}-owner`}
+            name="ownerKind"
+            value={owner}
+            onChange={(event) => {
+              setOwner(event.target.value as "practice" | "clinician");
+              setPerson("");
+              setCoverage([]);
+            }}
+            {...errorAttributes(`${id}-owner`, errors.ownerKind)}
+          >
+            <option value="practice">This practice</option>
+            <option value="clinician">A clinician</option>
+          </select>
+        </Field>
+      )}
       <div key={type}>
+        <Field
+          id={`${id}-number`}
+          label={`${recordNumberLabels[type]} (optional)`}
+          error={errors.recordNumber}
+        >
+          <input
+            id={`${id}-number`}
+            name="recordNumber"
+            type="text"
+            autoComplete="off"
+            spellCheck={false}
+            value={details.recordNumber}
+            onChange={(event) =>
+              setDetails((previous) => ({
+                ...previous,
+                recordNumber: event.target.value,
+              }))
+            }
+            {...errorAttributes(`${id}-number`, errors.recordNumber)}
+          />
+        </Field>
         {(["issuer", "jurisdiction"] as const).map((field) => (
           <Field
             key={field}
@@ -130,9 +165,9 @@ export function CredentialFields({
           </Field>
         ))}
         <p className="hint">
-          Leave either date blank if it is unknown. An earlier action deadline
-          is the date you need to act, and must be before the expiration or
-          coverage end when both are known.
+          {type === "insurance_payer_provider_directory"
+            ? "Enter the next directory update due date confirmed by your practice. Leave unknown dates blank. An earlier action deadline must be before that due date when both are known. Dates are not calculated automatically."
+            : "Leave either date blank if it is unknown. An earlier action deadline is the date you need to act, and must be before the expiration or coverage end when both are known."}
         </p>
         {(["endDate", "actionDeadline"] as const).map((field) => (
           <Field
@@ -143,7 +178,7 @@ export function CredentialFields({
                 ? detailLabels[type].end
                 : "Earlier action deadline"
             }
-            error={errors[field]}
+            error={directoryDateError(type, errors[field])}
           >
             <input
               id={`${id}-${field}`}
@@ -158,12 +193,15 @@ export function CredentialFields({
               type="date"
               min="0001-01-01"
               max="9999-12-31"
-              {...errorAttributes(`${id}-${field}`, errors[field])}
+              {...errorAttributes(
+                `${id}-${field}`,
+                directoryDateError(type, errors[field]),
+              )}
             />
           </Field>
         ))}
       </div>
-      {owner === "clinician" && (
+      {type !== "pci_compliance_certificate" && owner === "clinician" && (
         <Field
           id={`${id}-person`}
           label="Owning clinician"
@@ -236,6 +274,7 @@ function initialFields(record?: Credential) {
       person: "",
       coverage: [] as string[],
       details: {
+        recordNumber: "",
         issuer: "",
         jurisdiction: "",
         endDate: "",
@@ -249,10 +288,32 @@ function initialFields(record?: Credential) {
     person: record.owner_clinician_id ?? "",
     coverage: record.covered_clinicians.map((person) => person.id),
     details: {
+      recordNumber: record.record_number ?? "",
       issuer: record.issuer ?? "",
       jurisdiction: record.jurisdiction ?? "",
       endDate: record.current_cycle.end_date ?? "",
       actionDeadline: record.current_cycle.action_deadline ?? "",
     },
   };
+}
+
+function PracticeOwner({ error }: { error?: string }) {
+  return (
+    <div>
+      <p>Record owner: This practice</p>
+      <input type="hidden" name="ownerKind" value="practice" />
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
+}
+function OwnershipChangeNotice({
+  next,
+  owner,
+}: {
+  next: string;
+  owner: string;
+}) {
+  return next === "pci_compliance_certificate" && owner === "clinician"
+    ? " PCI compliance certificates belong to the practice, so this change also clears the owning clinician."
+    : null;
 }

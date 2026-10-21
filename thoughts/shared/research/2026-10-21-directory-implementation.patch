@@ -1,0 +1,3516 @@
+--- a/README.md
++++ b/README.md
+@@ -121,7 +121,7 @@
+
+ ### Complete verification
+
+-`npm run gauntlet` runs the 46-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, credential numbers, SMS, email/catch-up/recovery, renewal/evidence and Gmail upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans. `node tools/verify-workspace.mjs` runs the same registered layers against an identified uncommitted workspace.
++`npm run gauntlet` runs the 48-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, credential numbers, SMS, email/catch-up/recovery, renewal/evidence, Gmail, and payer-directory upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans. `node tools/verify-workspace.mjs` runs the same registered layers against an identified uncommitted workspace.
+
+ It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
+
+@@ -333,3 +333,13 @@
+ PCI records use the existing calendar, dashboard, renewal link/progress, confirmed renewal and retained history. The earlier action deadline drives tracking when present; otherwise expiration does. Certificate files can be attached to a cycle through existing evidence when configured. Uploading a file does not confirm renewal or establish compliance; no annual interval is inferred.
+
+ Apply the additive PCI migration before the matching application. Existing rows and immutable receipts are retained. Once PCI records exist, rollback must retain PCI-capable register/history/evidence readers; archiving does not make old readers compatible. Keep the ownership constraint and validators, and use a compatible forward fix. This local feature does not activate hosted uploads or notification providers and has not been deployed by this task.
++
++## Insurance payer provider directory renewals (local implementation)
++
++The renewal register supports **Insurance payer provider directory** records owned by the practice or one saved clinician, with one record per payer obligation. Enter a required title and optional **Payer name**, **Directory / provider reference**, **Jurisdiction**, and **Next directory update due date**. A separate earlier action deadline can be entered and must precede the next due date when both are known. Unknown dates stay blank. References are text, not verified payer or provider identifiers; directory records have no covered-clinician list.
++
++Calendar, dashboard, history, and evidence describe directory due dates instead of expirations. The earlier action deadline drives tracking when supplied. The shared missing-date dashboard group is labeled **Missing renewal date**, and the reminder schedule uses **Current due date** where no earlier action deadline applies. Existing sixty-day/catch-up reminders and recipient settings are reused.
++
++Record confirmed renewal only after staff have confirmed the directory update, and enter a new future directory due date in the practice timezone. A blank new earlier deadline clears the previous deadline. The old cycle, dates, evidence, and notification history remain retained. No dates or recurring intervals are inferred. The optional renewal link and configured cycle evidence support manual tracking; this feature neither updates payer portals nor verifies an attestation.
++
++Apply the additive directory migration before the matching app. Existing records and immutable receipts remain intact. Once directory rows exist, rollback must retain fifth-type-capable register/history/evidence readers; archive alone does not make older readers compatible. Local verification does not activate hosted notifications or evidence storage. Deployment and real-inbox acceptance are separate.
+--- a/src/app/practice/register/[credentialId]/history/page.tsx
++++ b/src/app/practice/register/[credentialId]/history/page.tsx
+@@ -6,7 +6,7 @@
+ import { getRenewalHistory } from "@/lib/renewals/repository";
+ import { historyCursor, type RenewalHistory } from "@/lib/renewals/history";
+ import { typeLabels } from "@/lib/register/schema";
+-import { formatCredentialDate } from "@/lib/register/dates";
++import { formatCredentialDate, cycleEndLabel } from "@/lib/register/dates";
+ import { progressLabels } from "@/lib/renewals/state";
+ import { Shell } from "@/components/shell";
+ import { SignOutForm } from "@/components/auth/sign-out-form";
+@@ -152,9 +152,7 @@
+         </h2>
+         <p>{typeLabels[c.type]}</p>
+         <dl>
+-          <dt>
+-            {c.type === "malpractice_policy" ? "Coverage end" : "Expiration"}
+-          </dt>
++          <dt>{cycleEndLabel(c.type)}</dt>
+           <dd>{c.endDate ? formatCredentialDate(c.endDate) : "Not entered"}</dd>
+           <dt>Earlier action deadline</dt>
+           <dd>
+--- a/src/app/practice/reminders/page.tsx
++++ b/src/app/practice/reminders/page.tsx
+@@ -93,7 +93,8 @@
+           </h1>
+           <p className="lede">
+             Email reminders are scheduled 60 calendar days before the action
+-            deadline, or the end date when no deadline is entered, at 9 AM in{" "}
++            deadline, or the saved expiration, coverage end, or next directory
++            update due date when no earlier deadline is entered, at 9 AM in{" "}
+             {practice.timezone}. Eligible late entries or reminder setup are
+             scheduled for catch-up in the next permitted local sending window,
+             from 9 AM to before 5 PM.
+@@ -192,7 +193,7 @@
+         <dt>
+           {row.datePurpose === "action-deadline"
+             ? "Current action deadline"
+-            : "Current end date"}
++            : "Current due date"}
+         </dt>
+         <dd>{row.dueDate ?? "No date entered"}</dd>
+         <dt>Original 60-day target</dt>
+--- a/src/components/dashboard/dashboard-panel.tsx
++++ b/src/components/dashboard/dashboard-panel.tsx
+@@ -20,9 +20,9 @@
+   {
+     key: "missingEnd",
+     id: "missing-end",
+-    title: "Missing expiration / coverage end",
+-    hint: "These records need an expiration or coverage end date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
+-    empty: "No records with missing expiration or coverage end.",
++    title: "Missing renewal date",
++    hint: "These records need an expiration, coverage end, or next directory update due date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
++    empty: "No records with a missing renewal date.",
+   },
+ ] as const;
+ export function DashboardPanel({
+--- a/src/components/evidence/panel.tsx
++++ b/src/components/evidence/panel.tsx
+@@ -10,7 +10,7 @@
+ } from "react";
+ import type { EvidencePage, EvidenceFile } from "@/lib/evidence/schema";
+ import { evidenceMessage } from "@/lib/evidence/messages";
+-import { formatCredentialDate } from "@/lib/register/dates";
++import { formatCredentialDate, cycleEndLabel } from "@/lib/register/dates";
+ import { Shell } from "@/components/shell";
+ import { EvidenceUploadForm } from "./upload-form";
+ import { EvidenceRemoveForm } from "./remove-form";
+@@ -161,10 +161,7 @@
+         {page.archivedAt ? " · Archived record" : ""}
+       </p>
+       <p className="hint">
+-        {page.cycle.type === "malpractice_policy"
+-          ? "Coverage end"
+-          : "Expiration"}
+-        :{" "}
++        {cycleEndLabel(page.cycle.type)}:{" "}
+         {page.cycle.endDate
+           ? formatCredentialDate(page.cycle.endDate)
+           : "Not entered"}{" "}
+--- a/src/components/register/credential-fields.tsx
++++ b/src/components/register/credential-fields.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ import { useId, useState } from "react";
+-import { detailLabels } from "@/lib/register/dates";
++import { detailLabels, directoryDateError } from "@/lib/register/dates";
+ import { recordNumberLabels } from "@/lib/register/numbers";
+ import { Field, errorAttributes } from "./create-form";
+ import {
+@@ -165,9 +165,9 @@
+           </Field>
+         ))}
+         <p className="hint">
+-          Leave either date blank if it is unknown. An earlier action deadline
+-          is the date you need to act, and must be before the expiration or
+-          coverage end when both are known.
++          {type === "insurance_payer_provider_directory"
++            ? "Enter the next directory update due date confirmed by your practice. Leave unknown dates blank. An earlier action deadline must be before that due date when both are known. Dates are not calculated automatically."
++            : "Leave either date blank if it is unknown. An earlier action deadline is the date you need to act, and must be before the expiration or coverage end when both are known."}
+         </p>
+         {(["endDate", "actionDeadline"] as const).map((field) => (
+           <Field
+@@ -178,7 +178,7 @@
+                 ? detailLabels[type].end
+                 : "Earlier action deadline"
+             }
+-            error={errors[field]}
++            error={directoryDateError(type, errors[field])}
+           >
+             <input
+               id={`${id}-${field}`}
+@@ -193,7 +193,10 @@
+               type="date"
+               min="0001-01-01"
+               max="9999-12-31"
+-              {...errorAttributes(`${id}-${field}`, errors[field])}
++              {...errorAttributes(
++                `${id}-${field}`,
++                directoryDateError(type, errors[field]),
++              )}
+             />
+           </Field>
+         ))}
+--- a/src/components/renewals/completion-fields.tsx
++++ b/src/components/renewals/completion-fields.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ import { Field, errorAttributes } from "@/components/register/create-form";
+-import { detailLabels } from "@/lib/register/dates";
++import { detailLabels, directoryDateError } from "@/lib/register/dates";
+ import type { RenewalCredential } from "@/lib/renewals/schema";
+ export function CompletionFields({
+   record,
+@@ -16,8 +16,9 @@
+   return (
+     <>
+       <p>
+-        Record this renewal only after your practice has confirmed it. The
+-        previous dates and history will be retained.
++        {record.type === "insurance_payer_provider_directory"
++          ? "Record completion only after your practice has confirmed the directory update. Enter its next confirmed due date; previous dates and history will be retained. This does not update the payer directory."
++          : "Record this renewal only after your practice has confirmed it. The previous dates and history will be retained."}
+       </p>
+       <p className="hint">
+         {today ? `Today: ${today} · ` : ""}Practice timezone: {timezone}. New
+@@ -25,8 +26,12 @@
+       </p>
+       <Field
+         id="renewal-new-end"
+-        label={`New ${detailLabels[record.type].end.toLowerCase()}`}
+-        error={errors.endDate}
++        label={
++          record.type === "insurance_payer_provider_directory"
++            ? "New directory update due date"
++            : `New ${detailLabels[record.type].end.toLowerCase()}`
++        }
++        error={directoryDateError(record.type, errors.endDate)}
+       >
+         <input
+           id="renewal-new-end"
+@@ -39,7 +44,7 @@
+       <Field
+         id="renewal-new-action"
+         label="New earlier action deadline (optional)"
+-        error={errors.actionDeadline}
++        error={directoryDateError(record.type, errors.actionDeadline)}
+       >
+         <input
+           id="renewal-new-action"
+--- a/src/lib/calendar/events.ts
++++ b/src/lib/calendar/events.ts
+@@ -1,4 +1,4 @@
+-import { trackingDate } from "@/lib/register/dates";
++import { trackingDate, endDatePurpose } from "@/lib/register/dates";
+ import type { MaintenanceRegister } from "@/lib/register/schema";
+ import type { CalendarQuery } from "./query";
+ export type CalendarRecord = MaintenanceRegister["credentials"][number];
+@@ -52,11 +52,7 @@
+       );
+     if (!tracking) undated.push(record);
+     for (const [key, date, purpose] of [
+-      [
+-        "end",
+-        cycle.end_date,
+-        record.type === "malpractice_policy" ? "coverage end" : "expiration",
+-      ],
++      ["end", cycle.end_date, endDatePurpose(record.type)],
+       ["action", cycle.action_deadline, "earlier action deadline"],
+     ]) {
+       if (date && date.slice(0, 7) === query.month)
+--- a/src/lib/calendar/properties.test.ts
++++ b/src/lib/calendar/properties.test.ts
+@@ -17,6 +17,7 @@
+   "dea_registration",
+   "malpractice_policy",
+   "pci_compliance_certificate",
++  "insurance_payer_provider_directory",
+ ] as const;
+ const options = { seed: 20261007, numRuns: 1500 };
+ it("CP01 exact independent event sets preserve cardinality, archive/filter boundaries, dates and identity", () => {
+@@ -124,7 +125,9 @@
+                       purpose:
+                         r.type === "malpractice_policy"
+                           ? "coverage end"
+-                          : "expiration",
++                          : r.type === "insurance_payer_provider_directory"
++                            ? "directory update due"
++                            : "expiration",
+                       tracking: c.action_deadline === null,
+                       dateRevision: c.date_revision,
+                     },
+--- a/src/lib/dashboard/properties.test.ts
++++ b/src/lib/dashboard/properties.test.ts
+@@ -55,6 +55,7 @@
+             "dea_registration",
+             "malpractice_policy",
+             "pci_compliance_certificate",
++            "insurance_payer_provider_directory",
+           ),
+           owner: fc.boolean(),
+         }),
+@@ -117,7 +118,9 @@
+                         ? "earlier action deadline"
+                         : r.type === "malpractice_policy"
+                           ? "coverage end"
+-                          : "expiration",
++                          : r.type === "insurance_payer_provider_directory"
++                            ? "directory update due"
++                            : "expiration",
+                   },
+             days,
+             urgency,
+--- a/src/lib/register/dates.test.ts
++++ b/src/lib/register/dates.test.ts
+@@ -201,10 +201,16 @@
+     "dea_registration",
+     "malpractice_policy",
+     "pci_compliance_certificate",
++    "insurance_payer_provider_directory",
+   ]) {
+     expect(trackingDate("2026-12-02", null, type)).toEqual({
+       date: "2026-12-02",
+-      purpose: type === "malpractice_policy" ? "coverage end" : "expiration",
++      purpose:
++        type === "malpractice_policy"
++          ? "coverage end"
++          : type === "insurance_payer_provider_directory"
++            ? "directory update due"
++            : "expiration",
+     });
+     expect(trackingDate("2026-12-02", "2026-11-01", type)).toEqual({
+       date: "2026-11-01",
+@@ -265,6 +271,11 @@
+
+ it("D11 type-specific field purposes are exact", () => {
+   expect(detailLabels).toEqual({
++    insurance_payer_provider_directory: {
++      issuer: "Payer name",
++      jurisdiction: "Jurisdiction",
++      end: "Next directory update due date",
++    },
+     pci_compliance_certificate: {
+       issuer: "Certificate issuer",
+       jurisdiction: "Jurisdiction",
+@@ -301,6 +312,7 @@
+         "dea_registration",
+         "malpractice_policy",
+         "pci_compliance_certificate",
++        "insurance_payer_provider_directory",
+       ),
+       (year, hasEnd, hasAction, length, char, type) => {
+         const yearText = String(year).padStart(4, "0"),
+@@ -334,7 +346,9 @@
+                   purpose:
+                     type === "malpractice_policy"
+                       ? "coverage end"
+-                      : "expiration",
++                      : type === "insurance_payer_provider_directory"
++                        ? "directory update due"
++                        : "expiration",
+                 }
+               : null,
+         );
+--- a/src/lib/register/dates.ts
++++ b/src/lib/register/dates.ts
+@@ -35,11 +35,43 @@
+   if (end)
+     return {
+       date: end,
+-      purpose: type === "malpractice_policy" ? "coverage end" : "expiration",
++      purpose: endDatePurpose(type),
+     };
+   return null;
+ }
++export function endDatePurpose(type: string): string {
++  if (type === "malpractice_policy") return "coverage end";
++  if (type === "insurance_payer_provider_directory")
++    return "directory update due";
++  return "expiration";
++}
++export function cycleEndLabel(type: string): string {
++  if (type === "malpractice_policy") return "Coverage end";
++  if (type === "insurance_payer_provider_directory")
++    return "Next directory update due";
++  return "Expiration";
++}
++/** Keep canonical validation contracts intact; adapt only directory presentation. */
++export function directoryDateError(
++  type: string,
++  message: string | undefined,
++): string | undefined {
++  if (type !== "insurance_payer_provider_directory") return message;
++  switch (message) {
++    case "Enter an end date after today in the practice timezone.":
++      return "Enter a next directory update due date after today in the practice timezone.";
++    case "The action deadline must be earlier than the end date.":
++      return "The action deadline must be earlier than the next directory update due date.";
++    default:
++      return message;
++  }
++}
+ export const detailLabels = {
++  insurance_payer_provider_directory: {
++    issuer: "Payer name",
++    jurisdiction: "Jurisdiction",
++    end: "Next directory update due date",
++  },
+   pci_compliance_certificate: {
+     issuer: "Certificate issuer",
+     jurisdiction: "Jurisdiction",
+--- a/src/lib/register/numbers.test.ts
++++ b/src/lib/register/numbers.test.ts
+@@ -50,6 +50,7 @@
+     dea_registration: "DEA registration number",
+     malpractice_policy: "Policy number",
+     pci_compliance_certificate: "Certificate number",
++    insurance_payer_provider_directory: "Directory / provider reference",
+   });
+   const parsed = recordNumberSchema.safeParse("unsafe\nvalue");
+   expect(parsed.success).toBe(false);
+--- a/src/lib/register/numbers.ts
++++ b/src/lib/register/numbers.ts
+@@ -8,6 +8,7 @@
+   dea_registration: "DEA registration number",
+   malpractice_policy: "Policy number",
+   pci_compliance_certificate: "Certificate number",
++  insurance_payer_provider_directory: "Directory / provider reference",
+ } as const satisfies Record<CredentialType, string>;
+
+ export const recordNumberSchema = z
+--- a/src/lib/register/payer-directory.test.ts
++++ b/src/lib/register/payer-directory.test.ts
+@@ -0,0 +1,280 @@
++import { expect, it, vi } from "vitest";
++import type { SupabaseClient } from "@supabase/supabase-js";
++import {
++  registerInputSchema,
++  maintenanceInputSchema,
++  credentialSchema,
++  maintenanceRegisterSchema,
++  typeLabels,
++} from "./schema";
++import {
++  renewalRegisterSchema,
++  completionResultSchema,
++} from "@/lib/renewals/schema";
++import { renewalHistorySchema } from "@/lib/renewals/history";
++import { pageSchema } from "@/lib/evidence/schema";
++import { createRecord } from "./repository";
++import { parseCalendarQuery, calendarHref } from "@/lib/calendar/query";
++import { projectCalendar } from "@/lib/calendar/events";
++import { projectDashboard } from "@/lib/dashboard/summary";
++const id = "aaaaaaaa-0000-4000-8000-000000000001",
++  next = "bbbbbbbb-0000-4000-8000-000000000002";
++const type = "insurance_payer_provider_directory";
++const input = {
++  intent: "credential",
++  requestId: id,
++  title: " DIR fixture ",
++  type,
++  ownerKind: "practice",
++  recordNumber: " 000DIR-01 ",
++  issuer: " Fixture assessor ",
++  jurisdiction: " US ",
++  endDate: "2090-03-02",
++  actionDeadline: "2090-02-01",
++};
++const cycle = {
++  id,
++  cycle_number: 1,
++  date_revision: 1,
++  end_date: "2090-03-02",
++  action_deadline: "2090-02-01",
++};
++const record = {
++  id,
++  title: "DIR fixture",
++  type,
++  owner_kind: "practice",
++  owner_clinician_id: null,
++  owner_name: "Practice",
++  version: 1,
++  covered_clinicians: [],
++  issuer: "Fixture assessor",
++  jurisdiction: "US",
++  record_number: "000DIR-01",
++  current_cycle: cycle,
++  archived_at: null,
++  suspected_duplicate_ids: [],
++  renewal: {
++    link: { url: null, version: 1 },
++    workflow: {
++      cycleId: id,
++      status: "not-started",
++      version: 1,
++      acknowledgedAt: null,
++    },
++  },
++};
++const historyCycle = {
++  id,
++  cycleNumber: 1,
++  dateRevision: 1,
++  type,
++  endDate: cycle.end_date,
++  actionDeadline: cycle.action_deadline,
++  completedAt: null,
++  successorId: null,
++  progress: "not-started",
++  acknowledgedAt: null,
++};
++it("DIR01 DIR02 fifth type normalizes input and mixed register responses", async () => {
++  const parsed = registerInputSchema.parse(input);
++  expect(parsed).toMatchObject({
++    title: "DIR fixture",
++    recordNumber: "000DIR-01",
++    issuer: "Fixture assessor",
++    jurisdiction: "US",
++    type,
++  });
++  expect(typeLabels).toHaveProperty(type, "Insurance payer provider directory");
++  const mixed = {
++    clinicians: [],
++    credentials: [record, { ...record, id: next, type: "state_license" }],
++  };
++  expect(maintenanceRegisterSchema.parse(mixed).credentials).toHaveLength(2);
++  expect(renewalRegisterSchema.parse(mixed).credentials[0].type).toBe(type);
++  const rpc = vi.fn().mockResolvedValue({
++    data: { status: "success", credential: record },
++    error: null,
++  });
++  expect(
++    (await createRecord({ rpc } as unknown as SupabaseClient, id, parsed))
++      .status,
++  ).toBe("success");
++  expect(rpc).toHaveBeenCalledWith(
++    "create_practice_credential_with_number",
++    expect.objectContaining({
++      p_type: type,
++      p_owner_kind: "practice",
++      p_owner_clinician_id: null,
++      p_record_number: "000DIR-01",
++    }),
++  );
++});
++it("DIR03 input and output reject incoherent ownership and forged directory coverage", () => {
++  expect(credentialSchema.safeParse(record).success).toBe(true);
++  for (const patch of [
++    { ownerKind: "clinician" },
++    { ownerKind: "practice", ownerClinicianId: next },
++    { coveredClinicianIds: [next] },
++    { type: "directory_other" },
++  ]) {
++    expect(registerInputSchema.safeParse({ ...input, ...patch }).success).toBe(
++      false,
++    );
++    expect(
++      maintenanceInputSchema.safeParse({
++        ...input,
++        intent: "update",
++        id,
++        expectedVersion: 1,
++        expectedCycleId: id,
++        expectedDateRevision: 1,
++        ...patch,
++      }).success,
++    ).toBe(false);
++  }
++  expect(
++    registerInputSchema.safeParse({
++      ...input,
++      ownerKind: "clinician",
++      ownerClinicianId: next,
++    }).success,
++  ).toBe(true);
++  expect(
++    credentialSchema.safeParse({
++      ...record,
++      owner_kind: "clinician",
++      owner_clinician_id: next,
++    }).success,
++  ).toBe(true);
++  for (const patch of [
++    { owner_kind: "clinician" },
++    { owner_kind: "practice", owner_clinician_id: next },
++    { covered_clinicians: [{ id: next, name: "Rivera" }] },
++    { type: "directory_other" },
++  ])
++    expect(credentialSchema.safeParse({ ...record, ...patch }).success).toBe(
++      false,
++    );
++});
++it("DIR01 DIR06 DIR07 history completion and evidence share DIR cycle validation", () => {
++  expect(
++    renewalHistorySchema.parse({
++      status: "success",
++      credentialId: id,
++      title: record.title,
++      archivedAt: null,
++      currentCycleId: id,
++      cycles: [historyCycle],
++      nextBeforeCycleNumber: null,
++    }).cycles[0].type,
++  ).toBe(type);
++  expect(
++    pageSchema.parse({
++      status: "success",
++      credentialId: id,
++      cycleId: id,
++      title: record.title,
++      archivedAt: null,
++      current: true,
++      cycle: historyCycle,
++      files: [],
++      notices: [],
++    }).cycle.type,
++  ).toBe(type);
++  expect(
++    completionResultSchema.parse({
++      status: "success",
++      changed: true,
++      credential: {
++        ...record,
++        current_cycle: { ...cycle, id: next, cycle_number: 2 },
++        renewal: {
++          ...record.renewal,
++          workflow: { ...record.renewal.workflow, cycleId: next },
++        },
++      },
++      completedCycle: {
++        ...historyCycle,
++        completedAt: "2089-01-01T00:00:00Z",
++        successorId: next,
++      },
++    }).status,
++  ).toBe("success");
++});
++it("DIR01 DIR02 calendar filters and urgency preserve directory due date and unknown semantics", () => {
++  const parsed = maintenanceRegisterSchema.parse({
++    clinicians: [],
++    credentials: [record],
++  });
++  const query = parseCalendarQuery({ month: "2090-03", type }, "2090-01-01");
++  expect(query.invalidFilters).toBe(false);
++  expect(
++    parseCalendarQuery(
++      Object.fromEntries(
++        new URL(calendarHref(query), "http://fixture").searchParams,
++      ),
++      "2090-01-01",
++    ),
++  ).toEqual(query);
++  expect(
++    projectCalendar(parsed, query).events.map((e) => [
++      e.date,
++      e.purpose,
++      e.tracking,
++    ]),
++  ).toEqual([["2090-03-02", "directory update due", false]]);
++  expect(
++    projectDashboard(parsed, "2090-01-01").dueWithin60[0].tracking,
++  ).toEqual({ date: "2090-02-01", purpose: "earlier action deadline" });
++  const undated = maintenanceRegisterSchema.parse({
++    clinicians: [],
++    credentials: [
++      {
++        ...record,
++        current_cycle: { ...cycle, end_date: null, action_deadline: null },
++      },
++    ],
++  });
++  expect(projectDashboard(undated, "2090-01-01").undated).toHaveLength(1);
++});
++
++import { endDatePurpose, cycleEndLabel, directoryDateError } from "./dates";
++it("DIR04 independent date labels and canonical error display preserve all old types", () => {
++  const cases = [
++    ["state_license", "expiration", "Expiration"],
++    ["dea_registration", "expiration", "Expiration"],
++    ["malpractice_policy", "coverage end", "Coverage end"],
++    ["pci_compliance_certificate", "expiration", "Expiration"],
++    [
++      "insurance_payer_provider_directory",
++      "directory update due",
++      "Next directory update due",
++    ],
++    ["unknown", "expiration", "Expiration"],
++  ];
++  const order = "The action deadline must be earlier than the end date.";
++  const future = "Enter an end date after today in the practice timezone.";
++  for (const [type, purpose, label] of cases) {
++    expect(endDatePurpose(type)).toBe(purpose);
++    expect(cycleEndLabel(type)).toBe(label);
++    expect(directoryDateError(type, order)).toBe(
++      type === "insurance_payer_provider_directory"
++        ? "The action deadline must be earlier than the next directory update due date."
++        : order,
++    );
++    expect(directoryDateError(type, future)).toBe(
++      type === "insurance_payer_provider_directory"
++        ? "Enter a next directory update due date after today in the practice timezone."
++        : future,
++    );
++    for (const message of [
++      undefined,
++      "Enter a valid date (YYYY-MM-DD).",
++      "Unrecognized end date error",
++      "toString",
++      "",
++    ])
++      expect(directoryDateError(type, message)).toBe(message);
++  }
++});
+--- a/src/lib/register/properties.test.ts
++++ b/src/lib/register/properties.test.ts
+@@ -96,6 +96,7 @@
+           "dea_registration",
+           "malpractice_policy",
+           "pci_compliance_certificate",
++          "insurance_payer_provider_directory",
+         ])
+           for (const ownerKind of ["practice", "clinician"])
+             for (const ownerClinicianId of [undefined, id]) {
+@@ -270,6 +271,7 @@
+     dea_registration: "DEA registration",
+     malpractice_policy: "Malpractice policy",
+     pci_compliance_certificate: "PCI compliance certificate",
++    insurance_payer_provider_directory: "Insurance payer provider directory",
+   });
+   fc.assert(
+     fc.property(
+@@ -354,6 +356,7 @@
+           "dea_registration",
+           "malpractice_policy",
+           "pci_compliance_certificate",
++          "insurance_payer_provider_directory",
+         ])
+           for (const ownerKind of ["practice", "clinician"]) {
+             const raw = {
+--- a/src/lib/register/types.ts
++++ b/src/lib/register/types.ts
+@@ -5,6 +5,7 @@
+   "dea_registration",
+   "malpractice_policy",
+   "pci_compliance_certificate",
++  "insurance_payer_provider_directory",
+ ]);
+ export type CredentialType = z.infer<typeof credentialTypeSchema>;
+ export const typeLabels = {
+@@ -12,4 +13,5 @@
+   dea_registration: "DEA registration",
+   malpractice_policy: "Malpractice policy",
+   pci_compliance_certificate: "PCI compliance certificate",
++  insurance_payer_provider_directory: "Insurance payer provider directory",
+ } as const satisfies Record<CredentialType, string>;
+--- a/supabase/migrations/20261021210414_insurance_payer_provider_directory_records.sql
++++ b/supabase/migrations/20261021210414_insurance_payer_provider_directory_records.sql
+@@ -0,0 +1,215 @@
++-- Directory obligations reuse explicit next-update dates and existing transactional contracts.
++alter table public.credentials
++drop constraint credentials_type_check,
++add constraint credentials_type_check check (
++    type in (
++        'state_license', 'dea_registration', 'malpractice_policy',
++        'pci_compliance_certificate', 'insurance_payer_provider_directory'
++    )
++);
++
++-- CREATE OR REPLACE retains existing function grants, signatures and historical payloads.
++create or replace function private.create_practice_credential(
++    p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text,
++    p_owner_clinician_id uuid, p_covered_clinician_ids uuid[]
++) returns jsonb
++language plpgsql volatile security definer set search_path = '' as $$
++declare
++    normalized text;
++    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);
++    payload jsonb;
++    result jsonb;
++    credential public.credentials;
++begin
++    perform private.require_register_member(p_practice_id, true);
++    normalized := private.register_name(p_title);
++    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120
++       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')
++       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')
++       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')
++       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)
++       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)
++       or coalesce(array_ndims(covered), 1) <> 1 then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    if array_position(covered, null) is not null
++       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)
++       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;
++    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,
++        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,
++        'covered_clinician_ids', covered);
++    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);
++    if result is not null then return result; end if;
++    if (p_owner_clinician_id is not null and not exists (
++        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id
++    )) or exists (
++        select 1 from unnest(covered) x where not exists (
++            select 1 from public.clinicians where practice_id = p_practice_id and id = x
++        )
++    ) then return '{"status":"invalid-reference"}'::jsonb; end if;
++    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id)
++    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id)
++    returning * into credential;
++    insert into public.policy_coverage (practice_id, credential_id, clinician_id)
++    select p_practice_id, credential.id, x from unnest(covered) x;
++    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',
++        private.credential_projection(credential));
++    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,
++        null, credential.id, result);
++end;
++$$;
++
++create or replace function private.create_practice_credential_with_details(
++    p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text,
++    p_owner_clinician_id uuid, p_covered_clinician_ids uuid[],
++    p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text
++) returns jsonb
++language plpgsql volatile security definer set search_path = '' as $$
++declare
++    normalized text;
++    issuer text;
++    jurisdiction text;
++    entered_end_date date;
++    entered_action_deadline date;
++    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);
++    payload jsonb;
++    result jsonb;
++    credential public.credentials;
++begin
++    perform private.require_register_member(p_practice_id, true);
++    normalized := private.register_name(p_title);
++    issuer := nullif(private.register_name(p_issuer), '');
++    jurisdiction := nullif(private.register_name(p_jurisdiction), '');
++    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120
++       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')
++       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')
++       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')
++       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)
++       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)
++       or coalesce(array_ndims(covered), 1) <> 1 then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    if array_position(covered, null) is not null
++       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)
++       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    if issuer is not null and char_length(issuer) > 120 then
++        return '{"status":"invalid","errors":{"issuer":"Use 1 to 120 characters."}}'::jsonb;
++    end if;
++    if jurisdiction is not null and char_length(jurisdiction) > 120 then
++        return '{"status":"invalid","errors":{"jurisdiction":"Use 1 to 120 characters."}}'::jsonb;
++    end if;
++    begin
++        entered_end_date := private.credential_date(p_end_date);
++    exception when datetime_field_overflow or invalid_datetime_format then
++        return '{"status":"invalid","errors":{"endDate":"Enter a valid date (YYYY-MM-DD)."}}'::jsonb;
++    end;
++    begin
++        entered_action_deadline := private.credential_date(p_action_deadline);
++    exception when datetime_field_overflow or invalid_datetime_format then
++        return '{"status":"invalid","errors":{"actionDeadline":"Enter a valid date (YYYY-MM-DD)."}}'::jsonb;
++    end;
++    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then
++        return '{"status":"invalid","errors":{"actionDeadline":"The action deadline must be earlier than the end date."}}'::jsonb;
++    end if;
++    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;
++    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,
++        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,
++        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,
++        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),
++        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));
++    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);
++    if result is not null then return result; end if;
++    if (p_owner_clinician_id is not null and not exists (
++        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id
++    )) or exists (
++        select 1 from unnest(covered) x where not exists (
++            select 1 from public.clinicians where practice_id = p_practice_id and id = x
++        )
++    ) then return '{"status":"invalid-reference"}'::jsonb; end if;
++    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id, issuer, jurisdiction)
++    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id, issuer, jurisdiction)
++    returning * into credential;
++    insert into public.policy_coverage (practice_id, credential_id, clinician_id)
++    select p_practice_id, credential.id, x from unnest(covered) x;
++    update public.credential_cycles cy set end_date = entered_end_date,
++        action_deadline = entered_action_deadline,
++        updated_at = pg_catalog.clock_timestamp()
++    where cy.practice_id = p_practice_id and cy.credential_id = credential.id and cy.cycle_number = 1;
++    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',
++        private.credential_details_projection(credential));
++    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,
++        null, credential.id, result);
++end;
++$$;
++
++create or replace function private.credential_change_values(
++    p_title text,
++    p_type text,
++    p_owner_kind text,
++    p_owner_clinician_id uuid,
++    p_covered_clinician_ids uuid[],
++    p_issuer text,
++    p_jurisdiction text,
++    p_end_date text,
++    p_action_deadline text
++) returns jsonb
++language plpgsql immutable security invoker set search_path = '' as $$
++declare
++    normalized text;
++    issuer text;
++    jurisdiction text;
++    entered_end_date date;
++    entered_action_deadline date;
++    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);
++    payload jsonb;
++begin
++    normalized := private.register_name(p_title);
++    issuer := nullif(private.register_name(p_issuer), '');
++    jurisdiction := nullif(private.register_name(p_jurisdiction), '');
++    if normalized is null or char_length(normalized) not between 1 and 120
++       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')
++       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')
++       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')
++       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)
++       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)
++       or coalesce(array_ndims(covered), 1) <> 1 then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    if array_position(covered, null) is not null
++       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)
++       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then
++        return '{"status":"invalid"}'::jsonb;
++    end if;
++    if issuer is not null and char_length(issuer) > 120 then
++        return '{"status":"invalid","errors":{"issuer":"Use 1 to 120 characters."}}'::jsonb;
++    end if;
++    if jurisdiction is not null and char_length(jurisdiction) > 120 then
++        return '{"status":"invalid","errors":{"jurisdiction":"Use 1 to 120 characters."}}'::jsonb;
++    end if;
++    begin
++        entered_end_date := private.credential_date(p_end_date);
++    exception when datetime_field_overflow or invalid_datetime_format then
++        return '{"status":"invalid","errors":{"endDate":"Enter a valid date (YYYY-MM-DD)."}}'::jsonb;
++    end;
++    begin
++        entered_action_deadline := private.credential_date(p_action_deadline);
++    exception when datetime_field_overflow or invalid_datetime_format then
++        return '{"status":"invalid","errors":{"actionDeadline":"Enter a valid date (YYYY-MM-DD)."}}'::jsonb;
++    end;
++    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then
++        return '{"status":"invalid","errors":{"actionDeadline":"The action deadline must be earlier than the end date."}}'::jsonb;
++    end if;
++    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;
++    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,
++        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,
++        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,
++        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),
++        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));
++    return payload;
++end;
++$$;
+--- a/supabase/tests/practice_payer_directories.test.sql
++++ b/supabase/tests/practice_payer_directories.test.sql
+@@ -0,0 +1,45 @@
++begin;
++create extension if not exists pgtap with schema extensions;
++set local search_path = public, extensions;
++select plan(9);
++select is(private.credential_change_values(
++    'DIR fixture', 'insurance_payer_provider_directory', 'practice', null, '{}',
++    null, null, null, null
++) ->> 'type', 'insurance_payer_provider_directory', 'DIR02 practice-owned DIR accepted');
++select is(private.credential_change_values(
++    'DIR fixture', 'insurance_payer_provider_directory', 'clinician',
++    'aaaaaaaa-0000-4000-8000-000000000001', '{}', null, null, null, null
++) ->> 'type', 'insurance_payer_provider_directory', 'DIR02 clinician ownership accepted');
++select is(private.credential_change_values(
++    'DIR fixture', 'insurance_payer_provider_directory', 'practice', null,
++    '{aaaaaaaa-0000-4000-8000-000000000001}', null, null, null, null
++) ->> 'status', 'invalid', 'DIR03 covered clinicians rejected');
++select is(private.credential_change_values(
++    'DIR fixture', 'pci_other', 'practice', null, '{}', null, null, null, null
++) ->> 'status', 'invalid', 'DIR01 unknown types rejected');
++select ok(
++    not has_table_privilege('authenticated', 'public.credentials', 'insert,update,delete'),
++    'DIR03 direct credential writes denied'
++);
++select ok(not has_function_privilege(
++    'authenticated',
++    'private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text)', 'execute'
++),
++'DIR03 raw validation helper remains private');
++select is(private.credential_change_values(
++    'Directory fixture', 'insurance_payer_provider_directory', 'clinician', null,
++    '{}', null, null, null, null
++) ->> 'status', 'invalid', 'DIR02 missing clinician rejected');
++select is(private.credential_change_values(
++    'Directory fixture', 'insurance_payer_provider_directory', 'practice',
++    'aaaaaaaa-0000-4000-8000-000000000001', '{}', null, null, null, null
++) ->> 'status', 'invalid', 'DIR02 incoherent practice owner rejected');
++select ok(exists (
++    select 1
++    from pg_constraint
++    where
++        conrelid = 'public.credentials'::regclass
++        and conname = 'credentials_pci_practice_owner_check'
++), 'DIR02 PCI practice-only constraint retained');
++select finish from finish();
++rollback;
+--- a/tests/e2e/practice-dashboard.spec.ts
++++ b/tests/e2e/practice-dashboard.spec.ts
+@@ -104,7 +104,7 @@
+   for (const [title, n] of [
+     ["Past due", past],
+     ["Due within 60 days", due],
+-    ["Missing expiration / coverage end", missing],
++    ["Missing renewal date", missing],
+   ] as const) {
+     await expect(
+       page
+@@ -232,10 +232,10 @@
+     page.getByRole("region", { name: "Due within 60 days" }),
+   ).toContainText("Due in 60 days");
+   await expect(
+-    page.getByRole("region", { name: "Missing expiration / coverage end" }),
++    page.getByRole("region", { name: "Missing renewal date" }),
+   ).toContainText("Dates not entered");
+   await expect(
+-    page.getByRole("region", { name: "Missing expiration / coverage end" }),
++    page.getByRole("region", { name: "Missing renewal date" }),
+   ).toContainText("Expiration date unknown");
+   await expect(
+     page.getByText("1 record with a tracking date more than 60 days away."),
+--- a/tests/e2e/practice-payer-directories.spec.ts
++++ b/tests/e2e/practice-payer-directories.spec.ts
+@@ -0,0 +1,349 @@
++import AxeBuilder from "@axe-core/playwright";
++import type { Page } from "@playwright/test";
++import { test, expect, pool } from "../helpers/private-browser";
++import { setup } from "../helpers/browser";
++test.use({ trace: "off", screenshot: "off", video: "off" });
++const item = (page: Page, title = "Directory fixture") =>
++  page
++    .getByRole("list", { name: "Saved records" })
++    .locator("article")
++    .filter({ has: page.getByRole("heading", { name: title, exact: true }) });
++const editor = (page: Page) =>
++  page.getByRole("region", { name: "Edit Directory fixture", exact: true });
++async function open(page: Page) {
++  await setup(page);
++  await page
++    .getByRole("link", { name: "Renewal register", exact: true })
++    .click();
++  await page.getByLabel("Record title").fill("Directory fixture");
++  await page
++    .getByLabel("Record type")
++    .selectOption("insurance_payer_provider_directory");
++  await expect(page.getByLabel("Record owner")).toHaveValue("practice");
++  await expect(page.getByLabel("Owning clinician")).toHaveCount(0);
++  await page
++    .getByLabel("Directory / provider reference (optional)")
++    .fill("  000Ab-12 / 陈  ");
++  await page.getByRole("button", { name: "Add record", exact: true }).click();
++  await expect(page.getByText("Record saved.", { exact: true })).toBeFocused();
++  await expect(item(page)).toContainText(
++    "Next directory update due date unknown",
++  );
++  await expect(item(page)).toContainText("Dates not entered");
++  const c = (
++    await pool.query(
++      "select * from public.credentials where title='Directory fixture' order by created_at desc limit 1",
++    )
++  ).rows[0];
++  const current = (
++    await pool.query(
++      "select id from public.credential_cycles where credential_id=$1 order by cycle_number desc limit 1",
++      [c.id],
++    )
++  ).rows[0];
++  return { ...c, current_cycle: current };
++}
++test("DIR01 DIR02 DIR06 DIR09 real number creation detail successor and archived readback at both widths", async ({
++  page,
++}) => {
++  const c = await open(page);
++  const proof = Buffer.from(
++    "%PDF-1.7\nSynthetic directory update evidence\n%%EOF\n",
++  );
++  await page.goto(`/practice/register/${c.id}/evidence/${c.current_cycle.id}`);
++  await page.getByLabel("Evidence file").setInputFiles({
++    name: "directory-proof.pdf",
++    mimeType: "application/pdf",
++    buffer: proof,
++  });
++  await page
++    .getByRole("button", { name: "Upload evidence", exact: true })
++    .click();
++  const proofLink = page.getByRole("link", {
++    name: "Download directory-proof.pdf",
++  });
++  await expect(proofLink).toBeVisible();
++  const download = await page.request.get(
++    (await proofLink.getAttribute("href"))!,
++  );
++  expect(download.status()).toBe(200);
++  expect(await download.body()).toEqual(proof);
++  await page.goto("/practice/register");
++  await expect(item(page)).toContainText(
++    "Directory / provider reference: 000Ab-12 / 陈",
++  );
++  await expect(item(page)).toContainText(`App reference: ${c.id.slice(-6)}`);
++  await item(page)
++    .getByRole("link", { name: "Review renewal", exact: true })
++    .click();
++  await expect(
++    page.getByText("Directory / provider reference: 000Ab-12 / 陈"),
++  ).toBeVisible();
++  await page.getByRole("button", { name: "Record confirmed renewal" }).click();
++  await page
++    .getByLabel("New directory update due date", { exact: true })
++    .fill("2091-03-02");
++  await page
++    .getByLabel("I have confirmed this renewal and its new dates.")
++    .check();
++  await page
++    .getByRole("button", { name: "Confirm renewal and new dates" })
++    .click();
++  await expect(page.getByRole("status")).toHaveText(
++    "Renewal confirmed. New dates saved.",
++  );
++  await page.reload();
++  await expect(
++    page.getByText("Directory / provider reference: 000Ab-12 / 陈"),
++  ).toBeVisible();
++  await page.goto(`/practice/register/${c.id}/history`);
++  await page
++    .getByRole("link", { name: "Evidence for cycle 1", exact: true })
++    .click();
++  await expect(
++    page.getByRole("link", { name: "Download directory-proof.pdf" }),
++  ).toBeVisible();
++  await page.goto("/practice/register");
++  await item(page)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  await editor(page)
++    .getByLabel("Directory / provider reference (optional)")
++    .fill("X".repeat(120));
++  await editor(page).getByRole("button", { name: "Save changes" }).click();
++  await expect(item(page)).toContainText(
++    `Directory / provider reference: ${"X".repeat(120)}`,
++  );
++  for (const width of [375, 1440]) {
++    await page.setViewportSize({ width, height: 1100 });
++    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
++    expect(
++      await page.evaluate(
++        () => document.documentElement.scrollWidth <= innerWidth,
++      ),
++    ).toBe(true);
++    await page.screenshot({
++      path: `reports/payer-directories-${width}.png`,
++      fullPage: true,
++    });
++  }
++  await item(page)
++    .getByRole("button", { name: "Archive record", exact: true })
++    .click();
++  await page.getByRole("button", { name: "Confirm archive" }).click();
++  await expect(
++    page.getByText("Record archived.", { exact: true }),
++  ).toBeVisible();
++  await page
++    .getByRole("link", { name: "Archived records", exact: true })
++    .click();
++  await expect(item(page)).toContainText(
++    `Directory / provider reference: ${"X".repeat(120)}`,
++  );
++  await page.goto(`/practice/register/${c.id}/evidence/${c.current_cycle.id}`);
++  await expect(
++    page.getByRole("link", { name: "Download directory-proof.pdf" }),
++  ).toBeVisible();
++  await expect(
++    page.getByRole("button", { name: "Upload evidence", exact: true }),
++  ).toHaveCount(0);
++  expect(
++    (
++      await pool.query(
++        "select max(cycle_number)::int n from public.credential_cycles where credential_id=$1",
++        [c.id],
++      )
++    ).rows[0].n,
++  ).toBe(2);
++});
++test("DIR05 DIR04 type reset cancel, replacement, conflict comparison and explicit clear", async ({
++  page,
++  context,
++}) => {
++  await open(page);
++  await item(page)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  const e = editor(page);
++  await e.getByLabel("Record type").selectOption("dea_registration");
++  await e.getByRole("button", { name: "Keep current type" }).click();
++  await expect(
++    e.getByLabel("Directory / provider reference (optional)"),
++  ).toHaveValue("000Ab-12 / 陈");
++  await e.getByLabel("Record type").selectOption("dea_registration");
++  await e.getByRole("button", { name: "Confirm type change" }).click();
++  await expect(e.getByLabel("DEA registration number (optional)")).toHaveValue(
++    "",
++  );
++  await e.getByLabel("DEA registration number (optional)").fill("001DEA");
++  await e.getByRole("button", { name: "Save changes" }).click();
++  await expect(item(page)).toContainText("DEA registration number: 001DEA");
++  const second = await context.newPage();
++  await second.goto("/practice/register");
++  await item(second)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  await editor(second)
++    .getByLabel("DEA registration number (optional)")
++    .fill("losing");
++  await item(page)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  await e.getByLabel("DEA registration number (optional)").fill("winning");
++  await e.getByRole("button", { name: "Save changes" }).click();
++  await expect(item(page)).toContainText("DEA registration number: winning");
++  await editor(second).getByRole("button", { name: "Save changes" }).click();
++  await expect(
++    editor(second).getByText("DEA registration number: winning"),
++  ).toBeVisible();
++  await expect(
++    editor(second).getByLabel("DEA registration number (optional)"),
++  ).toHaveValue("losing");
++  await expect(
++    editor(second).getByLabel("DEA registration number (optional)"),
++  ).toBeDisabled();
++  await editor(second)
++    .getByRole("button", { name: "Reload saved values" })
++    .click();
++  await expect(
++    editor(second).getByLabel("DEA registration number (optional)"),
++  ).toHaveValue("winning");
++  await editor(second)
++    .getByLabel("DEA registration number (optional)")
++    .fill("");
++  await editor(second).getByRole("button", { name: "Save changes" }).click();
++  await expect(item(second)).toContainText(
++    "DEA registration number: Not entered",
++  );
++  await second.reload();
++  await item(second)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  await editor(second)
++    .getByLabel("Record type")
++    .selectOption("malpractice_policy");
++  await editor(second).getByLabel("Policy number (optional)").fill("000POL");
++  await editor(second).getByRole("button", { name: "Save changes" }).click();
++  await expect(item(second)).toContainText("Policy number: 000POL");
++  await second.close();
++});
++test("DIR04 lost committed number save freezes exact payload and retry leaves one mutation", async ({
++  page,
++}) => {
++  const c = await open(page),
++    requests: [string, FormDataEntryValue][][] = [];
++  await item(page)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  await editor(page)
++    .getByLabel("Directory / provider reference (optional)")
++    .fill("000-new");
++  let drop = true;
++  await page.route("**/practice/register", async (route) => {
++    if (route.request().method() !== "POST") return route.continue();
++    const r = route.request();
++    const form = await new Response(r.postData()!, {
++      headers: { "content-type": r.headers()["content-type"] },
++    }).formData();
++    requests.push(Array.from(form).filter(([key]) => key.startsWith("1_")));
++    if (drop) {
++      drop = false;
++      await route.fetch();
++      await route.abort("failed");
++    } else await route.continue();
++  });
++  await editor(page).getByRole("button", { name: "Save changes" }).click();
++  await expect(
++    editor(page).getByRole("button", { name: "Retry this save" }),
++  ).toBeVisible();
++  await expect(
++    editor(page).getByLabel("Directory / provider reference (optional)"),
++  ).toBeDisabled();
++  await editor(page).getByRole("button", { name: "Retry this save" }).click();
++  await expect(item(page)).toContainText(
++    "Directory / provider reference: 000-new",
++  );
++  expect(requests).toHaveLength(2);
++  expect(requests[0]).toEqual(requests[1]);
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from private.register_change_requests where credential_id=$1",
++        [c.id],
++      )
++    ).rows[0].n,
++  ).toBe(1);
++});
++
++test("DIR01 DIR02 DIR04 clinician directory filters and viewer read-only record", async ({
++  page,
++}) => {
++  const c = await open(page);
++  await page.getByLabel("Clinician name").fill("Rivera");
++  await page
++    .getByRole("button", { name: "Add clinician", exact: true })
++    .click();
++  await expect(
++    page.getByText("Clinician saved.", { exact: true }),
++  ).toBeFocused();
++  await item(page)
++    .getByRole("button", { name: "Edit record", exact: true })
++    .click();
++  const e = editor(page);
++  await e.getByLabel("Record owner").selectOption("clinician");
++  const clinician = (
++    await pool.query(
++      "select id from public.clinicians where practice_id=$1 and name='Rivera'",
++      [c.practice_id],
++    )
++  ).rows[0];
++  await e.getByLabel("Owning clinician").selectOption(clinician.id);
++  await e.getByLabel("Payer name (optional)").fill("Fixture payer");
++  await e.getByLabel("Next directory update due date").fill("2090-03-02");
++  await e.getByLabel("Earlier action deadline").fill("2090-02-01");
++  await e.getByRole("button", { name: "Save changes" }).click();
++  await expect(item(page)).toContainText("Rivera");
++  await page.goto(
++    "/practice/calendar?month=2090-03&type=insurance_payer_provider_directory",
++  );
++  await expect(
++    page.getByText("directory update due", { exact: true }).first(),
++  ).toBeVisible();
++  await page.goto(`/practice/register/${c.id}`);
++  await expect(page.getByText(/Next directory update due date:/)).toBeVisible();
++  const member = (
++    await pool.query(
++      "select * from public.practice_memberships where practice_id=$1 and role='administrator'",
++      [c.practice_id],
++    )
++  ).rows[0];
++  // Keep a second administrator so demoting the signed-in fixture is legal.
++  const { account } = await import("../helpers/local-fixtures");
++  const other = await account();
++  const db = await pool.connect();
++  try {
++    await db.query("begin");
++    await db.query("select set_config('request.jwt.claim.sub',$1,true)", [
++      member.user_id,
++    ]);
++    await db.query(
++      "insert into public.practice_memberships(practice_id,user_id,role,state) values($1,$2,'administrator','active')",
++      [c.practice_id, other.user.id],
++    );
++    await db.query(
++      "update public.practice_memberships set role='viewer' where id=$1",
++      [member.id],
++    );
++    await db.query("commit");
++  } finally {
++    await db.query("rollback");
++    db.release();
++  }
++  await page.reload();
++  await expect(
++    page.getByRole("button", { name: "Record confirmed renewal" }),
++  ).toHaveCount(0);
++  await expect(
++    page.getByText(/Directory \/ provider reference:/),
++  ).toBeVisible();
++});
+--- a/tests/integration/practice-payer-directories.test.ts
++++ b/tests/integration/practice-payer-directories.test.ts
+@@ -0,0 +1,1038 @@
++import { randomUUID } from "node:crypto";
++import { afterAll, expect, it } from "vitest";
++import cases from "../fixtures/credential-numbers.json";
++import {
++  practice,
++  account,
++  invite,
++  membership,
++  pool,
++} from "../helpers/access-fixtures";
++import { anonymous } from "../helpers/local-fixtures";
++type Actor = Awaited<ReturnType<typeof practice>>;
++afterAll(() => pool.end());
++it("DIR04 DIR08 RN05 RN09 ordinary and catch-up payloads exclude numbers and consumed permission survives edits", async () => {
++  for (const kind of ["normal", "catch-up"]) {
++    const a = await practice(),
++      c = await create(a, { p_record_number: "PRIVATE-NUMBER-0001" });
++    const member = await membership(a.practice.id, a.user.id);
++    expect(
++      (
++        await a.client.rpc("set_practice_reminder_recipient", {
++          p_practice_id: a.practice.id,
++          p_membership_id: member.id,
++          p_expected_version: 1,
++        })
++      ).error,
++    ).toBeNull();
++    const now = "2090-01-02T10:00:00Z",
++      namespace = `fixture-number-${randomUUID()}`;
++    await pool.query(
++      "update public.credential_cycles set updated_at=$2 where id=$1",
++      [c.current_cycle.id, kind === "normal" ? "2080-01-01T10:00:00Z" : now],
++    );
++    for (let i = 0; i < 100; i++) {
++      await pool.query(
++        "update private.reminder_reconcile_outbox set updated_at='2000-01-01' where practice_id=$1",
++        [a.practice.id],
++      );
++      await pool.query("select private.reconcile_email_reminders_at($1,$2)", [
++        namespace,
++        now,
++      ]);
++      if (
++        !(
++          await pool.query(
++            "select 1 from private.reminder_reconcile_outbox where practice_id=$1",
++            [a.practice.id],
++          )
++        ).rowCount
++      )
++        break;
++    }
++    const job = (
++      await pool.query(
++        "select * from private.reminder_jobs where credential_id=$1",
++        [c.id],
++      )
++    ).rows[0];
++    expect(job.schedule_kind).toBe(kind);
++    expect(job.state).toBe("queued");
++    const token = randomUUID();
++    await pool.query(
++      "update private.reminder_jobs set state='claimed',claim_token=$2,claim_until=$3 where id=$1",
++      [job.id, token, "2090-01-02T10:00:30Z"],
++    );
++    const excluded = [
++      "public.credentials",
++      "private.register_change_requests",
++      "private.register_audit_events",
++    ];
++    const claimed = await snapshot(a.practice.id, excluded);
++    const saved = await save(a, await read(a, c), {
++      p_record_number: "PRIVATE-NUMBER-0002",
++    });
++    expect(await snapshot(a.practice.id, excluded)).toEqual(claimed);
++    const config = {
++      namespace,
++      from: "reminders@example.test",
++      replyTo: "support@example.test",
++      appUrl: "http://127.0.0.1:3000",
++    };
++    const permission = (
++      await pool.query(
++        "select private.begin_email_reminder_at($1,$2,$3,$4) value",
++        [job.id, token, config, now],
++      )
++    ).rows[0].value;
++    expect(permission.status).toBe("submit");
++    expect(JSON.stringify(permission.payload)).not.toContain("PRIVATE-NUMBER");
++    for (const value of ["DIR fixture", "Fixture issuer", "000Ab-12 / 陈"])
++      expect(JSON.stringify(permission.payload)).not.toContain(value);
++    const consumed = await snapshot(a.practice.id, excluded);
++    await save(a, saved.credential, { p_record_number: "PRIVATE-NUMBER-0003" });
++    expect(await snapshot(a.practice.id, excluded)).toEqual(consumed);
++  }
++});
++function createArgs(a: Actor, patch: Record<string, unknown> = {}) {
++  return {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_title: "DIR fixture",
++    p_type: "insurance_payer_provider_directory",
++    p_owner_kind: "practice",
++    p_owner_clinician_id: null,
++    p_covered_clinician_ids: [],
++    p_issuer: "Fixture issuer",
++    p_jurisdiction: "CA",
++    p_end_date: "2090-03-02",
++    p_action_deadline: null,
++    p_record_number: "000Ab-12 / 陈",
++    ...patch,
++  };
++}
++async function create(a: Actor, patch: Record<string, unknown> = {}) {
++  const r = await a.client.rpc(
++    "create_practice_credential_with_number",
++    createArgs(a, patch),
++  );
++  expect(r.error).toBeNull();
++  expect(r.data.status).toBe("success");
++  return r.data.credential;
++}
++type Row = Awaited<ReturnType<typeof create>>;
++function updateArgs(a: Actor, c: Row, patch: Record<string, unknown> = {}) {
++  return {
++    ...createArgs(a),
++    p_credential_id: c.id,
++    p_expected_version: c.version,
++    p_expected_cycle_id: c.current_cycle.id,
++    p_expected_date_revision: c.current_cycle.date_revision,
++    p_title: c.title,
++    p_type: c.type,
++    p_owner_kind: c.owner_kind,
++    p_owner_clinician_id: c.owner_clinician_id,
++    p_issuer: c.issuer,
++    p_jurisdiction: c.jurisdiction,
++    p_end_date: c.current_cycle.end_date,
++    p_action_deadline: c.current_cycle.action_deadline,
++    p_record_number: c.record_number,
++    ...patch,
++  };
++}
++async function read(a: Actor, c: Row) {
++  const r = await a.client.rpc("list_practice_register_with_renewal", {
++    p_practice_id: a.practice.id,
++    p_include_archived: true,
++  });
++  expect(r.error).toBeNull();
++  return r.data.credentials.find((r: { id: string }) => r.id === c.id);
++}
++async function save(a: Actor, c: Row, patch: Record<string, unknown> = {}) {
++  const r = await a.client.rpc(
++    "update_practice_credential_with_number",
++    updateArgs(a, c, patch),
++  );
++  expect(r.error).toBeNull();
++  expect(r.data.status).toBe("success");
++  return r.data;
++}
++async function staff(a: Actor, role = "manager") {
++  const m = await account(),
++    link = await invite(a, m.email, role);
++  expect(
++    (
++      await m.client.rpc("accept_practice_invitation", {
++        p_token_digest: link.digest,
++      })
++    ).error,
++  ).toBeNull();
++  return { ...m, member: await membership(a.practice.id, m.user.id) };
++}
++async function snapshot(practiceId: string, excluded: string[] = []) {
++  const tables = (
++    await pool.query(
++      "select table_schema,table_name from information_schema.columns where column_name='practice_id' and table_schema in ('public','private') order by table_schema,table_name",
++    )
++  ).rows;
++  const result: Record<string, unknown> = {};
++  for (const t of tables) {
++    const name = `${t.table_schema}.${t.table_name}`;
++    if (excluded.includes(name)) continue;
++    result[name] = (
++      await pool.query(
++        `select to_jsonb(t) row from ${name} t where practice_id=$1 order by to_jsonb(t)::text`,
++        [practiceId],
++      )
++    ).rows;
++  }
++  return result;
++}
++it("DIR04 DIR08 RN01 RN02 SQL canonical numbers and direct storage constraints", async () => {
++  const a = await practice();
++  for (const type of [
++    "state_license",
++    "dea_registration",
++    "malpractice_policy",
++  ]) {
++    const c = await create(a, { p_type: type });
++    expect(c.record_number).toBe("000Ab-12 / 陈");
++  }
++  for (const item of [
++    ...cases,
++    { input: "🩺".repeat(120), valid: true, normalized: "🩺".repeat(120) },
++    { input: "x".repeat(121), valid: false },
++  ]) {
++    const r = await a.client.rpc(
++      "create_practice_credential_with_number",
++      createArgs(a, { p_record_number: item.input }),
++    );
++    if (item.input?.includes("\0")) {
++      expect(r.error).not.toBeNull();
++      continue;
++    }
++    expect(r.error).toBeNull();
++    expect(r.data.status).toBe(item.valid ? "success" : "invalid");
++    if (item.valid)
++      expect(r.data.credential.record_number).toBe(
++        "normalized" in item ? item.normalized : undefined,
++      );
++    else
++      expect(r.data.errors).toEqual({
++        recordNumber: "Use up to 120 characters without control characters.",
++      });
++  }
++  const c = await create(a);
++  for (const invalid of ["", " A ", "x".repeat(121), "A\nB", "\u0085"])
++    await expect(
++      pool.query("update public.credentials set record_number=$2 where id=$1", [
++        c.id,
++        invalid,
++      ]),
++    ).rejects.toMatchObject({ code: "23514" });
++});
++it("DIR04 DIR08 RN05 RN08 number-only edits, no-op and explicit clear preserve all nonregister state", async () => {
++  const a = await practice(),
++    c = await create(a);
++  const before = await snapshot(a.practice.id, [
++    "public.credentials",
++    "private.register_change_requests",
++    "private.register_audit_events",
++  ]);
++  const r = await save(a, c, { p_record_number: "000B" });
++  expect(r.changed).toBe(true);
++  expect(r.credential.version).toBe(c.version + 1);
++  expect(r.credential.current_cycle).toEqual(c.current_cycle);
++  expect(
++    await snapshot(a.practice.id, [
++      "public.credentials",
++      "private.register_change_requests",
++      "private.register_audit_events",
++    ]),
++  ).toEqual(before);
++  const same = await save(a, r.credential, { p_record_number: " 000B " });
++  expect(same.changed).toBe(false);
++  expect(same.credential).toEqual(r.credential);
++  const cleared = await save(a, same.credential, { p_record_number: "" });
++  expect(cleared.credential.record_number).toBeNull();
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from private.register_audit_events where credential_id=$1 and operation='credential-updated'",
++        [c.id],
++      )
++    ).rows[0].n,
++  ).toBe(2);
++});
++it("DIR04 DIR08 RN07 RN10 legacy omissions preserve values, type changes clear, duplicates remain allowed", async () => {
++  const a = await practice(),
++    c = await create(a);
++  await create(a); // Same number is not unique.
++  const { p_record_number, ...args } = updateArgs(a, c);
++  expect(p_record_number).toBe(c.record_number);
++  const noop = await a.client.rpc("update_practice_credential", args);
++  expect(noop.error).toBeNull();
++  expect(noop.data.changed).toBe(false);
++  expect(noop.data.credential.record_number).toBe(c.record_number);
++  const changed = await a.client.rpc("update_practice_credential", {
++    ...args,
++    p_request_id: randomUUID(),
++    p_type: "malpractice_policy",
++  });
++  expect(changed.error).toBeNull();
++  expect(changed.data.credential.record_number).toBeNull();
++  const replacement = await save(a, changed.data.credential, {
++    p_type: "dea_registration",
++    p_record_number: "NEW-01",
++  });
++  expect(replacement.credential.record_number).toBe("NEW-01");
++  const { p_record_number: absent, ...legacyCreate } = createArgs(a);
++  expect(absent).toBe(c.record_number);
++  const old = await a.client.rpc(
++    "create_practice_credential_with_details",
++    legacyCreate,
++  );
++  expect(old.error).toBeNull();
++  expect(old.data.credential.record_number).toBeNull();
++});
++it("DIR04 DIR08 RN08 concurrent exact create/edit replay and stale requests cannot duplicate or overwrite", async () => {
++  const a = await practice(),
++    args = createArgs(a);
++  const replies = await Promise.all(
++    Array.from({ length: 4 }, () =>
++      a.client.rpc("create_practice_credential_with_number", args),
++    ),
++  );
++  for (const r of replies) {
++    expect(r.error).toBeNull();
++    expect(r.data).toEqual(replies[0].data);
++  }
++  const c = replies[0].data.credential;
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from public.credentials where practice_id=$1",
++        [a.practice.id],
++      )
++    ).rows[0].n,
++  ).toBe(1);
++  const change = updateArgs(a, c, { p_record_number: "000B" });
++  const r = await a.client.rpc(
++    "update_practice_credential_with_number",
++    change,
++  );
++  expect(r.error).toBeNull();
++  expect(r.data.status).toBe("success");
++  const later = await save(a, r.data.credential, { p_record_number: "000C" });
++  const before = await snapshot(a.practice.id);
++  expect(
++    (await a.client.rpc("update_practice_credential_with_number", change)).data,
++  ).toEqual(r.data);
++  expect(
++    (
++      await a.client.rpc("update_practice_credential_with_number", {
++        ...change,
++        p_record_number: "000D",
++      })
++    ).data,
++  ).toEqual({ status: "request-conflict" });
++  const { p_record_number, ...oldArgs } = change;
++  expect(p_record_number).toBe("000B");
++  expect(
++    (await a.client.rpc("update_practice_credential", oldArgs)).data,
++  ).toEqual({ status: "request-conflict" });
++  const stale = await a.client.rpc(
++    "update_practice_credential_with_number",
++    updateArgs(a, c, { p_record_number: "stale" }),
++  );
++  expect(stale.data).toMatchObject({
++    status: "conflict",
++    credential: { record_number: "000C" },
++  });
++  expect(await snapshot(a.practice.id)).toEqual(before);
++  const racing = await Promise.all(
++    ["X", "Y"].map((n) =>
++      a.client.rpc(
++        "update_practice_credential_with_number",
++        updateArgs(a, later.credential, { p_record_number: n }),
++      ),
++    ),
++  );
++  expect(racing.map((r) => r.data.status).sort()).toEqual([
++    "conflict",
++    "success",
++  ]);
++});
++it("DIR04 DIR08 RN04 direct API and checked entries enforce current tenants and roles", async () => {
++  const a = await practice(),
++    c = await create(a),
++    b = await practice(),
++    viewer = await staff(a, "viewer"),
++    manager = await staff(a);
++  const list = await viewer.client
++    .from("credentials")
++    .select("record_number")
++    .eq("id", c.id);
++  expect(list.error).toBeNull();
++  expect(list.data).toEqual([{ record_number: c.record_number }]);
++  for (const who of [b, viewer, { client: anonymous() }]) {
++    expect(
++      (
++        await who.client.rpc(
++          "create_practice_credential_with_number",
++          createArgs(a),
++        )
++      ).error?.code,
++    ).toBe("42501");
++    expect(
++      (
++        await who.client.rpc(
++          "update_practice_credential_with_number",
++          updateArgs(a, c),
++        )
++      ).error?.code,
++    ).toBe("42501");
++  }
++  expect(
++    (await b.client.from("credentials").select("record_number").eq("id", c.id))
++      .data,
++  ).toEqual([]);
++  expect(
++    (
++      await a.client
++        .from("credentials")
++        .update({ record_number: "forged" })
++        .eq("id", c.id)
++    ).error?.code,
++  ).toBe("42501");
++  const foreign = await create(b);
++  for (const id of [randomUUID(), foreign.id])
++    expect(
++      (
++        await a.client.rpc(
++          "update_practice_credential_with_number",
++          updateArgs(a, c, { p_credential_id: id }),
++        )
++      ).data,
++    ).toEqual({ status: "not-found" });
++  const args = updateArgs(a, c, { p_record_number: "manager" });
++  expect(
++    (await manager.client.rpc("update_practice_credential_with_number", args))
++      .data.status,
++  ).toBe("success");
++  expect(
++    (
++      await a.client.rpc("revoke_practice_member", {
++        p_membership_id: manager.member.id,
++        p_expected_version: 1,
++      })
++    ).error,
++  ).toBeNull();
++  expect(
++    (await manager.client.rpc("update_practice_credential_with_number", args))
++      .error?.code,
++  ).toBe("42501");
++  expect(
++    (
++      await manager.client
++        .from("credentials")
++        .select("record_number")
++        .eq("id", c.id)
++    ).data,
++  ).toEqual([]);
++});
++it("DIR04 DIR08 RN04 waiting mutation and replay recheck demotion or revocation", async () => {
++  const a = await practice();
++  for (const revoke of [false, true]) {
++    const m = await staff(a),
++      c = await create(a),
++      args = updateArgs(a, c, { p_record_number: "manager" });
++    const original = await m.client.rpc(
++      "update_practice_credential_with_number",
++      args,
++    );
++    expect(original.data.status).toBe("success");
++    const db = await pool.connect();
++    try {
++      await db.query("begin");
++      await db.query("select set_config('request.jwt.claim.sub',$1,true)", [
++        a.user.id,
++      ]);
++      await db.query("select private.mutate_member($1,1,$2,$3)", [
++        m.member.id,
++        revoke ? null : "viewer",
++        revoke,
++      ]);
++      const pending = Promise.resolve(
++        m.client.rpc(
++          "update_practice_credential_with_number",
++          updateArgs(a, original.data.credential, { p_record_number: "late" }),
++        ),
++      );
++      let waiting = false;
++      for (let i = 0; i < 200; i++) {
++        if (
++          (
++            await pool.query(
++              "select 1 from pg_stat_activity where wait_event_type='Lock' and query like '%update_practice_credential_with_number%'",
++            )
++          ).rowCount
++        ) {
++          waiting = true;
++          break;
++        }
++        await new Promise((r) => setTimeout(r, 10));
++      }
++      expect(waiting).toBe(true);
++      await db.query("commit");
++      expect((await pending).error?.code).toBe("42501");
++      expect(
++        (await m.client.rpc("update_practice_credential_with_number", args))
++          .error?.code,
++      ).toBe("42501");
++    } finally {
++      await db.query("rollback");
++      db.release();
++    }
++  }
++});
++it("DIR04 DIR08 RN06 successors and archives retain numbers and old replay cannot rewind them", async () => {
++  const a = await practice(),
++    c = await create(a),
++    current = await read(a, c);
++  const done = await a.client.rpc("complete_credential_renewal", {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_credential_id: c.id,
++    p_expected_version: c.version,
++    p_expected_cycle_id: c.current_cycle.id,
++    p_expected_date_revision: 1,
++    p_expected_renewal_version: current.renewal.workflow.version,
++    p_end_date: "2091-03-02",
++    p_action_deadline: null,
++    p_confirmed: true,
++  });
++  expect(done.error).toBeNull();
++  expect(done.data.status).toBe("success");
++  expect(done.data.credential.record_number).toBe(c.record_number);
++  const changed = await save(a, done.data.credential, {
++    p_record_number: "SUCCESSOR-0001",
++  });
++  expect(changed.credential.current_cycle.cycle_number).toBe(2);
++  const archived = await a.client.rpc("archive_practice_credential", {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_credential_id: c.id,
++    p_expected_version: changed.credential.version,
++    p_expected_cycle_id: changed.credential.current_cycle.id,
++    p_expected_date_revision: 1,
++  });
++  expect(archived.error).toBeNull();
++  expect(archived.data.credential.record_number).toBe("SUCCESSOR-0001");
++  expect((await read(a, c)).record_number).toBe("SUCCESSOR-0001");
++  expect(
++    (
++      await a.client.rpc(
++        "update_practice_credential_with_number",
++        updateArgs(a, changed.credential),
++      )
++    ).data,
++  ).toEqual({ status: "archived" });
++});
++it("DIR04 DIR08 RN08 atomic creation/update audit and receipt faults roll back and retry safely", async () => {
++  const a = await practice(),
++    c = await create(a);
++  for (const table of [
++    "register_audit_events",
++    "register_create_requests",
++    "register_change_requests",
++  ]) {
++    const creating = table === "register_create_requests",
++      args = creating
++        ? createArgs(a)
++        : updateArgs(a, c, { p_record_number: "fault" });
++    const name = creating
++      ? "create_practice_credential_with_number"
++      : "update_practice_credential_with_number";
++    const before = await snapshot(a.practice.id);
++    await pool.query(
++      `create function private.number_fixture_fault() returns trigger language plpgsql as $$begin raise exception 'number fixture fault';end$$;create trigger number_fixture_fault before insert on private.${table} for each row execute function private.number_fixture_fault()`,
++    );
++    try {
++      expect((await a.client.rpc(name, args)).error?.code).toBe("P0001");
++      expect(await snapshot(a.practice.id)).toEqual(before);
++    } finally {
++      await pool.query(
++        `drop trigger number_fixture_fault on private.${table};drop function private.number_fixture_fault()`,
++      );
++    }
++    const result = await a.client.rpc(name, args);
++    expect(result.error).toBeNull();
++    expect(result.data.status).toBe("success");
++    if (!creating) Object.assign(c, result.data.credential);
++  }
++});
++it("DIR04 DIR08 RN05 max-version no-op works and required increment conflicts", async () => {
++  const a = await practice(),
++    c = await create(a);
++  await pool.query(
++    "update public.credentials set version=2147483647 where id=$1",
++    [c.id],
++  );
++  const current = await read(a, c);
++  expect((await save(a, current)).changed).toBe(false);
++  expect(
++    (
++      await a.client.rpc(
++        "update_practice_credential_with_number",
++        updateArgs(a, current, { p_record_number: "changed" }),
++      )
++    ).data.status,
++  ).toBe("conflict");
++});
++it("DIR02 all API generations accept both owners and reject incoherent or foreign ownership", async () => {
++  const a = await practice(),
++    b = await practice();
++  async function person(who: Actor) {
++    const r = await who.client.rpc("create_practice_clinician", {
++      p_practice_id: who.practice.id,
++      p_request_id: randomUUID(),
++      p_name: "Rivera",
++    });
++    expect(r.error).toBeNull();
++    return r.data.clinician.id;
++  }
++  const personId = await person(a),
++    foreignId = await person(b);
++  for (const name of [
++    "create_practice_credential",
++    "create_practice_credential_with_details",
++    "create_practice_credential_with_number",
++  ]) {
++    const args: Record<string, unknown> = { ...createArgs(a) };
++    if (name !== "create_practice_credential_with_number")
++      delete args.p_record_number;
++    if (name === "create_practice_credential")
++      for (const k of [
++        "p_issuer",
++        "p_jurisdiction",
++        "p_end_date",
++        "p_action_deadline",
++      ])
++        delete args[k];
++    for (const owner of ["practice", "clinician"]) {
++      const r = await a.client.rpc(name, {
++        ...args,
++        p_request_id: randomUUID(),
++        p_owner_kind: owner,
++        p_owner_clinician_id: owner === "clinician" ? personId : null,
++      });
++      expect(r.error).toBeNull();
++      expect(r.data.status).toBe("success");
++      expect(r.data.credential.owner_kind).toBe(owner);
++    }
++    for (const patch of [
++      { p_owner_kind: "clinician", p_owner_clinician_id: null },
++      { p_owner_kind: "practice", p_owner_clinician_id: personId },
++      { p_covered_clinician_ids: [personId] },
++      { p_type: "directory_other" },
++    ]) {
++      const r = await a.client.rpc(name, {
++        ...args,
++        p_request_id: randomUUID(),
++        ...patch,
++      });
++      expect(r.error).toBeNull();
++      expect(r.data.status).toBe("invalid");
++    }
++    const r = await a.client.rpc(name, {
++      ...args,
++      p_request_id: randomUUID(),
++      p_owner_kind: "clinician",
++      p_owner_clinician_id: foreignId,
++    });
++    expect(r.error).toBeNull();
++    expect(r.data.status).toBe("invalid-reference");
++  }
++  let c = await create(a);
++  for (const name of [
++    "update_practice_credential",
++    "update_practice_credential_with_number",
++  ]) {
++    for (const owner of ["clinician", "practice"]) {
++      const args: Record<string, unknown> = updateArgs(a, c, {
++        p_owner_kind: owner,
++        p_owner_clinician_id: owner === "clinician" ? personId : null,
++      });
++      if (name === "update_practice_credential") delete args.p_record_number;
++      const r = await a.client.rpc(name, args);
++      expect(r.error).toBeNull();
++      expect(r.data.status).toBe("success");
++      c = r.data.credential;
++      expect(c.owner_kind).toBe(owner);
++    }
++  }
++  for (const name of [
++    "update_practice_credential",
++    "update_practice_credential_with_number",
++  ]) {
++    for (const [patch, status] of [
++      [{ p_owner_kind: "clinician", p_owner_clinician_id: null }, "invalid"],
++      [{ p_owner_kind: "practice", p_owner_clinician_id: personId }, "invalid"],
++      [
++        { p_owner_kind: "clinician", p_owner_clinician_id: foreignId },
++        "invalid-reference",
++      ],
++      [{ p_covered_clinician_ids: [personId] }, "invalid"],
++      [{ p_type: "directory_other" }, "invalid"],
++    ] as const) {
++      const args: Record<string, unknown> = updateArgs(a, c, patch);
++      if (name === "update_practice_credential") delete args.p_record_number;
++      const r = await a.client.rpc(name, args);
++      expect(r.error).toBeNull();
++      expect(r.data.status).toBe(status);
++    }
++  }
++  const probe = await pool.connect();
++  try {
++    await probe.query("begin");
++    await expect(
++      probe.query(
++        "update public.credentials set type='directory_other' where id=$1",
++        [c.id],
++      ),
++    ).rejects.toMatchObject({
++      code: "23514",
++      constraint: "credentials_type_check",
++    });
++  } finally {
++    await probe.query("rollback");
++    probe.release();
++  }
++});
++it("DIR06 DIR07 concurrent renewal retains historical evidence and current-cycle identity", async () => {
++  const a = await practice(),
++    c = await create(a),
++    current = await read(a, c);
++  const reservation = await a.client.rpc("reserve_renewal_evidence", {
++    p_practice_id: a.practice.id,
++    p_credential_id: c.id,
++    p_cycle_id: c.current_cycle.id,
++    p_request_id: randomUUID(),
++    p_filename: "directory.pdf",
++    p_mime: "application/pdf",
++    p_byte_count: 32,
++    p_digest: "a".repeat(64),
++  });
++  expect(reservation.error).toBeNull();
++  expect(reservation.data.status).toBe("success");
++  const args = {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_credential_id: c.id,
++    p_expected_version: c.version,
++    p_expected_cycle_id: c.current_cycle.id,
++    p_expected_date_revision: 1,
++    p_expected_renewal_version: current.renewal.workflow.version,
++    p_end_date: "2091-03-02",
++    p_action_deadline: null,
++    p_confirmed: true,
++  };
++  const results = await Promise.all([
++    a.client.rpc("complete_credential_renewal", args),
++    a.client.rpc("complete_credential_renewal", args),
++  ]);
++  expect(results[0].error).toBeNull();
++  expect(results[1].data).toEqual(results[0].data);
++  expect(results[0].data.status).toBe("success");
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from public.credential_cycles where credential_id=$1",
++        [c.id],
++      )
++    ).rows[0].n,
++  ).toBe(2);
++  const history = await a.client.rpc("get_credential_renewal_history", {
++    p_practice_id: a.practice.id,
++    p_credential_id: c.id,
++    p_before_cycle_number: null,
++  });
++  expect(
++    history.data.cycles.map((x: { type: string; cycleNumber: number }) => [
++      x.type,
++      x.cycleNumber,
++    ]),
++  ).toEqual([
++    ["insurance_payer_provider_directory", 2],
++    ["insurance_payer_provider_directory", 1],
++  ]);
++  const evidence = await a.client.rpc("get_renewal_evidence", {
++    p_practice_id: a.practice.id,
++    p_credential_id: c.id,
++    p_cycle_id: c.current_cycle.id,
++  });
++  expect(evidence.data.cycle.type).toBe("insurance_payer_provider_directory");
++  expect(evidence.data.current).toBe(false);
++  expect(evidence.data.files[0].id).toBe(reservation.data.evidenceId);
++  const next = await read(a, c);
++  expect(next.current_cycle.cycle_number).toBe(2);
++  expect(next.record_number).toBe(c.record_number);
++  await save(a, next, { p_issuer: "New assessor" });
++});
++async function reconcileDirectory(a: Actor, namespace: string) {
++  for (let i = 0; i < 100; i++) {
++    await pool.query(
++      "update private.reminder_reconcile_outbox set updated_at='2000-01-01' where practice_id=$1",
++      [a.practice.id],
++    );
++    await pool.query(
++      "select private.reconcile_email_reminders_at($1,'2090-01-02T10:00:00Z')",
++      [namespace],
++    );
++    if (
++      !(
++        await pool.query(
++          "select 1 from private.reminder_reconcile_outbox where practice_id=$1",
++          [a.practice.id],
++        )
++      ).rowCount
++    )
++      return;
++  }
++  throw new Error("DIR fixture reconciliation did not finish");
++}
++it("DIR08 undated and action deadlines, date revision archive and successor reconciliation", async () => {
++  const a = await practice(),
++    member = await membership(a.practice.id, a.user.id),
++    namespace = `fixture-directory-${randomUUID()}`;
++  await a.client.rpc("set_practice_reminder_recipient", {
++    p_practice_id: a.practice.id,
++    p_membership_id: member.id,
++    p_expected_version: 1,
++  });
++  const undated = await create(a, { p_end_date: null }),
++    c = await create(a, { p_action_deadline: "2090-02-01" });
++  await reconcileDirectory(a, namespace);
++  expect(
++    (
++      await pool.query(
++        "select state,reason,due_date,next_send_at from private.reminder_jobs where credential_id=$1",
++        [undated.id],
++      )
++    ).rows,
++  ).toEqual([
++    {
++      state: "blocked",
++      reason: "missing-date",
++      due_date: null,
++      next_send_at: null,
++    },
++  ]);
++  const first = (
++    await pool.query(
++      "select *,due_date::text due_text from private.reminder_jobs where credential_id=$1 and state='queued'",
++      [c.id],
++    )
++  ).rows[0];
++  expect(first).toBeTruthy();
++  expect(first.due_text).toBe("2090-02-01");
++  const revised = await save(a, await read(a, c), {
++    p_end_date: "2090-04-02",
++    p_action_deadline: null,
++  });
++  expect(
++    (
++      await pool.query("select state from private.reminder_jobs where id=$1", [
++        first.id,
++      ])
++    ).rows[0].state,
++  ).toBe("canceled");
++  await reconcileDirectory(a, namespace);
++  const done = await a.client.rpc("complete_credential_renewal", {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_credential_id: c.id,
++    p_expected_version: revised.credential.version,
++    p_expected_cycle_id: c.current_cycle.id,
++    p_expected_date_revision: revised.credential.current_cycle.date_revision,
++    p_expected_renewal_version: (await read(a, c)).renewal.workflow.version,
++    p_end_date: "2091-04-02",
++    p_action_deadline: null,
++    p_confirmed: true,
++  });
++  expect(done.data.status).toBe("success");
++  await reconcileDirectory(a, namespace);
++  const next = done.data.credential;
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from private.reminder_jobs where cycle_id=$1 and state='queued'",
++        [next.current_cycle.id],
++      )
++    ).rows[0].n,
++  ).toBe(1);
++  expect(
++    (
++      await a.client.rpc("archive_practice_credential", {
++        p_practice_id: a.practice.id,
++        p_request_id: randomUUID(),
++        p_credential_id: c.id,
++        p_expected_version: next.version,
++        p_expected_cycle_id: next.current_cycle.id,
++        p_expected_date_revision: next.current_cycle.date_revision,
++      })
++    ).data.status,
++  ).toBe("success");
++  expect(
++    (
++      await pool.query(
++        "select count(*)::int n from private.reminder_jobs where credential_id=$1 and state in ('queued','claimed')",
++        [c.id],
++      )
++    ).rows[0].n,
++  ).toBe(0);
++});
++
++it("DIR07 invalid next dates make no writes and completion retains directory snapshot after type correction", async () => {
++  const a = await practice(),
++    c = await read(a, await create(a, { p_action_deadline: "2090-02-01" }));
++  const today = (
++    await pool.query(
++      "select to_char(clock_timestamp() at time zone timezone,'YYYY-MM-DD') today from public.practices where id=$1",
++      [a.practice.id],
++    )
++  ).rows[0].today;
++  const args = {
++    p_practice_id: a.practice.id,
++    p_request_id: randomUUID(),
++    p_credential_id: c.id,
++    p_expected_version: c.version,
++    p_expected_cycle_id: c.current_cycle.id,
++    p_expected_date_revision: c.current_cycle.date_revision,
++    p_expected_renewal_version: c.renewal.workflow.version,
++    p_end_date: "2091-03-02",
++    p_action_deadline: null,
++    p_confirmed: true,
++  };
++  const before = await snapshot(a.practice.id);
++  for (const patch of [
++    { p_end_date: null },
++    { p_end_date: "" },
++    { p_end_date: "bad" },
++    { p_end_date: today },
++    { p_end_date: "2000-01-01" },
++    { p_action_deadline: today },
++    { p_action_deadline: "2000-01-01" },
++    { p_action_deadline: "2091-03-02" },
++    { p_action_deadline: "2091-03-03" },
++    { p_confirmed: false },
++  ]) {
++    const r = await a.client.rpc("complete_credential_renewal", {
++      ...args,
++      p_request_id: randomUUID(),
++      ...patch,
++    });
++    expect(r.error).toBeNull();
++    expect(r.data.status).toBe("invalid");
++  }
++  expect(await snapshot(a.practice.id)).toEqual(before);
++  const done = await a.client.rpc("complete_credential_renewal", args);
++  expect(done.error).toBeNull();
++  expect(done.data.status).toBe("success");
++  expect(done.data.credential.current_cycle.action_deadline).toBeNull();
++  const changed = await save(a, done.data.credential, {
++    p_type: "state_license",
++    p_issuer: "Board",
++    p_record_number: "NEW",
++  });
++  const history = await a.client.rpc("get_credential_renewal_history", {
++    p_practice_id: a.practice.id,
++    p_credential_id: c.id,
++    p_before_cycle_number: null,
++  });
++  expect(history.data.cycles.map((v: { type: string }) => v.type)).toEqual([
++    "state_license",
++    "insurance_payer_provider_directory",
++  ]);
++  const evidence = await a.client.rpc("get_renewal_evidence", {
++    p_practice_id: a.practice.id,
++    p_credential_id: c.id,
++    p_cycle_id: c.current_cycle.id,
++  });
++  expect(evidence.data.cycle.type).toBe("insurance_payer_provider_directory");
++  expect(
++    (await a.client.rpc("complete_credential_renewal", args)).data,
++  ).toEqual(done.data);
++  expect((await read(a, c)).current_cycle.id).toBe(
++    changed.credential.current_cycle.id,
++  );
++});
++
++it("DIR09 directory due dates and private metadata use the existing Gmail submission contract", async () => {
++  await pool.query("select private.expire_email_submissions_at('2100-01-01')");
++  await pool.query("select private.expire_gmail_reminders_at('2100-01-01')");
++  const a = await practice(),
++    c = await create(a),
++    m = await membership(a.practice.id, a.user.id),
++    namespace = `directory-${randomUUID()}`;
++  await a.client.rpc("set_practice_reminder_recipient", {
++    p_practice_id: a.practice.id,
++    p_membership_id: m.id,
++    p_expected_version: 1,
++  });
++  await pool.query(
++    "update public.credential_cycles set updated_at='2080-01-01' where id=$1",
++    [c.current_cycle.id],
++  );
++  await reconcileDirectory(a, namespace);
++  const job = (
++      await pool.query(
++        "select * from private.reminder_jobs where credential_id=$1",
++        [c.id],
++      )
++    ).rows[0],
++    token = randomUUID(),
++    now = "2090-01-02T10:00:00Z";
++  expect(job.state).toBe("queued");
++  await pool.query(
++    "update private.reminder_jobs set state='claimed',claim_token=$2,claim_until='2090-01-02T10:00:30Z' where id=$1",
++    [job.id, token],
++  );
++  const config = {
++    namespace,
++    from: a.email,
++    replyTo: a.email,
++    appUrl: "http://127.0.0.1:3000",
++  };
++  await pool.query(
++    "update private.gmail_reminder_authority set enabled=false where enabled",
++  );
++  await pool.query(
++    "insert into private.gmail_reminder_authority(namespace,sender,subject,allowed_recipient,app_origin,enabled) values($1,$2,'directory-subject',$2,$3,true)",
++    [namespace, a.email, config.appUrl],
++  );
++  try {
++    const result = (
++      await pool.query(
++        "select private.begin_gmail_reminder_at($1,$2,$3,'directory-subject',1,$4) value",
++        [job.id, token, config, now],
++      )
++    ).rows[0].value;
++    expect(result.status).toBe("submit");
++    for (const value of [c.title, c.issuer, c.record_number])
++      expect(JSON.stringify(result.payload)).not.toContain(value);
++    const recorded = (
++      await pool.query(
++        "select private.record_gmail_reminder_at($1,$2,'uncertain',null,null,$3) value",
++        [result.attemptId, result.token, now],
++      )
++    ).rows[0].value;
++    expect(recorded.status).toBe("recorded");
++  } finally {
++    await pool.query(
++      "update private.gmail_reminder_authority set enabled=false where namespace=$1",
++      [namespace],
++    );
++  }
++});
+--- a/tests/unit/calendar-views.test.tsx
++++ b/tests/unit/calendar-views.test.tsx
+@@ -161,3 +161,36 @@
+     screen.getByRole("region", { name: "Dates not entered" }).textContent,
+   ).toContain("No matching records with missing dates.");
+ });
++
++it("DIR01 DIR04 directory filter and both calendar views show due dates and unknown action-only meaning", () => {
++  const directory = {
++    ...record,
++    type: "insurance_payer_provider_directory" as const,
++    covered_clinicians: [],
++  };
++  const v = show(
++    { view: "agenda", type: "insurance_payer_provider_directory" },
++    { ...register, credentials: [directory] },
++  );
++  expect(
++    screen.getByRole("option", { name: "Insurance payer provider directory" }),
++  ).toBeTruthy();
++  expect(screen.getAllByText("directory update due")).toHaveLength(2);
++  v.unmount();
++  show(
++    { view: "agenda" },
++    {
++      ...register,
++      credentials: [
++        {
++          ...directory,
++          current_cycle: { ...directory.current_cycle, end_date: null },
++        },
++      ],
++    },
++  );
++  expect(
++    screen.getAllByText("Next directory update due date unknown"),
++  ).toHaveLength(2);
++  expect(screen.queryByText("expiration")).toBeNull();
++});
+--- a/tests/unit/dashboard-views.test.tsx
++++ b/tests/unit/dashboard-views.test.tsx
+@@ -29,12 +29,12 @@
+   const past = screen.getByRole("region", { name: "Past due" }),
+     due = screen.getByRole("region", { name: "Due within 60 days" }),
+     missing = screen.getByRole("region", {
+-      name: "Missing expiration / coverage end",
++      name: "Missing renewal date",
+     });
+   for (const [name, count] of [
+     ["Past due", 1],
+     ["Due within 60 days", 3],
+-    ["Missing expiration / coverage end", 2],
++    ["Missing renewal date", 2],
+   ] as const) {
+     expect(screen.getByRole("link", { name: `${count} ${name}` })).toBeTruthy();
+     expect(
+@@ -82,7 +82,7 @@
+     screen.getByText("No tracking dates due within 60 days."),
+   ).toBeTruthy();
+   expect(
+-    screen.getByText("No records with missing expiration or coverage end."),
++    screen.getByText("No records with a missing renewal date."),
+   ).toBeTruthy();
+   view.rerender(
+     <DashboardPanel
+@@ -111,3 +111,27 @@
+   ).toBe("/practice/calendar");
+   expect(screen.queryByText(/all clear/i)).toBeNull();
+ });
++
++it("DIR04 action-only directory stays in due and missing groups with directory wording", () => {
++  render(
++    <DashboardPanel
++      summary={projectDashboard(
++        {
++          clinicians: [],
++          credentials: [
++            record(1, null, today, {
++              type: "insurance_payer_provider_directory",
++            }),
++          ],
++        },
++        today,
++      )}
++    />,
++  );
++  const due = screen.getByRole("region", { name: "Due within 60 days" }),
++    missing = screen.getByRole("region", { name: "Missing renewal date" });
++  expect(due.textContent).toContain("earlier action deadline");
++  expect(missing.textContent).toContain(
++    "Next directory update due date unknown",
++  );
++});
+--- a/tests/unit/evidence-routes.test.tsx
++++ b/tests/unit/evidence-routes.test.tsx
+@@ -142,3 +142,44 @@
+   );
+   expect(input?.value).toBe(fileId);
+ });
++
++it("DIR04 directory historical and unknown evidence headings use cycle due-date purpose", async () => {
++  for (const endDate of [null, "2030-03-02"]) {
++    b.read.mockResolvedValue({
++      ...data,
++      current: false,
++      cycle: {
++        ...data.cycle,
++        type: "insurance_payer_provider_directory",
++        endDate,
++      },
++    });
++    const view = render(await load());
++    expect(
++      screen.getByText(
++        endDate
++          ? /Next directory update due: Mar 2, 2030/
++          : /Next directory update due: Not entered/,
++      ),
++    ).toBeTruthy();
++    expect(screen.queryByText(/Expiration:/)).toBeNull();
++    view.unmount();
++  }
++});
++
++it("DIR08 disabled storage keeps directory cycle context without upload controls", async () => {
++  b.enabled.mockReturnValue(false);
++  b.read.mockResolvedValue({
++    ...data,
++    cycle: {
++      ...data.cycle,
++      type: "insurance_payer_provider_directory",
++      endDate: null,
++    },
++  });
++  render(await load());
++  expect(
++    screen.getByText(/Next directory update due: Not entered/),
++  ).toBeTruthy();
++  expect(screen.queryByRole("button", { name: "Upload evidence" })).toBeNull();
++});
+--- a/tests/unit/payer-directory-forms.test.tsx
++++ b/tests/unit/payer-directory-forms.test.tsx
+@@ -0,0 +1,276 @@
++import { afterEach, expect, it, vi } from "vitest";
++import {
++  cleanup,
++  fireEvent,
++  render,
++  screen,
++  waitFor,
++} from "@testing-library/react";
++vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
++import { CredentialFields } from "@/components/register/credential-fields";
++import { EditRecordForm } from "@/components/register/edit-record-form";
++import { RegisterPanel } from "@/components/register/register-panel";
++import type { MaintenanceCredential } from "@/lib/register/schema";
++const id = "aaaaaaaa-0000-4000-8000-000000000001";
++const record: MaintenanceCredential = {
++  id,
++  title: "Fixture",
++  type: "insurance_payer_provider_directory",
++  owner_kind: "practice",
++  owner_clinician_id: null,
++  owner_name: "Practice",
++  version: 1,
++  covered_clinicians: [],
++  issuer: null,
++  jurisdiction: null,
++  record_number: "000Ab-01",
++  current_cycle: {
++    id,
++    cycle_number: 1,
++    date_revision: 1,
++    end_date: null,
++    action_deadline: null,
++  },
++  archived_at: null,
++};
++afterEach(cleanup);
++it("DIR01 DIR07 optional labels preserve number on owner edits and explicitly clear on type reset", () => {
++  render(<CredentialFields record={record} clinicians={[]} errors={{}} />);
++  const field = screen.getByLabelText(
++    "Directory / provider reference (optional)",
++  ) as HTMLInputElement;
++  expect(field.value).toBe("000Ab-01");
++  expect(field.type).toBe("text");
++  fireEvent.change(screen.getByLabelText("Record owner"), {
++    target: { value: "clinician" },
++  });
++  expect(field.value).toBe("000Ab-01");
++  fireEvent.change(screen.getByLabelText("Record type"), {
++    target: { value: "dea_registration" },
++  });
++  fireEvent.click(screen.getByRole("button", { name: "Keep current type" }));
++  expect(field.value).toBe("000Ab-01");
++  fireEvent.change(screen.getByLabelText("Record type"), {
++    target: { value: "dea_registration" },
++  });
++  fireEvent.click(screen.getByRole("button", { name: "Confirm type change" }));
++  expect(
++    (
++      screen.getByLabelText(
++        "DEA registration number (optional)",
++      ) as HTMLInputElement
++    ).value,
++  ).toBe("");
++  fireEvent.change(screen.getByLabelText("Record type"), {
++    target: { value: "malpractice_policy" },
++  });
++  expect(
++    (screen.getByLabelText("Policy number (optional)") as HTMLInputElement)
++      .value,
++  ).toBe("");
++});
++it("DIR08 conflict comparison exposes winning number and requires explicit draft discard", async () => {
++  const action = vi.fn().mockResolvedValue({
++    status: "conflict",
++    credential: { ...record, version: 2, record_number: "WIN-0002" },
++    message: "This record changed.",
++  });
++  render(
++    <EditRecordForm
++      record={record}
++      clinicians={[]}
++      action={action}
++      onSaved={vi.fn()}
++      onCancel={vi.fn()}
++      onLock={vi.fn()}
++    />,
++  );
++  const field = screen.getByLabelText(
++    "Directory / provider reference (optional)",
++  ) as HTMLInputElement;
++  fireEvent.change(field, { target: { value: "DRAFT-0003" } });
++  fireEvent.submit(
++    screen.getByRole("button", { name: "Save changes" }).closest("form")!,
++  );
++  await screen.findByText("Directory / provider reference: WIN-0002");
++  expect(field.value).toBe("DRAFT-0003");
++  expect(field.matches(":disabled")).toBe(true);
++  fireEvent.click(screen.getByRole("button", { name: "Reload saved values" }));
++  expect(
++    (
++      screen.getByLabelText(
++        "Directory / provider reference (optional)",
++      ) as HTMLInputElement
++    ).value,
++  ).toBe("WIN-0002");
++});
++it("DIR08 uncertain number save retries identical frozen payload", async () => {
++  const payloads: [string, FormDataEntryValue][][] = [];
++  const action = vi.fn(async (_state, form: FormData) => {
++    payloads.push(Array.from(form));
++    return payloads.length === 1
++      ? { status: "unavailable" as const, message: "Retry this save" }
++      : {
++          status: "success" as const,
++          changed: true,
++          credential: { ...record, version: 2, record_number: "000-new" },
++        };
++  });
++  const saved = vi.fn();
++  render(
++    <EditRecordForm
++      record={record}
++      clinicians={[]}
++      action={action}
++      onSaved={saved}
++      onCancel={vi.fn()}
++      onLock={vi.fn()}
++    />,
++  );
++  const field = screen.getByLabelText(
++    "Directory / provider reference (optional)",
++  ) as HTMLInputElement;
++  fireEvent.change(field, { target: { value: "000-new" } });
++  fireEvent.submit(
++    screen.getByRole("button", { name: "Save changes" }).closest("form")!,
++  );
++  await screen.findByRole("button", { name: "Retry this save" });
++  expect(field.matches(":disabled")).toBe(true);
++  fireEvent.submit(
++    screen.getByRole("button", { name: "Retry this save" }).closest("form")!,
++  );
++  await waitFor(() => expect(saved).toHaveBeenCalledOnce());
++  expect(payloads[0]).toEqual(payloads[1]);
++  expect(payloads[0]).toContainEqual(["recordNumber", "000-new"]);
++});
++it("DIR03 register and archive display escaped numbers and distinct app references", () => {
++  for (const archived of [false, true]) {
++    const r = {
++      ...record,
++      record_number: "<script>0001</script>",
++      archived_at: archived ? "2030-01-01T00:00:00Z" : null,
++    };
++    const view = render(
++      <RegisterPanel
++        register={{ clinicians: [], credentials: [r] }}
++        canEdit={false}
++        action={vi.fn()}
++        clinicianKey={id}
++        credentialKey={id}
++        archivedView={archived}
++      />,
++    );
++    expect(
++      screen.getByText("Directory / provider reference: <script>0001</script>"),
++    ).toBeTruthy();
++    expect(screen.getByText(/App reference: 000001/)).toBeTruthy();
++    expect(view.container.querySelector("script")).toBeNull();
++    view.unmount();
++  }
++  render(
++    <RegisterPanel
++      register={{
++        clinicians: [],
++        credentials: [{ ...record, record_number: null }],
++      }}
++      canEdit={false}
++      action={vi.fn()}
++      clinicianKey={id}
++      credentialKey={id}
++    />,
++  );
++  expect(
++    screen.getByText("Directory / provider reference: Not entered"),
++  ).toBeTruthy();
++});
++
++import { CompletionFields } from "@/components/renewals/completion-fields";
++it("DIR02 DIR04 directory fields support clinician ownership and explicit due-date meaning", () => {
++  const clinician = { id, name: "Rivera", version: 1 };
++  const v = render(
++    <form>
++      <CredentialFields
++        record={{
++          ...record,
++          issuer: "Payer",
++          current_cycle: { ...record.current_cycle, end_date: "2090-03-02" },
++        }}
++        clinicians={[clinician]}
++        errors={{
++          actionDeadline:
++            "The action deadline must be earlier than the end date.",
++        }}
++      />
++    </form>,
++  );
++  expect(screen.getByLabelText("Payer name (optional)")).toBeTruthy();
++  expect(screen.getByLabelText("Jurisdiction (optional)")).toBeTruthy();
++  expect(screen.getByLabelText("Next directory update due date")).toBeTruthy();
++  expect(
++    screen.getByText(
++      "The action deadline must be earlier than the next directory update due date.",
++    ),
++  ).toBeTruthy();
++  fireEvent.change(screen.getByLabelText("Record owner"), {
++    target: { value: "clinician" },
++  });
++  fireEvent.change(screen.getByLabelText("Owning clinician"), {
++    target: { value: id },
++  });
++  const data = new FormData(v.container.querySelector("form")!);
++  expect(data.get("ownerClinicianId")).toBe(id);
++  expect(data.get("issuer")).toBe("Payer");
++  expect(data.get("endDate")).toBe("2090-03-02");
++  expect(data.getAll("coveredClinicianIds")).toEqual([]);
++  fireEvent.change(screen.getByLabelText("Record type"), {
++    target: { value: "pci_compliance_certificate" },
++  });
++  fireEvent.click(screen.getByRole("button", { name: "Keep current type" }));
++  expect(
++    (screen.getByLabelText("Owning clinician") as HTMLSelectElement).value,
++  ).toBe(id);
++  fireEvent.change(screen.getByLabelText("Record type"), {
++    target: { value: "pci_compliance_certificate" },
++  });
++  fireEvent.click(screen.getByRole("button", { name: "Confirm type change" }));
++  expect(screen.getByText("Record owner: This practice")).toBeTruthy();
++  expect(screen.queryByLabelText("Owning clinician")).toBeNull();
++});
++it("DIR04 DIR07 completion explains manual directory update and translates date errors", () => {
++  render(
++    <CompletionFields
++      record={{
++        ...record,
++        renewal: {
++          link: { url: null, version: 1 },
++          workflow: {
++            cycleId: id,
++            status: "not-started",
++            version: 1,
++            acknowledgedAt: null,
++          },
++        },
++      }}
++      timezone="UTC"
++      errors={{
++        endDate: "Enter an end date after today in the practice timezone.",
++        actionDeadline:
++          "The action deadline must be earlier than the end date.",
++      }}
++    />,
++  );
++  expect(screen.getByLabelText("New directory update due date")).toBeTruthy();
++  expect(
++    screen.getByText(/This does not update the payer directory/),
++  ).toBeTruthy();
++  expect(
++    screen.getByText(
++      "Enter a next directory update due date after today in the practice timezone.",
++    ),
++  ).toBeTruthy();
++  expect(
++    screen.getByText(
++      "The action deadline must be earlier than the next directory update due date.",
++    ),
++  ).toBeTruthy();
++});
+--- a/tests/unit/reminder-routes.test.tsx
++++ b/tests/unit/reminder-routes.test.tsx
+@@ -174,7 +174,7 @@
+   });
+   render(await page());
+   expect(screen.getByText(/worker has not reported success/)).toBeTruthy();
+-  expect(screen.getByText("Current end date")).toBeTruthy();
++  expect(screen.getByText("Current due date")).toBeTruthy();
+   expect(screen.getByText("No date entered")).toBeTruthy();
+   expect(screen.getByText(/uncertain/)).toBeTruthy();
+   expect(screen.queryByRole("link", { name: "Next records" })).toBeNull();
+--- a/tests/unit/renewal-history-routes.test.tsx
++++ b/tests/unit/renewal-history-routes.test.tsx
+@@ -163,3 +163,29 @@
+     "We could not load renewal history. Try again.",
+   );
+ });
++
++it("DIR04 retained directory cycles use their own type and keep old-type headings", async () => {
++  b.read.mockResolvedValue({
++    ...data,
++    currentCycleId: next,
++    cycles: [
++      {
++        ...row,
++        id: next,
++        cycleNumber: 2,
++        type: "state_license",
++        endDate: null,
++      },
++      {
++        ...row,
++        type: "insurance_payer_provider_directory",
++        completedAt: "2030-01-01T00:00:00Z",
++        successorId: next,
++      },
++    ],
++  });
++  render(await load());
++  expect(screen.getByText("Next directory update due")).toBeTruthy();
++  expect(screen.getByText("Expiration")).toBeTruthy();
++  expect(screen.getByText("Insurance payer provider directory")).toBeTruthy();
++});
+--- a/tools/check-capabilities.mjs
++++ b/tools/check-capabilities.mjs
+@@ -1,3 +1,4 @@
++import { assertPayerDirectoryVerification } from "./payer-directory-controls.mjs";
+ import { assertPciVerification } from "./pci-controls.mjs";
+ import {
+   assertHeartbeatCapabilities,
+@@ -22,6 +23,11 @@
+ } from "./sms-capabilities.mjs";
+ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+ assertPciVerification(
++  JSON.parse(readFileSync("tools/layers.json", "utf8")),
++  mutationConfig,
++  propertiesConfig,
++);
++assertPayerDirectoryVerification(
+   JSON.parse(readFileSync("tools/layers.json", "utf8")),
+   mutationConfig,
+   propertiesConfig,
+--- a/tools/credential-numbers-upgrade.mjs
++++ b/tools/credential-numbers-upgrade.mjs
+@@ -69,6 +69,8 @@
+   "run",
+   "test:integration",
+   "--",
++  "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
+   "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+   "--exclude",
+--- a/tools/gauntlet-controls.test.mjs
++++ b/tools/gauntlet-controls.test.mjs
+@@ -133,7 +133,7 @@
+     () => assertWorkspaceUnchanged({}, {}),
+     /Missing identified source/,
+   );
+-  assert.equal(layers.length, 47);
++  assert.equal(layers.length, 48);
+   assert.doesNotThrow(() => assertWorkspaceLayers(layers));
+   for (const id of requiredWorkspaceLayers)
+     assert.throws(
+@@ -735,3 +735,51 @@
+     );
+   }
+ });
++
++test("directory verification rejects omitted duplicate changed layer and missing shared mutation target", async () => {
++  const { assertPayerDirectoryVerification } =
++    await import("./payer-directory-controls.mjs");
++  const { default: production } = await import("../stryker.config.mjs"),
++    { default: properties } = await import("../stryker.properties.config.mjs");
++  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
++  const layer = {
++    id: "payer-directories-upgrade",
++    command: "node",
++    args: ["tools/payer-directories-upgrade.mjs"],
++  };
++  const valid = [...layers.filter((l) => l.id !== layer.id), layer];
++  const prod = {
++    ...production,
++    mutate: [...production.mutate, "src/lib/register/types.ts"],
++  };
++  const props = {
++    ...properties,
++    mutate: [...properties.mutate, "src/lib/register/types.ts"],
++  };
++  assert.doesNotThrow(() =>
++    assertPayerDirectoryVerification(valid, prod, props),
++  );
++  for (const bad of [
++    valid.filter((l) => l.id !== layer.id),
++    [...valid, layer],
++    valid.map((l) => (l.id === layer.id ? { ...l, args: [] } : l)),
++  ])
++    assert.throws(() => assertPayerDirectoryVerification(bad, prod, props));
++  for (const target of [
++    "src/lib/register/types.ts",
++    "src/lib/register/dates.ts",
++    "src/lib/register/numbers.ts",
++    "src/lib/calendar/events.ts",
++  ])
++    for (const which of [0, 1]) {
++      const configs = [prod, props].map((c) => ({
++        ...c,
++        mutate: [...c.mutate],
++      }));
++      configs[which].mutate = configs[which].mutate.filter((t) => t !== target);
++      assert.throws(
++        () => assertPayerDirectoryVerification(valid, ...configs),
++        /Missing directory/,
++      );
++    }
++});
+--- a/tools/gauntlet.mjs
++++ b/tools/gauntlet.mjs
+@@ -1,3 +1,4 @@
++import { assertPayerDirectoryVerification } from "./payer-directory-controls.mjs";
+ import { assertPciVerification } from "./pci-controls.mjs";
+ import {
+   assertHeartbeatLayers,
+@@ -30,6 +31,7 @@
+ const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+ assertNumberVerification(layers, mutationConfig, propertiesConfig);
+ assertPciVerification(layers, mutationConfig, propertiesConfig);
++assertPayerDirectoryVerification(layers, mutationConfig, propertiesConfig);
+ assertCompletionLayer(layers);
+ assertEvidenceLayers(layers);
+ assertGmailLayers(layers);
+@@ -61,6 +63,7 @@
+   "gmail-reminders-upgrade",
+   "credential-numbers-upgrade",
+   "pci-certificates-upgrade",
++  "payer-directories-upgrade",
+   "gmail-controls",
+   "gmail-oauth-controls",
+   "heartbeat-controls",
+--- a/tools/gmail-reminders-upgrade.mjs
++++ b/tools/gmail-reminders-upgrade.mjs
+@@ -53,6 +53,8 @@
+   "test:integration",
+   "--",
+   "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
++  "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+   "--exclude",
+   "tests/integration/practice-credential-numbers.test.ts",
+--- a/tools/layers.json
++++ b/tools/layers.json
+@@ -138,6 +138,11 @@
+     "id": "pci-certificates-upgrade",
+     "command": "node",
+     "args": ["tools/pci-certificates-upgrade.mjs"]
++  },
++  {
++    "id": "payer-directories-upgrade",
++    "command": "node",
++    "args": ["tools/payer-directories-upgrade.mjs"]
+   },
+   {
+     "id": "gmail-controls",
+--- a/tools/payer-directories-upgrade.mjs
++++ b/tools/payer-directories-upgrade.mjs
+@@ -0,0 +1,341 @@
++import assert from "node:assert/strict";
++import { randomUUID } from "node:crypto";
++import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
++import { Client } from "pg";
++import {
++  fixtureGuard,
++  localConfig,
++  prepare,
++  run,
++} from "./local-environment.mjs";
++import { catalog } from "./schema-catalog.mjs";
++import { assertSchema } from "./gauntlet-contract.mjs";
++
++const baseline = "20261020210728";
++const migrations = readdirSync("supabase/migrations")
++  .filter((f) => f.endsWith(".sql") && f.slice(0, 14) > baseline)
++  .sort();
++assert(
++  migrations.some((f) =>
++    f.endsWith("_insurance_payer_provider_directory_records.sql"),
++  ),
++  "Missing Directory migration",
++);
++async function reset(version) {
++  await fixtureGuard();
++  run("node_modules/.bin/supabase", [
++    "db",
++    "reset",
++    "--local",
++    "--no-seed",
++    "--yes",
++    ...(version ? ["--version", version] : []),
++  ]);
++  prepare();
++}
++async function connect() {
++  const db = new Client({ connectionString: localConfig().DB_URL });
++  await db.connect();
++  return db;
++}
++async function snapshot(db, columns) {
++  const result = {};
++  for (const [table, names] of columns) {
++    assert(names.length > 0, "Missing original columns");
++    result[table] = (
++      await db.query(
++        `select to_jsonb(t) row from (select ${names.map((n) => '"' + n + '"').join(",")} from ${table}) t order by to_jsonb(t)::text`,
++      )
++    ).rows;
++  }
++  return result;
++}
++async function as(db, actor, query, values) {
++  await db.query("begin");
++  try {
++    await db.query("select set_config('request.jwt.claim.sub',$1,true)", [
++      actor,
++    ]);
++    await db.query("set local role authenticated");
++    const result = await db.query(query, values);
++    await db.query("commit");
++    return result.rows[0].result;
++  } catch (error) {
++    await db.query("rollback");
++    throw error;
++  }
++}
++mkdirSync("reports", { recursive: true });
++await reset(baseline);
++run("npm", [
++  "run",
++  "test:integration",
++  "--",
++  "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
++]);
++let db = await connect(),
++  upgraded;
++try {
++  const tables = (
++    await db.query(
++      "select n.nspname s,c.relname t from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and (n.nspname='private' or (n.nspname='public' and c.relname in ('practices','practice_memberships','clinicians','credentials','policy_coverage','credential_cycles'))) order by n.nspname,c.relname",
++    )
++  ).rows;
++  assert(tables.length >= 48, "Missing latest application inventory");
++  const columns = new Map();
++  for (const { s, t } of [
++    ...tables,
++    { s: "auth", t: "users" },
++    { s: "auth", t: "identities" },
++    { s: "storage", t: "objects" },
++  ])
++    columns.set(
++      `${s}.${t}`,
++      (
++        await db.query(
++          "select column_name from information_schema.columns where table_schema=$1 and table_name=$2 order by ordinal_position",
++          [s, t],
++        )
++      ).rows.map((r) => r.column_name),
++    );
++  const before = await snapshot(db, columns),
++    schema = await catalog(db);
++  for (const t of [
++    "public.credentials",
++    "public.credential_cycles",
++    "private.register_create_requests",
++    "private.register_change_requests",
++    "private.renewal_completion_requests",
++    "private.reminder_message_attempts",
++    "auth.users",
++    "auth.identities",
++  ])
++    assert(before[t].length > 0, `Unpopulated required fixture ${t}`);
++  await db.query("begin");
++  for (const file of migrations)
++    await db.query(readFileSync(`supabase/migrations/${file}`, "utf8"));
++  await assert.rejects(
++    db.query("do $$begin raise exception 'number rollback witness';end$$"),
++    /number rollback witness/,
++  );
++  await db.query("rollback");
++  assert.deepEqual(await snapshot(db, columns), before);
++  assertSchema(await catalog(db), schema);
++  await db.end();
++  run("node_modules/.bin/supabase", ["migration", "up", "--local"]);
++  db = await connect();
++  assert.deepEqual(
++    await snapshot(db, columns),
++    before,
++    "Original application/Auth/Storage columns changed during migration",
++  );
++  assert.equal(
++    (
++      await db.query(
++        "select count(*)::int n from public.credentials where type='insurance_payer_provider_directory'",
++      )
++    ).rows[0].n,
++    0,
++    "Migration must not invent Directory records",
++  );
++  // Exercise immutable historical create and maintenance receipts under current authority.
++  let replayed = 0,
++    denied = 0;
++  for (const table of [
++    "private.register_create_requests",
++    "private.register_change_requests",
++  ])
++    for (const { row: r } of before[table]) {
++      const p = r.payload;
++      let name, args;
++      if (table.endsWith("create_requests")) {
++        if (r.operation === "clinician-created") {
++          name = "create_practice_clinician";
++          args = [r.practice_id, r.request_id, p.name];
++        } else {
++          const numbered = p.contract_version === 3;
++          const detailed = numbered || p.contract_version === 2;
++          name = numbered
++            ? "create_practice_credential_with_number"
++            : detailed
++              ? "create_practice_credential_with_details"
++              : "create_practice_credential";
++          args = [
++            r.practice_id,
++            r.request_id,
++            p.title,
++            p.type,
++            p.owner_kind,
++            p.owner_clinician_id,
++            p.covered_clinician_ids,
++            ...(detailed
++              ? [p.issuer, p.jurisdiction, p.end_date, p.action_deadline]
++              : []),
++            ...(numbered ? [p.record_number] : []),
++          ];
++        }
++      } else {
++        name =
++          r.operation === "credential-archived"
++            ? "archive_practice_credential"
++            : "update_practice_credential";
++        args = [
++          r.practice_id,
++          r.request_id,
++          p.credential_id,
++          p.expected_version,
++          p.expected_cycle_id,
++          p.expected_date_revision,
++        ];
++        if (p.values) {
++          const v = p.values;
++          if (v.contract_version === 3)
++            name = "update_practice_credential_with_number";
++          args.push(
++            v.title,
++            v.type,
++            v.owner_kind,
++            v.owner_clinician_id,
++            v.covered_clinician_ids,
++            v.issuer,
++            v.jurisdiction,
++            v.end_date,
++            v.action_deadline,
++            ...(v.contract_version === 3 ? [v.record_number] : []),
++          );
++        }
++      }
++      const query = `select public.${name}(${args.map((_, i) => "$" + (i + 1)).join(",")}) result`;
++      const authorized = (
++        await db.query(
++          "select 1 from public.practice_memberships where practice_id=$1 and user_id=$2 and state='active' and role in ('administrator','manager')",
++          [r.practice_id, r.actor_user_id],
++        )
++      ).rowCount;
++      if (authorized) {
++        assert.deepEqual(await as(db, r.actor_user_id, query, args), r.result);
++        replayed++;
++      } else {
++        await assert.rejects(as(db, r.actor_user_id, query, args), {
++          code: "42501",
++        });
++        denied++;
++      }
++    }
++  assert(replayed > 0, "No old receipt replayed");
++  assert.deepEqual(
++    await snapshot(db, columns),
++    before,
++    "Replay mutated historical rows",
++  );
++  const a = (
++    await db.query(
++      "select c.practice_id,m.user_id actor,c.id from public.credentials c join public.practice_memberships m on m.practice_id=c.practice_id join lateral (select cy.completed_at from public.credential_cycles cy where cy.practice_id=c.practice_id and cy.credential_id=c.id order by cy.cycle_number desc limit 1) current_cycle on current_cycle.completed_at is null where m.state='active' and m.role='administrator' and c.archived_at is null and c.version<2147483647 order by c.id limit 1",
++    )
++  ).rows[0];
++  assert(a, "Missing active rollback candidate");
++  const rows = await as(
++    db,
++    a.actor,
++    "select public.list_practice_register_with_renewal($1,false) result",
++    [a.practice_id],
++  );
++  const c = rows.credentials.find((c) => c.id === a.id);
++  await db.query(
++    "update public.credentials set record_number='UPGRADE-0001' where id=$1",
++    [c.id],
++  );
++  const args = [
++    a.practice_id,
++    randomUUID(),
++    c.id,
++    c.version,
++    c.current_cycle.id,
++    c.current_cycle.date_revision,
++    c.title,
++    c.type,
++    c.owner_kind,
++    c.owner_clinician_id,
++    c.covered_clinicians.map((c) => c.id),
++    c.issuer,
++    c.jurisdiction,
++    c.current_cycle.end_date,
++    c.current_cycle.action_deadline,
++  ];
++  const old = await as(
++    db,
++    a.actor,
++    `select public.update_practice_credential(${args.map((_, i) => "$" + (i + 1)).join(",")}) result`,
++    args,
++  );
++  assert.equal(old.status, "success");
++  assert.equal(old.changed, false);
++  assert.equal(
++    old.credential.record_number,
++    "UPGRADE-0001",
++    "Old application erased number",
++  );
++  const pci = await as(
++    db,
++    a.actor,
++    "select public.create_practice_credential_with_number($1,$2,'Directory upgrade fixture','insurance_payer_provider_directory','practice',null,'{}',null,null,'2091-03-02',null,'000DIR') result",
++    [a.practice_id, randomUUID()],
++  );
++  assert.equal(pci.status, "success");
++  const mixed = await as(
++    db,
++    a.actor,
++    "select public.list_practice_register_with_renewal($1,false) result",
++    [a.practice_id],
++  );
++  assert(
++    mixed.credentials.some(
++      (c) =>
++        c.id === pci.credential.id &&
++        c.type === "insurance_payer_provider_directory",
++    ),
++  );
++  run("npm", [
++    "run",
++    "test:integration",
++    "--",
++    "tests/integration/practice-payer-directories.test.ts",
++  ]);
++  upgraded = await catalog(db);
++  writeFileSync(
++    "reports/payer-directories-upgrade.json",
++    JSON.stringify(
++      {
++        runId: process.env.GAUNTLET_RUN_ID ?? "standalone",
++        baseline,
++        migrations,
++        tables: tables.length,
++        historicalRows: Object.fromEntries(
++          Object.entries(before).map(([k, v]) => [k, v.length]),
++        ),
++        replayed,
++        denied,
++        rollback: "Original rows and catalog restored",
++        preservation:
++          "All original application/Auth/Storage rows identical; no Directory backfill",
++        applicationRollback: "Legacy same-type update retained number",
++        freshReplay: "Catalog compared after reset",
++      },
++      null,
++      2,
++    ),
++  );
++} finally {
++  await db.end();
++  await reset();
++}
++db = await connect();
++try {
++  assertSchema(await catalog(db), upgraded);
++} finally {
++  await db.end();
++}
++console.log(
++  "Directory upgrade, original-row preservation, all old receipt generations, compatible readers and fresh catalog passed.",
++);
+--- a/tools/payer-directory-controls.mjs
++++ b/tools/payer-directory-controls.mjs
+@@ -0,0 +1,30 @@
++import assert from "node:assert/strict";
++import { assertInventory } from "./gauntlet-contract.mjs";
++export function assertPayerDirectoryVerification(
++  layers,
++  production,
++  properties,
++) {
++  const id = "payer-directories-upgrade";
++  assertInventory(
++    [id],
++    layers
++      .filter((l) => l.id === id)
++      .map((l) => ({ name: l.id, status: "passed" })),
++  );
++  assert.deepEqual(
++    layers.find((l) => l.id === id),
++    { id, command: "node", args: ["tools/payer-directories-upgrade.mjs"] },
++  );
++  for (const config of [production, properties])
++    for (const file of [
++      "src/lib/register/types.ts",
++      "src/lib/register/dates.ts",
++      "src/lib/register/numbers.ts",
++      "src/lib/calendar/events.ts",
++    ])
++      assert(
++        config.mutate.includes(file),
++        `Missing directory mutation target: ${file}`,
++      );
++}
+--- a/tools/pci-certificates-upgrade.mjs
++++ b/tools/pci-certificates-upgrade.mjs
+@@ -69,6 +69,8 @@
+   "run",
+   "test:integration",
+   "--",
++  "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
+   "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+ ]);
+--- a/tools/renewal-completion-upgrade.mjs
++++ b/tools/renewal-completion-upgrade.mjs
+@@ -90,6 +90,8 @@
+   "run",
+   "test:integration",
+   "--",
++  "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
+   "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+   "--exclude",
+--- a/tools/renewal-evidence-upgrade.mjs
++++ b/tools/renewal-evidence-upgrade.mjs
+@@ -72,6 +72,8 @@
+   "test:integration",
+   "--",
+   "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
++  "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+   "--exclude",
+   "tests/integration/practice-credential-numbers.test.ts",
+--- a/tools/renewal-workflow-upgrade.mjs
++++ b/tools/renewal-workflow-upgrade.mjs
+@@ -123,6 +123,8 @@
+   "run",
+   "test:integration",
+   "--",
++  "--exclude",
++  "tests/integration/practice-payer-directories.test.ts",
+   "--exclude",
+   "tests/integration/practice-pci-certificates.test.ts",
+   "--exclude",
+--- a/tools/schema-contract.json
++++ b/tools/schema-contract.json
+@@ -3793,13 +3793,13 @@
+     {
+       "nspname": "private",
+       "proname": "create_practice_credential",
+-      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[])\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered);\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
++      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[])\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered);\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
+       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+     },
+     {
+       "nspname": "private",
+       "proname": "create_practice_credential_with_details",
+-      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential_with_details(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text;\n    jurisdiction text;\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    issuer := nullif(private.register_name(p_issuer), '');\n    jurisdiction := nullif(private.register_name(p_jurisdiction), '');\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id, issuer, jurisdiction)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id, issuer, jurisdiction)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    update public.credential_cycles cy set end_date = entered_end_date,\n        action_deadline = entered_action_deadline,\n        updated_at = pg_catalog.clock_timestamp()\n    where cy.practice_id = p_practice_id and cy.credential_id = credential.id and cy.cycle_number = 1;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_details_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
++      "definition": "CREATE OR REPLACE FUNCTION private.create_practice_credential_with_details(p_practice_id uuid, p_request_id uuid, p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text;\n    jurisdiction text;\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\n    result jsonb;\n    credential public.credentials;\nbegin\n    perform private.require_register_member(p_practice_id, true);\n    normalized := private.register_name(p_title);\n    issuer := nullif(private.register_name(p_issuer), '');\n    jurisdiction := nullif(private.register_name(p_jurisdiction), '');\n    if p_request_id is null or normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    result := private.register_replay(p_practice_id, p_request_id, 'credential-created', payload);\n    if result is not null then return result; end if;\n    if (p_owner_clinician_id is not null and not exists (\n        select 1 from public.clinicians where practice_id = p_practice_id and id = p_owner_clinician_id\n    )) or exists (\n        select 1 from unnest(covered) x where not exists (\n            select 1 from public.clinicians where practice_id = p_practice_id and id = x\n        )\n    ) then return '{\"status\":\"invalid-reference\"}'::jsonb; end if;\n    insert into public.credentials (practice_id, title, type, owner_kind, owner_clinician_id, issuer, jurisdiction)\n    values (p_practice_id, normalized, p_type, p_owner_kind, p_owner_clinician_id, issuer, jurisdiction)\n    returning * into credential;\n    insert into public.policy_coverage (practice_id, credential_id, clinician_id)\n    select p_practice_id, credential.id, x from unnest(covered) x;\n    update public.credential_cycles cy set end_date = entered_end_date,\n        action_deadline = entered_action_deadline,\n        updated_at = pg_catalog.clock_timestamp()\n    where cy.practice_id = p_practice_id and cy.credential_id = credential.id and cy.cycle_number = 1;\n    result := pg_catalog.jsonb_build_object('status', 'success', 'credential',\n        private.credential_details_projection(credential));\n    return private.finish_register_create(p_practice_id, p_request_id, 'credential-created', payload,\n        null, credential.id, result);\nend;\n$function$\n",
+       "privileges": "{postgres=X/postgres,authenticated=X/postgres}"
+     },
+     {
+@@ -3817,7 +3817,7 @@
+     {
+       "nspname": "private",
+       "proname": "credential_change_values",
+-      "definition": "CREATE OR REPLACE FUNCTION private.credential_change_values(p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text;\n    jurisdiction text;\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\nbegin\n    normalized := private.register_name(p_title);\n    issuer := nullif(private.register_name(p_issuer), '');\n    jurisdiction := nullif(private.register_name(p_jurisdiction), '');\n    if normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    return payload;\nend;\n$function$\n",
++      "definition": "CREATE OR REPLACE FUNCTION private.credential_change_values(p_title text, p_type text, p_owner_kind text, p_owner_clinician_id uuid, p_covered_clinician_ids uuid[], p_issuer text, p_jurisdiction text, p_end_date text, p_action_deadline text)\n RETURNS jsonb\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\ndeclare\n    normalized text;\n    issuer text;\n    jurisdiction text;\n    entered_end_date date;\n    entered_action_deadline date;\n    covered uuid[] := coalesce(p_covered_clinician_ids, '{}'::uuid[]);\n    payload jsonb;\nbegin\n    normalized := private.register_name(p_title);\n    issuer := nullif(private.register_name(p_issuer), '');\n    jurisdiction := nullif(private.register_name(p_jurisdiction), '');\n    if normalized is null or char_length(normalized) not between 1 and 120\n       or p_type is null or p_type not in ('state_license', 'dea_registration', 'malpractice_policy', 'pci_compliance_certificate', 'insurance_payer_provider_directory')\n       or p_owner_kind is null or p_owner_kind not in ('clinician', 'practice')\n       or (p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')\n       or (p_owner_kind = 'clinician' and p_owner_clinician_id is null)\n       or (p_owner_kind = 'practice' and p_owner_clinician_id is not null)\n       or coalesce(array_ndims(covered), 1) <> 1 then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if array_position(covered, null) is not null\n       or cardinality(covered) <> (select count(distinct c) from unnest(covered) c)\n       or (cardinality(covered) > 0 and (p_type <> 'malpractice_policy' or p_owner_kind <> 'practice')) then\n        return '{\"status\":\"invalid\"}'::jsonb;\n    end if;\n    if issuer is not null and char_length(issuer) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"issuer\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    if jurisdiction is not null and char_length(jurisdiction) > 120 then\n        return '{\"status\":\"invalid\",\"errors\":{\"jurisdiction\":\"Use 1 to 120 characters.\"}}'::jsonb;\n    end if;\n    begin\n        entered_end_date := private.credential_date(p_end_date);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"endDate\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    begin\n        entered_action_deadline := private.credential_date(p_action_deadline);\n    exception when datetime_field_overflow or invalid_datetime_format then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"Enter a valid date (YYYY-MM-DD).\"}}'::jsonb;\n    end;\n    if entered_end_date is not null and entered_action_deadline is not null and entered_action_deadline >= entered_end_date then\n        return '{\"status\":\"invalid\",\"errors\":{\"actionDeadline\":\"The action deadline must be earlier than the end date.\"}}'::jsonb;\n    end if;\n    select coalesce(array_agg(c order by c), '{}'::uuid[]) into covered from unnest(covered) c;\n    payload := pg_catalog.jsonb_build_object('title', normalized, 'type', p_type,\n        'owner_kind', p_owner_kind, 'owner_clinician_id', p_owner_clinician_id,\n        'covered_clinician_ids', covered, 'contract_version', 2, 'issuer', issuer,\n        'jurisdiction', jurisdiction, 'end_date', pg_catalog.to_char(entered_end_date, 'YYYY-MM-DD'),\n        'action_deadline', pg_catalog.to_char(entered_action_deadline, 'YYYY-MM-DD'));\n    return payload;\nend;\n$function$\n",
+       "privileges": "{postgres=X/postgres}"
+     },
+     {
+@@ -19973,7 +19973,7 @@
+       "nspname": "public",
+       "relname": "credentials",
+       "conname": "credentials_type_check",
+-      "definition": "CHECK ((type = ANY (ARRAY['state_license'::text, 'dea_registration'::text, 'malpractice_policy'::text, 'pci_compliance_certificate'::text])))"
++      "definition": "CHECK ((type = ANY (ARRAY['state_license'::text, 'dea_registration'::text, 'malpractice_policy'::text, 'pci_compliance_certificate'::text, 'insurance_payer_provider_directory'::text])))"
+     },
+     {
+       "nspname": "public",
+--- a/tools/sql-mutants.mjs
++++ b/tools/sql-mutants.mjs
+@@ -1263,6 +1263,35 @@
+         "false",
+       ),
+   });
++// Each directory type gate must independently accept the approved fifth type.
++for (const signature of [
++  "private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text)",
++  "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
++  "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)",
++])
++  mutants.push({
++    id: "directory-type-" + signature.split("(")[0].slice(8),
++    file: "tests/integration/practice-payer-directories.test.ts",
++    pattern: "^DIR02 all API",
++    apply: () =>
++      functionFault(
++        signature,
++        "'insurance_payer_provider_directory'",
++        "'directory_disabled'",
++      ),
++  });
++mutants.push({
++  id: "directory-type-storage",
++  file: "tests/integration/practice-payer-directories.test.ts",
++  pattern: "^DIR02 all API",
++  apply: () =>
++    ddlFault(
++      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate')) not valid",
++      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate','insurance_payer_provider_directory'))",
++      "select convalidated from pg_constraint where conrelid='public.credentials'::regclass and conname='credentials_type_check'",
++      [{ convalidated: false }],
++    ),
++});
+ const records = [];
+ function execute(file, pattern, path) {
+   rmSync(path, { force: true });
+--- a/tools/verify-workspace.mjs
++++ b/tools/verify-workspace.mjs
+@@ -1,3 +1,4 @@
++import { assertPayerDirectoryVerification } from "./payer-directory-controls.mjs";
+ import { assertPciVerification } from "./pci-controls.mjs";
+ import {
+   assertHeartbeatLayers,
+@@ -53,6 +54,7 @@
+   "gmail-reminders-upgrade",
+   "credential-numbers-upgrade",
+   "pci-certificates-upgrade",
++  "payer-directories-upgrade",
+   "gmail-controls",
+   "gmail-oauth-controls",
+   "heartbeat-controls",
+@@ -143,6 +145,7 @@
+   const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+   assertNumberVerification(layers, production, properties);
+   assertPciVerification(layers, production, properties);
++  assertPayerDirectoryVerification(layers, production, properties);
+   assertCompletionLayer(layers);
+   assertEvidenceLayers(layers);
+   assertEvidenceMutationTargets(production, properties);
+--- a/vitest.properties.config.ts
++++ b/vitest.properties.config.ts
+@@ -11,6 +11,7 @@
+     environment: "node",
+     include: [
+       "src/lib/register/pci.test.ts",
++      "src/lib/register/payer-directory.test.ts",
+       "src/lib/reminders/heartbeat-properties.test.ts",
+       "src/lib/reminders/heartbeat.test.ts",
+       "src/lib/reminders/gmail-properties.test.ts",

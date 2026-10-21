@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
-import { getMaintenanceRegister } from "@/lib/register/repository";
+import { getRenewalRegister } from "@/lib/renewals/repository";
 import { practiceToday } from "@/lib/calendar/dates";
 import { projectDashboard } from "@/lib/dashboard/summary";
 import { DashboardPanel } from "@/components/dashboard/dashboard-panel";
@@ -15,7 +15,7 @@ export default async function PracticeDashboard() {
   if (access.status !== "success")
     throw new Error("We could not complete this request. Try again.");
   if (!access.access) redirect("/onboarding/practice");
-  const result = await getMaintenanceRegister(
+  const result = await getRenewalRegister(
     client,
     access.access.practice.id,
     false,
@@ -49,7 +49,10 @@ export default async function PracticeDashboard() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/practice/register">Renewal register</a>
         </nav>
-        <DashboardPanel summary={projectDashboard(result.register, today)} />
+        <DashboardPanel
+          summary={projectDashboard(result.register, today)}
+          timezone={practice.timezone}
+        />
       </div>
     </Shell>
   );

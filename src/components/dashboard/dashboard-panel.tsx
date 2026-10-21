@@ -1,6 +1,7 @@
 import type { DashboardEntry, DashboardSummary } from "@/lib/dashboard/summary";
 import { typeLabels } from "@/lib/register/schema";
 import { RecordDates } from "@/components/register/record-dates";
+import { RenewalSummary } from "@/components/renewals/summary";
 const sections = [
   {
     key: "pastDue",
@@ -19,12 +20,18 @@ const sections = [
   {
     key: "missingEnd",
     id: "missing-end",
-    title: "Missing expiration / coverage end",
-    hint: "These records need an expiration or coverage end date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
-    empty: "No records with missing expiration or coverage end.",
+    title: "Missing renewal date",
+    hint: "These records need an expiration, coverage end, or next directory update due date. Records with an entered action deadline may also appear in the dated lists above. Counts are not additive.",
+    empty: "No records with a missing renewal date.",
   },
 ] as const;
-export function DashboardPanel({ summary }: { summary: DashboardSummary }) {
+export function DashboardPanel({
+  summary,
+  timezone = "UTC",
+}: {
+  summary: DashboardSummary;
+  timezone?: string;
+}) {
   const active =
     summary.pastDue.length +
     summary.dueWithin60.length +
@@ -66,7 +73,7 @@ export function DashboardPanel({ summary }: { summary: DashboardSummary }) {
                   key={entry.record.id}
                   id={`${section.id}-${entry.record.id}`}
                 >
-                  <DashboardRow entry={entry} />
+                  <DashboardRow entry={entry} timezone={timezone} />
                 </li>
               ))}
             </ul>
@@ -97,7 +104,13 @@ function urgencyLabel(entry: DashboardEntry): string {
   if (entry.days === 0) return "Due today";
   return `Due in ${entry.days} ${entry.days === 1 ? "day" : "days"}`;
 }
-function DashboardRow({ entry }: { entry: DashboardEntry }) {
+function DashboardRow({
+  entry,
+  timezone,
+}: {
+  entry: DashboardEntry;
+  timezone: string;
+}) {
   const record = entry.record;
   return (
     <article className="dashboard-record">
@@ -122,6 +135,7 @@ function DashboardRow({ entry }: { entry: DashboardEntry }) {
       </div>
       <div className="dashboard-record-dates">
         <RecordDates record={record} />
+        <RenewalSummary renewal={record.renewal} timezone={timezone} />
       </div>
     </article>
   );

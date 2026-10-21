@@ -3,8 +3,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
-import { getReminderSchedule } from "@/lib/reminders/repository";
+import { getReminderScheduleV4 } from "@/lib/reminders/repository";
 import { emailConfig, emailWebhookConfig } from "@/lib/reminders/config";
+import {
+  gmailConfig,
+  selectedEmailProvider,
+} from "@/lib/reminders/gmail-config";
 import { Shell } from "@/components/shell";
 import { SignOutForm } from "@/components/auth/sign-out-form";
 import { EmailPreferenceForm } from "@/components/reminders/preference-form";
@@ -15,6 +19,10 @@ const kindLabels = {
   "catch-up": "Catch-up reminder",
 };
 const reasons: Record<string, string> = {
+  "gmail-unavailable":
+    "Gmail authorization needs review. Ask your administrator to reconnect the sending account.",
+  "gmail-recipient-blocked":
+    "This Gmail pilot can send only to its authorized account. Choose that account as the reminder recipient.",
   "already-attempted": "Email attempt already used for this recipient",
   "missing-date": "Add a due date",
   "invalid-target": "Scheduled date unavailable",
@@ -43,9 +51,16 @@ async function loadReminders(params: { after?: string }) {
   if (!access.access) redirect("/onboarding/practice");
   const { practice } = access.access,
     config = emailWebhookConfig(),
-    namespace = config?.namespace ?? "unconfigured";
+    namespace =
+      selectedEmailProvider() === "gmail"
+        ? (z
+            .string()
+            .regex(/^[a-zA-Z0-9_-]{1,80}$/)
+            .safeParse(process.env.GMAIL_PROVIDER_NAMESPACE).data ??
+          "unconfigured")
+        : (config?.namespace ?? "unconfigured");
   const after = reminderCursor(params.after);
-  const result = await getReminderSchedule(
+  const result = await getReminderScheduleV4(
     client,
     practice.id,
     namespace,
@@ -61,7 +76,10 @@ export default async function Reminders({
   searchParams: Promise<{ after?: string }>;
 }) {
   const { practice, schedule } = await loadReminders(await searchParams);
-  const configured = Boolean(emailConfig());
+  const configured =
+    selectedEmailProvider() === "gmail"
+      ? Boolean(gmailConfig())
+      : selectedEmailProvider() === "resend" && Boolean(emailConfig());
   const stale = heartbeatStale(schedule.lastSuccessAt, new Date());
   return (
     <Shell action={<SignOutForm />}>
@@ -75,7 +93,8 @@ export default async function Reminders({
           </h1>
           <p className="lede">
             Email reminders are scheduled 60 calendar days before the action
-            deadline, or the end date when no deadline is entered, at 9 AM in{" "}
+            deadline, or the saved expiration, coverage end, or next directory
+            update due date when no earlier deadline is entered, at 9 AM in{" "}
             {practice.timezone}. Eligible late entries or reminder setup are
             scheduled for catch-up in the next permitted local sending window,
             from 9 AM to before 5 PM.
@@ -94,6 +113,7 @@ export default async function Reminders({
             acceptance and receiving mail-server delivery do not mean a renewal
             is complete.
           </p>
+          <GmailConnection configured={configured} stale={stale} />
           <Link href="/practice" className="text-link">
             Practice settings and recipient
           </Link>{" "}
@@ -140,21 +160,40 @@ export default async function Reminders({
   );
 }
 
+function GmailConnection({
+  configured,
+  stale,
+}: {
+  configured: boolean;
+  stale: boolean;
+}) {
+  if (selectedEmailProvider() !== "gmail" || (configured && !stale))
+    return null;
+  return (
+    <p role="status">
+      Gmail sending is off or its Google connection needs review. Ask your
+      administrator to reconnect the sending account.
+    </p>
+  );
+}
 function ReminderRow({
   row,
 }: {
-  row: import("@/lib/reminders/schema").Schedule["rows"][number];
+  row: import("@/lib/reminders/schema").ScheduleV4["rows"][number];
 }) {
   return (
     <article>
       <h3>
-        <Link href={`/practice/register/${row.id}`}>{row.title}</Link>
+        <ReminderTitle row={row} />
       </h3>
+      <Link className="text-link" href={`/practice/reminders/${row.id}`}>
+        Delivery history
+      </Link>
       <dl>
         <dt>
           {row.datePurpose === "action-deadline"
             ? "Current action deadline"
-            : "Current end date"}
+            : "Current due date"}
         </dt>
         <dd>{row.dueDate ?? "No date entered"}</dd>
         <dt>Original 60-day target</dt>
@@ -168,10 +207,10 @@ function ReminderRow({
             : "Scheduling review pending"}
         </dd>
         <CatchUpTarget row={row} />
+        <ProviderRecovery row={row} />
         <dt>Email status</dt>
         <dd>
-          {row.delivery ?? row.state}
-          {row.reason && ` · ${reasons[row.reason] ?? "Eligibility changed"}`}
+          <EmailStatus row={row} />
         </dd>
         {["queued", "claimed"].includes(row.state) && row.nextSendAt && (
           <>
@@ -192,10 +231,56 @@ function ReminderRow({
   );
 }
 
+function EmailStatus({
+  row,
+}: {
+  row: import("@/lib/reminders/schema").ScheduleV4["rows"][number];
+}) {
+  return (
+    <>
+      {row.provider?.kind === "gmail" && row.state === "accepted"
+        ? "Accepted by Gmail; delivery is not confirmed"
+        : (row.delivery ?? row.state)}
+      {row.reason && ` · ${reasons[row.reason] ?? "Eligibility changed"}`}
+    </>
+  );
+}
+function ProviderRecovery({
+  row,
+}: {
+  row: import("@/lib/reminders/schema").ScheduleV4["rows"][number];
+}) {
+  return row.provider?.kind === "gmail" ? null : (
+    <RecoveryStatus recovery={row.recovery} />
+  );
+}
+function RecoveryStatus({
+  recovery,
+}: {
+  recovery: import("@/lib/reminders/schema").ScheduleV4["rows"][number]["recovery"];
+}) {
+  return recovery ? (
+    <>
+      <dt>Recovery status</dt>
+      <dd>{recovery.disposition}</dd>
+    </>
+  ) : null;
+}
+function ReminderTitle({
+  row,
+}: {
+  row: import("@/lib/reminders/schema").ScheduleV4["rows"][number];
+}) {
+  return row.activeLinkAvailable ? (
+    <Link href={`/practice/register/${row.id}`}>{row.title}</Link>
+  ) : (
+    row.title
+  );
+}
 function CatchUpTarget({
   row,
 }: {
-  row: import("@/lib/reminders/schema").Schedule["rows"][number];
+  row: import("@/lib/reminders/schema").ScheduleV4["rows"][number];
 }) {
   if (row.scheduleKind !== "catch-up" || !row.dispatchTarget) return null;
   return (

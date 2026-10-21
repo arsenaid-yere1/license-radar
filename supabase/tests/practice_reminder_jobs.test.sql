@@ -13,7 +13,7 @@ select
             and c.relname like 'reminder_%'
             and c.relrowsecurity
     ),
-    12, 'ER10 all email ledgers have RLS');
+    16, 'ER10 all email ledgers have RLS');
 select ok(not exists (
     select 1 from information_schema.table_privileges
     where
@@ -116,7 +116,7 @@ select is((
         and k.contype = 'f'
         and k.confdeltype = 'r'
 ),
-12, 'ER18 email restrictive references');
+15, 'ER18 email restrictive references');
 select is((
     select count(*)::integer from pg_constraint
     where

@@ -1,3 +1,4 @@
+import { completionSqlControls } from "./completion-controls.mjs";
 import assert from "node:assert/strict";
 import { Client } from "pg";
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
@@ -1019,20 +1020,20 @@ for (const [id, signature, from, to, pattern] of [
   [
     "email-empty-queue-expiration",
     "private.expire_email_submissions_at(timestamp with time zone)",
-    "where outcome = 'submitting' and deadline <= p_now",
-    "where false and outcome = 'submitting' and deadline <= p_now",
+    "outcome = 'submitting' and deadline <= p_now",
+    "false and outcome = 'submitting' and deadline <= p_now",
     "^ER07",
   ],
   [
     "email-terminal-preservation",
-    "private.apply_email_reminder_event(text,text,uuid,uuid,text,text,text)",
-    "when delivery in ('bounced','suppressed') then delivery",
-    "when false then delivery",
+    "private.email_delivery_state(text,text)",
+    "when p_old in ('bounced','suppressed') then p_old",
+    "when false then p_old",
     "^ER08",
   ],
   [
     "email-stable-consumed-guard",
-    "private.email_reminder_context(uuid,uuid,text,timestamp with time zone)",
+    "private.resend_reminder_context(uuid,uuid,text,timestamp with time zone)",
     "when exists (select 1 from private.reminder_message_attempts a",
     "when false and exists (select 1 from private.reminder_message_attempts a",
     "^ER23",
@@ -1045,18 +1046,70 @@ for (const [id, signature, from, to, pattern] of [
     apply: () => functionFault(signature, from, to),
   });
 
+const recovery = "tests/integration/practice-reminder-recovery.test.ts";
+for (const [id, signature, from, to, pattern] of [
+  [
+    "recovery-terminal-check-stop",
+    "private.email_check_open(private.reminder_message_attempts)",
+    "not coalesce(a.delivery in ('delivered','bounced','complained','suppressed'),false)",
+    "true",
+    "^DR12 terminal",
+  ],
+  [
+    "recovery-trusted-rate",
+    "private.record_email_submission_at(uuid,uuid,jsonb,timestamp with time zone)",
+    "kind:=p_result->>'kind';",
+    "kind:=case when p_result->>'kind'='rate-limited' then 'uncertain' else p_result->>'kind' end;",
+    "^DR03",
+  ],
+  [
+    "recovery-rejection-allowlist",
+    "private.record_email_submission_at(uuid,uuid,jsonb,timestamp with time zone)",
+    "kind:=p_result->>'kind';",
+    "kind:=case when p_result->>'kind'='permanent' then 'rate-limited' else p_result->>'kind' end;",
+    "^DR04 permanent",
+  ],
+  [
+    "recovery-sticky-revoke",
+    "private.begin_email_recovery_at(uuid,uuid,jsonb,text,timestamp with time zone)",
+    "if job.invalidated_at is not null or context is null",
+    "if false or context is null",
+    "^DR06",
+  ],
+  [
+    "recovery-three-limit",
+    "private.record_email_submission_at(uuid,uuid,jsonb,timestamp with time zone)",
+    "when post_count>=3 then 'exhausted'",
+    "when false then 'exhausted'",
+    "^DR03",
+  ],
+  [
+    "recovery-absolute-expiry",
+    "private.begin_email_recovery_at(uuid,uuid,jsonb,text,timestamp with time zone)",
+    "if p_now+interval '30 seconds'>=a.retry_expires then",
+    "if false then",
+    "^DR05/DR08|^DR08",
+  ],
+])
+  mutants.push({
+    id,
+    file: recovery,
+    pattern,
+    apply: () => functionFault(signature, from, to),
+  });
+
 const catchUp = "tests/integration/practice-reminder-catch-up.test.ts";
 for (const [id, signature, from, to, pattern] of [
   [
     "catch-up-classification",
-    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "private.resend_reminder_context(uuid,uuid,text,timestamptz)",
     "onset > target",
     "onset >= target",
     "^CU01",
   ],
   [
     "catch-up-stable-target",
-    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "private.resend_reminder_context(uuid,uuid,text,timestamptz)",
     "private.reminder_next_window(onset, practice.timezone, onset)",
     "private.reminder_next_window(p_now, practice.timezone, p_now)",
     "^CU04",
@@ -1070,14 +1123,14 @@ for (const [id, signature, from, to, pattern] of [
   ],
   [
     "catch-up-consumed-guard",
-    "private.email_reminder_context(uuid,uuid,text,timestamptz)",
+    "private.resend_reminder_context(uuid,uuid,text,timestamptz)",
     "when exists (select 1 from private.reminder_message_attempts a",
     "when false and exists (select 1 from private.reminder_message_attempts a",
     "^CU06|^CU07",
   ],
   [
     "catch-up-snapshot",
-    "private.begin_email_reminder_at(uuid,uuid,jsonb,timestamptz)",
+    "private.begin_resend_reminder_at(uuid,uuid,jsonb,timestamptz)",
     "or (context->>'dispatchTarget')::timestamptz is distinct from job.dispatch_target",
     "",
     "^CU09 snapshot",
@@ -1098,6 +1151,147 @@ for (const [id, signature, from, to, pattern] of [
   });
 
 mkdirSync("reports/sql-mutants", { recursive: true });
+const renewalFile = "tests/integration/practice-renewal-workflow.test.ts",
+  renewalFunction =
+    "private.apply_renewal_change(uuid,uuid,uuid,integer,uuid,integer,integer,text,text)";
+mutants.push({
+  id: "renewal-null-url",
+  file: renewalFile,
+  pattern: "^RW09 nullable URL constraint",
+  apply: () =>
+    ddlFault(
+      "alter table private.credential_renewal_links drop constraint credential_renewal_links_url_check, add constraint credential_renewal_links_url_check check (url is null or url = private.renewal_url(url))",
+      "alter table private.credential_renewal_links drop constraint credential_renewal_links_url_check, add constraint credential_renewal_links_url_check check (url is null or coalesce(url = private.renewal_url(url), false))",
+      "select lower(pg_get_constraintdef(oid)) not like '%coalesce%' missing from pg_constraint where conrelid='private.credential_renewal_links'::regclass and conname='credential_renewal_links_url_check'",
+      [{ missing: true }],
+    ),
+});
+for (const [id, from, to, pattern] of [
+  [
+    "renewal-editor",
+    "perform private.require_register_member(p_practice_id, true);",
+    "perform private.require_register_member(p_practice_id, false);",
+    "^RW05 current roles",
+  ],
+  [
+    "renewal-resource-version",
+    "resource_version <> p_expected_renewal_version",
+    "false",
+    "^RW06 immutable replay",
+  ],
+  [
+    "renewal-context-version",
+    "credential.version <> p_expected_version",
+    "false",
+    "^RW06 context races",
+  ],
+  [
+    "renewal-date-revision",
+    "cycle.date_revision <> p_expected_date_revision",
+    "false",
+    "^RW06 context races",
+  ],
+  [
+    "renewal-replay-payload",
+    "receipt.payload <> payload",
+    "false",
+    "^RW06 immutable replay",
+  ],
+  [
+    "renewal-first-review",
+    "else workflow.acknowledged_at is null end",
+    "else true end",
+    "^RW03 explicit review",
+  ],
+  [
+    "renewal-retain-review",
+    "then occurred else workflow.acknowledged_at end",
+    "then occurred else null end",
+    "^RW03 explicit review",
+  ],
+  [
+    "renewal-cycle-timestamp",
+    "occurred := pg_catalog.clock_timestamp();",
+    "occurred := pg_catalog.clock_timestamp(); update public.credential_cycles set updated_at=occurred where id=cycle.id;",
+    "^RW04 renewal writes",
+  ],
+  [
+    "renewal-url",
+    "normalized := private.renewal_url(p_value);",
+    "normalized := p_value;",
+    "^RW09 exact URL grammar",
+  ],
+  [
+    "renewal-atomic-audit",
+    /insert into private\.renewal_audit_events[\s\S]*?occurred\);/,
+    "perform 1;",
+    "^RW06 atomic fault recovery",
+  ],
+])
+  mutants.push({
+    id,
+    file: renewalFile,
+    pattern,
+    apply: () => functionFault(renewalFunction, from, to),
+  });
+// PCI storage and API guards must fail independently, including legacy contracts.
+mutants.push({
+  id: "pci-practice-owner-storage",
+  file: "tests/integration/practice-pci-certificates.test.ts",
+  pattern: "^PCI03 all API",
+  apply: () =>
+    ddlFault(
+      "alter table public.credentials drop constraint credentials_pci_practice_owner_check",
+      "alter table public.credentials add constraint credentials_pci_practice_owner_check check (type <> 'pci_compliance_certificate' or (owner_kind = 'practice' and owner_clinician_id is null))",
+      "select conname from pg_constraint where conrelid='public.credentials'::regclass and conname='credentials_pci_practice_owner_check'",
+      [],
+    ),
+});
+for (const signature of [
+  "private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text)",
+  "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
+  "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)",
+])
+  mutants.push({
+    id: "pci-owner-" + signature.split("(")[0].slice(8),
+    file: "tests/integration/practice-pci-certificates.test.ts",
+    pattern: "^PCI03 all API",
+    apply: () =>
+      functionFault(
+        signature,
+        "(p_type = 'pci_compliance_certificate' and p_owner_kind <> 'practice')",
+        "false",
+      ),
+  });
+// Each directory type gate must independently accept the approved fifth type.
+for (const signature of [
+  "private.credential_change_values(text,text,text,uuid,uuid[],text,text,text,text)",
+  "private.create_practice_credential(uuid,uuid,text,text,text,uuid,uuid[])",
+  "private.create_practice_credential_with_details(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text)",
+])
+  mutants.push({
+    id: "directory-type-" + signature.split("(")[0].slice(8),
+    file: "tests/integration/practice-payer-directories.test.ts",
+    pattern: "^DIR02 all API",
+    apply: () =>
+      functionFault(
+        signature,
+        "'insurance_payer_provider_directory'",
+        "'directory_disabled'",
+      ),
+  });
+mutants.push({
+  id: "directory-type-storage",
+  file: "tests/integration/practice-payer-directories.test.ts",
+  pattern: "^DIR02 all API",
+  apply: () =>
+    ddlFault(
+      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate')) not valid",
+      "alter table public.credentials drop constraint credentials_type_check; alter table public.credentials add constraint credentials_type_check check (type in ('state_license','dea_registration','malpractice_policy','pci_compliance_certificate','insurance_payer_provider_directory'))",
+      "select convalidated from pg_constraint where conrelid='public.credentials'::regclass and conname='credentials_type_check'",
+      [{ convalidated: false }],
+    ),
+});
 const records = [];
 function execute(file, pattern, path) {
   rmSync(path, { force: true });
@@ -1129,7 +1323,10 @@ async function restore() {
   run(process.execPath, ["tools/schema-fingerprint.mjs"]);
 }
 try {
-  for (const mutant of mutants) {
+  for (const mutant of mutants.filter(
+    (m) =>
+      !process.argv.includes("--renewal-only") || m.id.startsWith("renewal-"),
+  )) {
     for (const propertyOnly of mutant.propertyPattern
       ? [false, true]
       : [false]) {
@@ -1204,3 +1401,5 @@ run("node_modules/.bin/vitest", ["run", "--project", "integration"]);
 console.log(
   `${records.length} actual SQL/API faults killed and schema independently restored; full restored integration suite passed.`,
 );
+
+await completionSqlControls();

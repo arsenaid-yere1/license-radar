@@ -161,3 +161,36 @@ it("C05 month bounds suppress impossible navigation and action-only unknown end 
     screen.getByRole("region", { name: "Dates not entered" }).textContent,
   ).toContain("No matching records with missing dates.");
 });
+
+it("DIR01 DIR04 directory filter and both calendar views show due dates and unknown action-only meaning", () => {
+  const directory = {
+    ...record,
+    type: "insurance_payer_provider_directory" as const,
+    covered_clinicians: [],
+  };
+  const v = show(
+    { view: "agenda", type: "insurance_payer_provider_directory" },
+    { ...register, credentials: [directory] },
+  );
+  expect(
+    screen.getByRole("option", { name: "Insurance payer provider directory" }),
+  ).toBeTruthy();
+  expect(screen.getAllByText("directory update due")).toHaveLength(2);
+  v.unmount();
+  show(
+    { view: "agenda" },
+    {
+      ...register,
+      credentials: [
+        {
+          ...directory,
+          current_cycle: { ...directory.current_cycle, end_date: null },
+        },
+      ],
+    },
+  );
+  expect(
+    screen.getAllByText("Next directory update due date unknown"),
+  ).toHaveLength(2);
+  expect(screen.queryByText("expiration")).toBeNull();
+});

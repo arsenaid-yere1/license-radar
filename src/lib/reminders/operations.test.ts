@@ -3,7 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const access = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/practice/access", () => ({ getPracticeAccess: access }));
 import { saveEmailPreference } from "./operations";
-import { getReminderSchedule, setEmailPreference } from "./repository";
+import {
+  getReminderSchedule,
+  getReminderScheduleV3,
+  getReminderScheduleV4,
+  setEmailPreference,
+} from "./repository";
 const id = "10000000-0000-4000-8000-000000000001",
   preference = { enabled: false, version: 2, canEnable: false },
   input = { requestId: id, enabled: false, expectedVersion: 1 };
@@ -149,4 +154,80 @@ it("EP03 malformed/private responses fail closed, expected stale conflicts remai
   expect((await getReminderSchedule(broken, id, "configured")).status).toBe(
     "unavailable",
   );
+});
+
+it("DR01 V3 repository uses named projection and rejects malformed/private replies", async () => {
+  const schedule = {
+    rows: [],
+    nextCursor: null,
+    emailReadiness: "ready",
+    smsOptional: true,
+    lastSuccessAt: null,
+    oldestDueAt: null,
+    preference,
+  };
+  const c = client(schedule);
+  expect(await getReminderScheduleV3(c, id, "configured", id)).toEqual({
+    status: "success",
+    schedule,
+  });
+  expect(c.rpc).toHaveBeenCalledWith("get_email_reminder_schedule_v3", {
+    p_practice_id: id,
+    p_namespace: "configured",
+    p_after: id,
+  });
+  for (const data of [null, {}, { ...schedule, email: "private" }])
+    expect(await getReminderScheduleV3(client(data), id, "configured")).toEqual(
+      { status: "unavailable" },
+    );
+  expect(
+    await getReminderScheduleV3(
+      client(schedule, { code: "42501" }),
+      id,
+      "configured",
+    ),
+  ).toEqual({ status: "unavailable" });
+  const broken = client();
+  vi.mocked(broken.rpc).mockRejectedValue(new Error("private"));
+  expect(await getReminderScheduleV3(broken, id, "configured")).toEqual({
+    status: "unavailable",
+  });
+});
+
+it("GM07 V4 repository uses named projection and rejects malformed/private replies", async () => {
+  const schedule = {
+    rows: [],
+    nextCursor: null,
+    emailReadiness: "ready",
+    smsOptional: true,
+    lastSuccessAt: null,
+    oldestDueAt: null,
+    preference,
+  };
+  const c = client(schedule);
+  expect(await getReminderScheduleV4(c, id, "configured", id)).toEqual({
+    status: "success",
+    schedule,
+  });
+  expect(c.rpc).toHaveBeenCalledWith("get_email_reminder_schedule_v4", {
+    p_practice_id: id,
+    p_namespace: "configured",
+    p_after: id,
+  });
+  for (const data of [null, {}, { ...schedule, email: "private" }])
+    expect(await getReminderScheduleV4(client(data), id, "configured")).toEqual(
+      { status: "unavailable" },
+    );
+  expect(
+    await getReminderScheduleV4(
+      client(schedule, { code: "42501" }),
+      id,
+      "configured",
+    ),
+  ).toEqual({ status: "unavailable" });
+  const broken = client();
+  vi.mocked(broken.rpc).mockRejectedValue(new Error("private"));
+  expect(await getReminderScheduleV4(broken, id, "configured")).toEqual({
+    status: "unavailable",
+  });
 });

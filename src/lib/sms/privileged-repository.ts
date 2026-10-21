@@ -196,3 +196,108 @@ export async function finishReminderRun(
     5000,
   );
 }
+
+export async function claimReminderRecovery(
+  namespace: string,
+  sending: boolean,
+) {
+  return call(
+    "claim_email_recovery",
+    { p_namespace: namespace, p_sending: sending },
+    5000,
+  );
+}
+export async function beginReminderRecovery(
+  jobId: string,
+  token: string,
+  config: { namespace: string; from: string; replyTo: string; appUrl: string },
+  kind: "fresh" | "retry",
+) {
+  return call(
+    "begin_email_recovery",
+    { p_job_id: jobId, p_token: token, p_config: config, p_kind: kind },
+    5000,
+  );
+}
+export async function recordReminderRecovery(
+  submissionId: string,
+  token: string,
+  result: import("@/lib/reminders/email-provider").RecoveryOutcome,
+) {
+  return call(
+    "record_email_submission",
+    { p_submission_id: submissionId, p_token: token, p_result: result },
+    5000,
+  );
+}
+export async function recordReminderCheck(
+  checkId: string,
+  token: string,
+  result: import("@/lib/reminders/recovery").DeliveryObservation & {
+    matched: boolean;
+  },
+) {
+  return call(
+    "record_email_check",
+    { p_check_id: checkId, p_token: token, p_result: result },
+    5000,
+  );
+}
+export async function expireReminderRecovery() {
+  return call("expire_email_recovery", {}, 5000);
+}
+
+export async function gmailReminderReadiness(
+  config: import("@/lib/reminders/gmail-config").GmailConfig,
+) {
+  return call(
+    "gmail_reminder_readiness",
+    {
+      p_namespace: config.namespace,
+      p_subject: config.binding.subject,
+      p_sender: config.from,
+      p_allowed_recipient: config.allowedRecipient,
+      p_app_origin: config.appUrl,
+    },
+    5000,
+  );
+}
+export async function beginGmailReminder(
+  jobId: string,
+  token: string,
+  config: { namespace: string; from: string; replyTo: string; appUrl: string },
+  subject: string,
+  authorityVersion: number,
+) {
+  return call(
+    "begin_gmail_reminder",
+    {
+      p_job_id: jobId,
+      p_claim_token: token,
+      p_config: config,
+      p_subject: subject,
+      p_authority_version: authorityVersion,
+    },
+    5000,
+  );
+}
+export async function recordGmailReminder(
+  attemptId: string,
+  token: string,
+  outcome: EmailOutcome,
+) {
+  return call(
+    "record_gmail_reminder",
+    {
+      p_attempt_id: attemptId,
+      p_token: token,
+      p_outcome: outcome.outcome,
+      p_message_id: outcome.providerId,
+      p_error: outcome.error,
+    },
+    5000,
+  );
+}
+export async function expireGmailReminders() {
+  return call("expire_gmail_reminders", {}, 5000);
+}

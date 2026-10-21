@@ -8,6 +8,41 @@ import {
 } from "./gauntlet-contract.mjs";
 const faults = [
   {
+    source: "src/components/renewals/detail.tsx",
+    from: "navigationLocked={locked}",
+    to: "navigationLocked={false}",
+    file: "tests/unit/renewal-forms.test.tsx",
+    name: "RW07 uncertain retries freeze exact context while newer read values beat historical receipt",
+  },
+  {
+    source: "src/components/renewals/form.tsx",
+    from: "const payload = frozen.current ?? form;",
+    to: "const payload = form;",
+    file: "tests/unit/renewal-forms.test.tsx",
+    name: "RW07 uncertain retries freeze exact context while newer read values beat historical receipt",
+  },
+  {
+    source: "src/components/renewals/form.tsx",
+    from: '"conflict",',
+    to: '"ignored-conflict",',
+    file: "tests/unit/renewal-forms.test.tsx",
+    name: "RW07 validation preserves draft and conflict reload replaces it with fresh versions and key",
+  },
+  {
+    source: "src/components/register/register-panel.tsx",
+    from: "renewal={renewalById.get(record.id)}",
+    to: "renewal={record.renewal}",
+    file: "tests/unit/renewal-forms.test.tsx",
+    name: "RW07 authoritative register progress survives a maintenance receipt without renewal",
+  },
+  {
+    source: "src/components/renewals/detail.tsx",
+    from: "if (!canEdit) return null;",
+    to: "if (false) return null;",
+    file: "tests/unit/renewal-forms.test.tsx",
+    name: "RW08 RW09 viewer summary keeps review progress and native external link independent",
+  },
+  {
     source: "src/components/register/credential-fields.tsx",
     from: "setDetails({",
     to: "void ({",

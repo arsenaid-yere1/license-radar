@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { recordNumberError, recordNumberSchema } from "./numbers";
 import {
   maintenanceCredentialSchema,
   maintenanceRegisterSchema,
@@ -37,41 +38,45 @@ export async function getRegister(client: SupabaseClient, practiceId: string) {
     ? ({ status: "success", register: parsed.data } as const)
     : ({ status: "unavailable" } as const);
 }
+function createRpcName(input: RegisterInput) {
+  if (input.intent === "clinician") return "create_practice_clinician";
+  return input.recordNumber !== undefined
+    ? "create_practice_credential_with_number"
+    : "create_practice_credential_with_details";
+}
 export async function createRecord(
   client: SupabaseClient,
   practiceId: string,
   input: RegisterInput,
 ): Promise<RegisterResult> {
   const clinician = input.intent === "clinician";
-  const reply = await request(
-    client,
-    clinician
-      ? "create_practice_clinician"
-      : "create_practice_credential_with_details",
-    {
-      p_practice_id: practiceId,
-      p_request_id: input.requestId,
-      ...(input.intent === "clinician"
-        ? { p_name: input.name }
-        : {
-            p_title: input.title,
-            p_issuer: input.issuer,
-            p_jurisdiction: input.jurisdiction,
-            p_end_date: input.endDate,
-            p_action_deadline: input.actionDeadline,
-            p_type: input.type,
-            p_owner_kind: input.ownerKind,
-            p_owner_clinician_id: input.ownerClinicianId ?? null,
-            p_covered_clinician_ids: input.coveredClinicianIds,
-          }),
-    },
-  );
+  const withNumber =
+    input.intent === "credential" && input.recordNumber !== undefined;
+  const reply = await request(client, createRpcName(input), {
+    p_practice_id: practiceId,
+    p_request_id: input.requestId,
+    ...(input.intent === "clinician"
+      ? { p_name: input.name }
+      : {
+          p_title: input.title,
+          ...(withNumber ? { p_record_number: input.recordNumber } : {}),
+          p_issuer: input.issuer,
+          p_jurisdiction: input.jurisdiction,
+          p_end_date: input.endDate,
+          p_action_deadline: input.actionDeadline,
+          p_type: input.type,
+          p_owner_kind: input.ownerKind,
+          p_owner_clinician_id: input.ownerClinicianId ?? null,
+          p_covered_clinician_ids: input.coveredClinicianIds,
+        }),
+  });
   if (reply.status !== "reply") return reply;
   const failure = z
     .object({
       status: z.enum(["invalid", "invalid-reference", "request-conflict"]),
       errors: z
         .object({
+          recordNumber: z.literal(recordNumberError).optional(),
           issuer: z.literal("Use 1 to 120 characters.").optional(),
           jurisdiction: z.literal("Use 1 to 120 characters.").optional(),
           endDate: z.literal("Enter a valid date (YYYY-MM-DD).").optional(),
@@ -89,7 +94,12 @@ export async function createRecord(
   const parsed = (
     clinician
       ? z.object({ status: z.literal("success"), clinician: clinicianSchema })
-      : z.object({ status: z.literal("success"), credential: credentialSchema })
+      : z.object({
+          status: z.literal("success"),
+          credential: withNumber
+            ? credentialSchema.safeExtend({ record_number: recordNumberSchema })
+            : credentialSchema,
+        })
   ).safeParse(reply.data);
   return parsed.success ? parsed.data : { status: "unavailable" };
 }
@@ -115,10 +125,19 @@ export async function changeRecord(
   practiceId: string,
   input: MaintenanceInput,
 ): Promise<MaintenanceResult> {
+  const withNumber =
+    input.intent === "update" && input.recordNumber !== undefined;
+  const responseCredential = withNumber
+    ? maintenanceCredentialSchema.safeExtend({
+        record_number: recordNumberSchema,
+      })
+    : maintenanceCredentialSchema;
   const reply = await request(
     client,
     input.intent === "update"
-      ? "update_practice_credential"
+      ? withNumber
+        ? "update_practice_credential_with_number"
+        : "update_practice_credential"
       : "archive_practice_credential",
     {
       p_practice_id: practiceId,
@@ -130,6 +149,7 @@ export async function changeRecord(
       ...(input.intent === "update"
         ? {
             p_title: input.title,
+            ...(withNumber ? { p_record_number: input.recordNumber } : {}),
             p_type: input.type,
             p_owner_kind: input.ownerKind,
             p_owner_clinician_id: input.ownerClinicianId ?? null,
@@ -144,6 +164,7 @@ export async function changeRecord(
   );
   if (reply.status !== "reply") return reply;
   const errors = z.object({
+    recordNumber: z.literal(recordNumberError).optional(),
     issuer: z.literal("Use 1 to 120 characters.").optional(),
     jurisdiction: z.literal("Use 1 to 120 characters.").optional(),
     endDate: z.literal("Enter a valid date (YYYY-MM-DD).").optional(),
@@ -159,11 +180,11 @@ export async function changeRecord(
       z.object({
         status: z.literal("success"),
         changed: z.boolean(),
-        credential: maintenanceCredentialSchema,
+        credential: responseCredential,
       }),
       z.object({
         status: z.literal("conflict"),
-        credential: maintenanceCredentialSchema,
+        credential: responseCredential,
       }),
       z.object({ status: z.literal("invalid"), errors: errors.optional() }),
       z.object({
@@ -171,6 +192,7 @@ export async function changeRecord(
           "invalid-reference",
           "request-conflict",
           "archived",
+          "completed",
           "not-found",
         ]),
       }),

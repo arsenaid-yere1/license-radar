@@ -1,0 +1,1732 @@
+{
+  "commit": "cca99a7a6cb38524fb6c9461555855efb22605a5",
+  "sourceHash": "380eaebe0e632e9152ae0a8ba31f91fd55900168c9872b82643710d3023487a9",
+  "files": 431,
+  "inputs": [
+    {
+      "file": ".env.example",
+      "sha256": "9180ad9f1cbc016136b6805a48979dce139d2de9fb3cf27e552d5994a05d953b"
+    },
+    {
+      "file": ".gitignore",
+      "sha256": "0eaad5f88c6c70f6c4012d646c783c065c6bf424938b2bd701afd3dc8c1cfe0a"
+    },
+    {
+      "file": ".gitleaks.toml",
+      "sha256": "e32cb8de64325f256efcb4e117bb8b36353163e354df04d39f17b06099cd7111"
+    },
+    {
+      "file": ".nvmrc",
+      "sha256": "73fb1b615e2043a933be1c0895cde4358036acc28d785692509b822aa53c761f"
+    },
+    {
+      "file": ".prettierignore",
+      "sha256": "ae2da77e042ab35463257eddd62bc423897240aad86debc5db0b7598be3723f5"
+    },
+    {
+      "file": ".prettierrc.json",
+      "sha256": "2e1092d85e14b317e81922d00ff3647fb227aec85f1888fe70d7b0830a331909"
+    },
+    {
+      "file": ".sqlfluff",
+      "sha256": "4394a5ad41c2941ba0ff8df7621e50dab7ca1fd7e971207ac522fc121cc3b183"
+    },
+    {
+      "file": "README.md",
+      "sha256": "22333d619c9af043291e6ddba53460efd9661c7fd263b90779f5bf52c5f15111"
+    },
+    {
+      "file": "eslint.config.mjs",
+      "sha256": "d53506f48c57053a3b61b06ffce50a54955de0e3db5ca912c4e04b8a10feb649"
+    },
+    {
+      "file": "next-env.d.ts",
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "file": "next.config.ts",
+      "sha256": "d8ea40897b64a918f3b5f2443745c041ba52f44a0acf570f6c89c542e019c760"
+    },
+    {
+      "file": "package-lock.json",
+      "sha256": "7db43ef5b13dcf4f5560e7d0e62883d90acc3e5aa4add050820297aa05a20638"
+    },
+    {
+      "file": "package.json",
+      "sha256": "63926b9ad84ab4453cb7e47ef03684f41ee86f7c1bc5c0aec3e99dd72bba3fe5"
+    },
+    {
+      "file": "playwright.config.ts",
+      "sha256": "e0d04014b19726398b1aec69bd10e228c727b519463bd6be135a67113924247a"
+    },
+    {
+      "file": "requirements-dev.txt",
+      "sha256": "9ed553291505bf2e3b198462357133bca7e754df5fdd108c7af53f9cd283e634"
+    },
+    {
+      "file": "src/app/about/page.tsx",
+      "sha256": "ab16f51f63882996cf3561f4f4d29733e345806f19182863e0ef8f64583c7a21"
+    },
+    {
+      "file": "src/app/api/reminders/email/webhook/route.ts",
+      "sha256": "07731fd566f9d032ab2f13734477497883adc951bef3bbad395160f6d65b573b"
+    },
+    {
+      "file": "src/app/api/reminders/run/route.ts",
+      "sha256": "b04d6a7c9de5bf6e7dfc998cc5d52dc258a6788f251e408bb4ec2afb48a029a9"
+    },
+    {
+      "file": "src/app/api/renewal-evidence/[credentialId]/[cycleId]/[evidenceId]/route.ts",
+      "sha256": "3b5d8557a15789b18d24e99d3c7dd3643a71372ba8ea0d04aac21017113179e4"
+    },
+    {
+      "file": "src/app/api/renewal-evidence/[credentialId]/[cycleId]/route.ts",
+      "sha256": "7b99f7b5d1f4f78f9fb9a77dcfd29156e61274074b6f1460274ffcc1baf061ec"
+    },
+    {
+      "file": "src/app/api/renewal-evidence/cleanup/route.ts",
+      "sha256": "df60644263b2a851681051570e32f95a7e24872b7bcc98a1680668334a607317"
+    },
+    {
+      "file": "src/app/api/sms/twilio/inbound/route.ts",
+      "sha256": "79dc00ac9d5b2ceccf0a81b62a29a20144da98c57be0750bc2d2bfebb2c72208"
+    },
+    {
+      "file": "src/app/error.tsx",
+      "sha256": "1adabebe0e47f0b0250d1e1294aa9eecbac901071096310b302bfb49a408dd6d"
+    },
+    {
+      "file": "src/app/globals.css",
+      "sha256": "172c2d63bcc646132971ee6aeee071efbc73a08a23e76073ee8b795b4892c931"
+    },
+    {
+      "file": "src/app/join/actions.ts",
+      "sha256": "dd207d9c53f17b56b64232b9fe5cb3d2a893a1f44dfaffef14271fe268c485d9"
+    },
+    {
+      "file": "src/app/join/page.tsx",
+      "sha256": "c34deaf86cf6c6423969e6cc0b383f3df3cbf41d6eeef35567f7c14b098c9aa3"
+    },
+    {
+      "file": "src/app/layout.tsx",
+      "sha256": "5904c31005815e71f2787c6c7bc446d7d3d7300685fadbd7343354fccdbebac0"
+    },
+    {
+      "file": "src/app/login/actions.ts",
+      "sha256": "6ed91111caa36ee8d18902703aefcfe7855532ac4889a46463e6a0618615bed6"
+    },
+    {
+      "file": "src/app/login/page.tsx",
+      "sha256": "7f32fd8abef20f13543edd8fb9496275fbe4536e35b7a1c20eed32b0a565cf83"
+    },
+    {
+      "file": "src/app/onboarding/practice/page.tsx",
+      "sha256": "c47e7e43234e332f91dfac7da123b731475e1d8c19aa48468450bb5b436c1356"
+    },
+    {
+      "file": "src/app/page.tsx",
+      "sha256": "83193ad2f133a459de1869279b62be082303b29e8ebe3d534c2572808a0799c8"
+    },
+    {
+      "file": "src/app/practice/actions.ts",
+      "sha256": "e4d3dd0017ec2c4fc80829c2c275309e5d6e6509d3931bc58b8b6244a1e4fecd"
+    },
+    {
+      "file": "src/app/practice/calendar/page.tsx",
+      "sha256": "947aacdee30299c26c4f233e7baf1b568dbb251743bc065f827fcae328f87831"
+    },
+    {
+      "file": "src/app/practice/dashboard/page.tsx",
+      "sha256": "5ddd7ec7b05581fda5490906f36100e0cd6afb7d2a2788afb5dd434cb5fc99f6"
+    },
+    {
+      "file": "src/app/practice/page.tsx",
+      "sha256": "7092cc27c7a7c356767af3f6f82d25bf48638e9dec6cf3b097e771fc23150853"
+    },
+    {
+      "file": "src/app/practice/recipient-actions.ts",
+      "sha256": "0898411be8397e116877482a439440cf72fe05a05a95b5a5ca7191349f4c3567"
+    },
+    {
+      "file": "src/app/practice/register/[credentialId]/actions.ts",
+      "sha256": "2aaa646dfb07f661ce5ad2c838ca1585be22a7653147eace500b695cae724497"
+    },
+    {
+      "file": "src/app/practice/register/[credentialId]/evidence/[cycleId]/page.tsx",
+      "sha256": "85ed0861d5cbea8fcec83b628147df51080dde11585cd80483ac5170a2781920"
+    },
+    {
+      "file": "src/app/practice/register/[credentialId]/history/page.tsx",
+      "sha256": "36fc8b7041d83d75b96bf7412408d3eaa512998ab17d940c8c9b2ef96d34a79d"
+    },
+    {
+      "file": "src/app/practice/register/[credentialId]/not-found.tsx",
+      "sha256": "1627e46b99efa3acb02b3ce7d22a02dc57f7c1c78cc665cf7f927cefb8b55704"
+    },
+    {
+      "file": "src/app/practice/register/[credentialId]/page.tsx",
+      "sha256": "5e48158a858789ab4e25b493d519f7b2c874ac84c0c774aa7c066e59d0d63479"
+    },
+    {
+      "file": "src/app/practice/register/actions.ts",
+      "sha256": "a45aca80c4c52fdabd7ce53cb34c5abae9ad58c3a11232aaeb617e0c4516f4a4"
+    },
+    {
+      "file": "src/app/practice/register/page.tsx",
+      "sha256": "85aafa6e81e68403c99dbd5403bf9f779d4a03f0203e895012fc2550d6a366fc"
+    },
+    {
+      "file": "src/app/practice/reminders/[credentialId]/actions.ts",
+      "sha256": "d6e7ec9a639748e0aa47819cc6375317bd49515c8c42923fbc35cf335659b6bd"
+    },
+    {
+      "file": "src/app/practice/reminders/[credentialId]/page.tsx",
+      "sha256": "d87e1ab32b4564e90ef9b96e0aef30a867f7bddf2c14336227546399b85d2f7a"
+    },
+    {
+      "file": "src/app/practice/reminders/actions.ts",
+      "sha256": "7fd7a8ce05b4d74ef315f4198fd4c2417edbc6eb2d7919770cb58c072a7f5d2c"
+    },
+    {
+      "file": "src/app/practice/reminders/page.tsx",
+      "sha256": "d8f5f5cf691ec2dde510ef5139ea9493224566cf879a8ad13cc2de9b4b7a1b27"
+    },
+    {
+      "file": "src/app/practice/sms/actions.ts",
+      "sha256": "18dea03c61ed4396ebd47574e8fa6e116daa0dbae0972253f2a865ba8f500d18"
+    },
+    {
+      "file": "src/app/practice/sms/page.tsx",
+      "sha256": "7c4d86eb52dfcb121d625e01817b4ecaf4b8a7675fdb9a56c08129e62e54046d"
+    },
+    {
+      "file": "src/app/practice/team/actions.ts",
+      "sha256": "660fa3825161c6584ee53ccde57862d5b55e1b51d47a93a6d05cb58dcdc924f1"
+    },
+    {
+      "file": "src/app/practice/team/page.tsx",
+      "sha256": "0de77b77df1b249642b006c233fc066e27cb40231006bae2538dd36a807bed2e"
+    },
+    {
+      "file": "src/app/privacy/page.tsx",
+      "sha256": "05f1b41c20e0a718d7c0554a46c0a936a7d8831316f6a3ae59b919692d2b180a"
+    },
+    {
+      "file": "src/app/sms-information/page.tsx",
+      "sha256": "95811e6f8ba121caeedefe8807cad09a110cb44018038244e090a4a197201a50"
+    },
+    {
+      "file": "src/components/auth/email-code-form.tsx",
+      "sha256": "1a03d0e68f9631e31d09a68f528dcc550b7903e4d334147be011c6fb9c2bdb95"
+    },
+    {
+      "file": "src/components/auth/invitation-context.ts",
+      "sha256": "45329c02f9a31d76c692c24ef2faa69435462804c100d0516dbd165290e3827d"
+    },
+    {
+      "file": "src/components/auth/join-form.tsx",
+      "sha256": "eb5565c37ae97d3cf733f93f1d11c62b6634dc0a8e7bea118935f0874d5bae31"
+    },
+    {
+      "file": "src/components/auth/sign-out-form.tsx",
+      "sha256": "607ce879b8bca48b6f4a3998953be389de1c717a43270329c71d9b83573fa992"
+    },
+    {
+      "file": "src/components/calendar/calendar-agenda.tsx",
+      "sha256": "34ef1e1059c58ee8e2e775f7d537a5fc166cf3b05c013f5365788d8bd0acf325"
+    },
+    {
+      "file": "src/components/calendar/calendar-panel.tsx",
+      "sha256": "a7dc7b7759c7b368a8b2f6e2899ba3c126bbd4453d0c6eb4cfb6aa430bdd6d24"
+    },
+    {
+      "file": "src/components/calendar/month-calendar.tsx",
+      "sha256": "119c5d100935ff71edfb2c9bf24ecefca3ffad618b9e9e4405a5b13fe8d85a73"
+    },
+    {
+      "file": "src/components/dashboard/dashboard-panel.tsx",
+      "sha256": "721796a010ffa30672ff71902a9956dad362a94a91a2c1089c46e6ac60df3865"
+    },
+    {
+      "file": "src/components/evidence/panel.tsx",
+      "sha256": "80555c9d11dd59fff8a9d77d3ec4c9844735f75ad5bc7e93819084b0c740c0ac"
+    },
+    {
+      "file": "src/components/evidence/remove-form.tsx",
+      "sha256": "c776aef74d3e91abca4abccaf1a7274d387473e0f2469c27e834b462c9d0d677"
+    },
+    {
+      "file": "src/components/evidence/upload-form.tsx",
+      "sha256": "75fe112c166e17ecba401db80561cc91256141f9adf34f6dafa61ce27c7ba284"
+    },
+    {
+      "file": "src/components/practice/practice-form.tsx",
+      "sha256": "e9e92786336465f7276a988631975ad1a3d08752ab3333ea003b73ce0b18999b"
+    },
+    {
+      "file": "src/components/recipients/recipient-panel.tsx",
+      "sha256": "891e48761dd1011f6e8ac8995c2913641eba32f2debb57f2d29f7029f6d5a930"
+    },
+    {
+      "file": "src/components/register/archive-record-form.tsx",
+      "sha256": "9b8f3981f1653ff6ad15742ccf3c54e5d015c82985d45fec53f76419ccf6334a"
+    },
+    {
+      "file": "src/components/register/clinician-form.tsx",
+      "sha256": "92dc3e1395915b9a751cfbba99382edd83a0c925d0de1225eac3953e3cf7802c"
+    },
+    {
+      "file": "src/components/register/create-form.tsx",
+      "sha256": "58e5b7fdb4acdb1621009d8a06be7427220d0a0987f609f51d08b4a7e3864ef8"
+    },
+    {
+      "file": "src/components/register/credential-fields.tsx",
+      "sha256": "471e8d9ab4c611824172942f3fffc7aef15cdcbe6b099955f897fb9b46203559"
+    },
+    {
+      "file": "src/components/register/credential-form.tsx",
+      "sha256": "a949f3276fdde1a86a647a72c845e558e142d6f64023a7d72c4e90d28a4b796b"
+    },
+    {
+      "file": "src/components/register/edit-record-form.tsx",
+      "sha256": "acfdaca36caf45148a6d5e5ac264ecc50b6f771084f0357473831d8da909e521"
+    },
+    {
+      "file": "src/components/register/record-dates.tsx",
+      "sha256": "9fa8a6583a85bc335511c4f91a4ddeb90b8cbaba469ee200b4f36ac33e1dd99c"
+    },
+    {
+      "file": "src/components/register/record-number.tsx",
+      "sha256": "160837ebd4223d11fe5d217a66e6da58c3e2db1dd646d5f0f3c51035b65607db"
+    },
+    {
+      "file": "src/components/register/register-panel.tsx",
+      "sha256": "31f7cd565025696f07b8463b9fa061814ff17c9e89c00046c65f8187df1f58d0"
+    },
+    {
+      "file": "src/components/reminders/check-form.tsx",
+      "sha256": "8635360fec6cae68fb636196387a541d4167d1023c2ffe93698e8d01af965d05"
+    },
+    {
+      "file": "src/components/reminders/preference-form.tsx",
+      "sha256": "48efc29bb7ec181ae4ec22dc0a84d8bfa5c7147fb3bc6e6e702b8e5209b396c7"
+    },
+    {
+      "file": "src/components/renewals/completion-fields.tsx",
+      "sha256": "5f0ab029bf80c16148931812f34ee2ffd927c9d28c2ab340ecfe898594e75b14"
+    },
+    {
+      "file": "src/components/renewals/detail.tsx",
+      "sha256": "c9824a6d6bd9501a2cb31aaff2ed9f3957b09829803ede356ce89f75cfa780e3"
+    },
+    {
+      "file": "src/components/renewals/form.tsx",
+      "sha256": "b36718c687b40f6f1660de6628d1b3abdb4063c51d72e2340feebffa69295744"
+    },
+    {
+      "file": "src/components/renewals/summary.tsx",
+      "sha256": "4100b9b122e1ec448be0e9455951e2f3f36e606086a30ea755dec43b3fd69e7d"
+    },
+    {
+      "file": "src/components/shell.tsx",
+      "sha256": "e934529e1477845291b21bb49a55309698364d6c13632342911a6649b625585d"
+    },
+    {
+      "file": "src/components/sms/enrollment-panel.tsx",
+      "sha256": "f9ae27cb35299d03507dfa39c83e9da2bf0a1fe40339bd380fc405f90844cd3d"
+    },
+    {
+      "file": "src/components/team/invitation-form.tsx",
+      "sha256": "4bb0344593e26ffe27225f5e7f616efeedb0f7f75fd271186c16d7f09786bc46"
+    },
+    {
+      "file": "src/components/team/invitation-link.tsx",
+      "sha256": "644fa9f5945ee60e1c53dd5ac01f897344ce553f66e89788290645261910a082"
+    },
+    {
+      "file": "src/components/team/member-controls.tsx",
+      "sha256": "6ad6e9049fefa99fc6a8c8a3ba7dddcfe0fde237c11f2015fceab7d526555e29"
+    },
+    {
+      "file": "src/components/team/result-message.tsx",
+      "sha256": "d258a9189bf467822ea3eba4d56a42516e198cc143b82a347044af25eb13d347"
+    },
+    {
+      "file": "src/components/team/team-panel.tsx",
+      "sha256": "1294e7db50aa6b0671ec5250a0489def9cafb018cac91ca6caac0faf668a84f4"
+    },
+    {
+      "file": "src/lib/auth/operations.ts",
+      "sha256": "da6160a05b4f90e9b9df7eeb3bf89965b86311bb29ec353c6ab8e41de1377ec6"
+    },
+    {
+      "file": "src/lib/auth/require-user.ts",
+      "sha256": "2c82e3dfcb7b18bea8eb3358a4b40259b07c87657094ad9624b85e90fa45e1a4"
+    },
+    {
+      "file": "src/lib/calendar/dates.test.ts",
+      "sha256": "d8a8f977f9252b297eb270e9dd6262a49aa533b6d99c7a965d0c1ce4cf16db3e"
+    },
+    {
+      "file": "src/lib/calendar/dates.ts",
+      "sha256": "b8f4c55bf6f535b415f828d1523ab65593e0062b3860a8afac0d0b2c0aa2d2e1"
+    },
+    {
+      "file": "src/lib/calendar/events.test.ts",
+      "sha256": "75eddb238639e261288c58958de51ab6dfb47830ba23591189dfcd942231c394"
+    },
+    {
+      "file": "src/lib/calendar/events.ts",
+      "sha256": "60d7223d2d48c7b5dba658c607f15a34fbc362f166b3a840df00b70bee54d688"
+    },
+    {
+      "file": "src/lib/calendar/properties.test.ts",
+      "sha256": "70ebce09ce223cb42d99ffc9fb6396f9addbac037fa8b2286ab78ee212c8ef43"
+    },
+    {
+      "file": "src/lib/calendar/query.test.ts",
+      "sha256": "be53c8a9f685cb3bbee6f4d1370882eca77983074d1ea0829c8f123e1bacddc4"
+    },
+    {
+      "file": "src/lib/calendar/query.ts",
+      "sha256": "521044b189040c0371bf181a33a497dd823c99de42af5efd0558927fc17216a2"
+    },
+    {
+      "file": "src/lib/dashboard/properties.test.ts",
+      "sha256": "73ad55702c10aa3dc96fb1a5f71877f91aa05520c273d85b8010551ac4a49e8c"
+    },
+    {
+      "file": "src/lib/dashboard/summary.test.ts",
+      "sha256": "e5466b2ffb1228e0f2543c2ed362d0991764dfb5cbe4374fe31009e399a9763b"
+    },
+    {
+      "file": "src/lib/dashboard/summary.ts",
+      "sha256": "cebf1bd6a6e85b0bb64af269721757edca3faa7225aae2c03f1aee8e7d7ae115"
+    },
+    {
+      "file": "src/lib/evidence/cleanup.ts",
+      "sha256": "9dfd2e6259b3a1039c54a0cac6510eb5b392b7b55b80c1c5e70d2e2964fde421"
+    },
+    {
+      "file": "src/lib/evidence/config.ts",
+      "sha256": "2a17902fb7da1b20f30f1fc53e6928ffbdf8534540000d6c5949d64a2437b38c"
+    },
+    {
+      "file": "src/lib/evidence/messages.ts",
+      "sha256": "322204bf4c963ac69085e0d2aba00ab7c27b1cdd97deff4751111dc1199cb988"
+    },
+    {
+      "file": "src/lib/evidence/operations.ts",
+      "sha256": "2ddab88fff7a7fc8ed48158d548f4308537ae90c3cb5c491300d81ea3857a2cb"
+    },
+    {
+      "file": "src/lib/evidence/properties.test.ts",
+      "sha256": "8047e0207bc54a82b0f643d94b0ebb97cc258440c1ee0a2c1baa37025e67eea5"
+    },
+    {
+      "file": "src/lib/evidence/repository.ts",
+      "sha256": "a4b18dc1203289cdb61c594734fd4cc84583fba5945fa78e37925b5a94145fcc"
+    },
+    {
+      "file": "src/lib/evidence/schema.ts",
+      "sha256": "05d565a5fd5080a64cfdfb35939ee6b4d425ff6e8e0348f37048071e3ead347b"
+    },
+    {
+      "file": "src/lib/evidence/storage.ts",
+      "sha256": "4b8aa043c02810616f961574c80fbb62f48271571fc3962a48024590a63e3ac5"
+    },
+    {
+      "file": "src/lib/evidence/validation.test.ts",
+      "sha256": "9c2b784db1ceff394572bcf7a5e8a95b8e0e0fc20cb8459d9e011a4cf624a273"
+    },
+    {
+      "file": "src/lib/evidence/validation.ts",
+      "sha256": "bcf2542803eca9f512a7b58b3163a1c2d197616429915236584a09b54ad66df6"
+    },
+    {
+      "file": "src/lib/practice/access.ts",
+      "sha256": "587f55aab728e67b978da55a7eaaf554d6f46b05f9a1086e844cb827063e6b69"
+    },
+    {
+      "file": "src/lib/practice/properties.test.ts",
+      "sha256": "c5ec2cdebf2f1e0199431c60082fd4be00144052eb1ae24af3151f712248ca42"
+    },
+    {
+      "file": "src/lib/practice/repository.ts",
+      "sha256": "dc135fa81577e12f9c4b0a66b37226950fac08fd82c058a78ffba6d19b1ee60f"
+    },
+    {
+      "file": "src/lib/practice/save.ts",
+      "sha256": "3e53a9e7749dcf170b2affcc9a5aa256e2ecc95c8d166704e7040201cc569cfe"
+    },
+    {
+      "file": "src/lib/practice/schema.test.ts",
+      "sha256": "ce8c789b4387af94499cc79267b888bdeafecce65182ac522125918df96f0f22"
+    },
+    {
+      "file": "src/lib/practice/schema.ts",
+      "sha256": "deb433eb926289e9796e7ffed1fa40c2ea0cdebbf9c633799053a76628e61d3a"
+    },
+    {
+      "file": "src/lib/practice/timezones.test.ts",
+      "sha256": "fa7bfa219b963bd2ab671dfc81b2f6666649d84cc080a800252896fbc8fe599b"
+    },
+    {
+      "file": "src/lib/practice/timezones.ts",
+      "sha256": "646fee817e2737c1bf3a01212e277680d4cf5079851efe756dc2f017fea75c09"
+    },
+    {
+      "file": "src/lib/recipients/messages.ts",
+      "sha256": "c9fca3af586473bcb1c24f7b89ca9e6cad8abc5f6455e964a3f656b21d430b73"
+    },
+    {
+      "file": "src/lib/recipients/operations.ts",
+      "sha256": "287494e0f7f89b130845f2277159bb26f4f7987b0c902e461db6625bf2597112"
+    },
+    {
+      "file": "src/lib/recipients/properties.test.ts",
+      "sha256": "a1d99c6feecb42a9cd962a1b653c0b5902d138a9370ea5deac2f90b2c4abec0a"
+    },
+    {
+      "file": "src/lib/recipients/repository.ts",
+      "sha256": "043a629f23da369e2d121a3bf376dc2f76cbf2c07ab858ecb029d053ad64b655"
+    },
+    {
+      "file": "src/lib/recipients/schema.ts",
+      "sha256": "08abc3d0d470d25d227858f76d1274f577cc3e6fc59a8e69c3520f8d8ea13f8d"
+    },
+    {
+      "file": "src/lib/register/dates.test.ts",
+      "sha256": "c87c30a8837329ccfe1d4f9edffd80e367313de88ab9d1e84e6d805f892e84aa"
+    },
+    {
+      "file": "src/lib/register/dates.ts",
+      "sha256": "40d0e0c1f7469af3637c4e1972eb065b0a6115904e445093ce7b74d912a6bfec"
+    },
+    {
+      "file": "src/lib/register/messages.ts",
+      "sha256": "1a19a7becbfc9bfbf109c4ec35f5c3e791a8618c64ece1658359ea98e5d6752e"
+    },
+    {
+      "file": "src/lib/register/numbers.test.ts",
+      "sha256": "f0c9a5f676edc18427a0c489c1fb85657c7a5c71f23912caf3e825abc8bcada1"
+    },
+    {
+      "file": "src/lib/register/numbers.ts",
+      "sha256": "37b8d6a79e08c2a9a545ed9b0f35c4a15e2c77b3378ef69d3238d7d7f624adcf"
+    },
+    {
+      "file": "src/lib/register/operations.ts",
+      "sha256": "38fb521114a548fe079e7737d198e5aa8e8d712185c2d1b84d907632ba129abe"
+    },
+    {
+      "file": "src/lib/register/payer-directory.test.ts",
+      "sha256": "91e0a322d9af91b7f5e1ecb9637d7c6bb6f2b8c266c821d0caa9c620e9036c96"
+    },
+    {
+      "file": "src/lib/register/pci.test.ts",
+      "sha256": "7ce8b55bf3b5657f6a9122228bf1e44bef33c043957542315b10d6a1084eb299"
+    },
+    {
+      "file": "src/lib/register/properties.test.ts",
+      "sha256": "47bd0e2d6fe594cb6b532759d85ee1397c982366603d5e3cf4983fdbd82c516f"
+    },
+    {
+      "file": "src/lib/register/repository.ts",
+      "sha256": "98a909f7cd3f12411e268bab6ecbcf03eccd8bedeaa0e104cf60b4aff49ba663"
+    },
+    {
+      "file": "src/lib/register/schema.ts",
+      "sha256": "e39c9ed4c9087002233e0f9b0eddcc87411f69f8c8cd3d8472bb93b6f73b17cf"
+    },
+    {
+      "file": "src/lib/register/types.ts",
+      "sha256": "2913717598c514a1ee20e7866946f7aad5a635795acd5725f2a106d2f3bf647e"
+    },
+    {
+      "file": "src/lib/reminders/catch-up.test.ts",
+      "sha256": "3812c2a72a6a3140540790321227b097151235059fd8d32d37d9fa16256ca8bd"
+    },
+    {
+      "file": "src/lib/reminders/config.test.ts",
+      "sha256": "7e323443fdb815b2b24b79c6685d05408ba1f4408e88a75134abad36d6648ce4"
+    },
+    {
+      "file": "src/lib/reminders/config.ts",
+      "sha256": "f19d97e1b6ee0b933c428352a1642a24173d53679a06847fe6df04250b642769"
+    },
+    {
+      "file": "src/lib/reminders/email-provider.test.ts",
+      "sha256": "7ad6d42c544a3e51b642267b788ec412f35227116cc5eb2ae4567ec4c3edcf89"
+    },
+    {
+      "file": "src/lib/reminders/email-provider.ts",
+      "sha256": "effdd6b67b337c5310020bb62e4a81f2c08218ec83ff09e8b61493419ecd967a"
+    },
+    {
+      "file": "src/lib/reminders/email-webhook.test.ts",
+      "sha256": "c9511c11a6282d587368d1039ab9914bae33634347cbd1d0fd7d1aeeee001f8b"
+    },
+    {
+      "file": "src/lib/reminders/email-webhook.ts",
+      "sha256": "4bab0458935bb828508209569aaa3e30e10a54381b733b8afccb34c883c13e8c"
+    },
+    {
+      "file": "src/lib/reminders/gmail-authorization.ts",
+      "sha256": "d4c9d10a6287c7712872a883b92385f416527faaaa1c2d87357fbe4c140fb0a0"
+    },
+    {
+      "file": "src/lib/reminders/gmail-config.test.ts",
+      "sha256": "31f4acb6c4db0139510338704ce9abb7735a49d256a3ede1bb92f66851dbf43a"
+    },
+    {
+      "file": "src/lib/reminders/gmail-config.ts",
+      "sha256": "8a0937b3c9bbdf9df973b7ed102e68cef7d738f5252a9532966c5efaf18cdf2e"
+    },
+    {
+      "file": "src/lib/reminders/gmail-properties.test.ts",
+      "sha256": "e6b4bfb71bfea03525efb3ceaea3165bb545f4cc9faf164ab14405a102e71ace"
+    },
+    {
+      "file": "src/lib/reminders/gmail-provider.test.ts",
+      "sha256": "79cd3d39d448a963519c918c42f3a6e54bf0fa0fc0e1b6317e385099d0d9bff3"
+    },
+    {
+      "file": "src/lib/reminders/gmail-provider.ts",
+      "sha256": "a08f2f0fa741547279b514dbfd5ac96d29c5ad76d36acd315533f1f9f091f7c7"
+    },
+    {
+      "file": "src/lib/reminders/gmail-worker.test.ts",
+      "sha256": "021d3bf38836b43fa93590201b0fe3912f4477ee0481144d9d5d6ac1ac94d475"
+    },
+    {
+      "file": "src/lib/reminders/heartbeat-properties.test.ts",
+      "sha256": "53c768eed95684af564fa7bbd5bb89ca80be300f65249433d75cf39627620f2f"
+    },
+    {
+      "file": "src/lib/reminders/heartbeat.test.ts",
+      "sha256": "847c82d7406eceede6d0733eaefffdffa56fe66238d591ad9a53e8d09ce0015b"
+    },
+    {
+      "file": "src/lib/reminders/heartbeat.ts",
+      "sha256": "d2361530dbc1f3fadf1bc62052f4325d640003d06bb79c8df7e139d3c0320b7b"
+    },
+    {
+      "file": "src/lib/reminders/history.test.ts",
+      "sha256": "4da2980e8f6d72259ca72601d43ec003cc8b1662f691f7a351ce6caa6def7bb7"
+    },
+    {
+      "file": "src/lib/reminders/history.ts",
+      "sha256": "80e98b92082fa0d697c674d3413a77fb011925da10aa1cd815c00e149317eb8e"
+    },
+    {
+      "file": "src/lib/reminders/http.test.ts",
+      "sha256": "bed08d40ffe1fe523104376acbc08246b3461d2afb8cac79d9987a7b99e47994"
+    },
+    {
+      "file": "src/lib/reminders/http.ts",
+      "sha256": "6ad23e8d0ee413c83b64069ba1ae5c72dd24242464f24f75c2754f7f506bbd02"
+    },
+    {
+      "file": "src/lib/reminders/messages.ts",
+      "sha256": "7f34a0e54a5baadb3c574f40371cdbbc29cd3ab60305d1fce6b0b68712e724f4"
+    },
+    {
+      "file": "src/lib/reminders/operations.test.ts",
+      "sha256": "81e65644156cc0d770e24bdd0fd6a31f9c558c4ced69d7d24859f09eac1e1f16"
+    },
+    {
+      "file": "src/lib/reminders/operations.ts",
+      "sha256": "cf59ec1f7eab7909635a8f098d30561ee07995f7f583a62ddd128c2d5489ad66"
+    },
+    {
+      "file": "src/lib/reminders/properties.test.ts",
+      "sha256": "5b865d99ee13fbc4ea3fc184de3547902e4f443a61bfe46ca65878872ed5ac66"
+    },
+    {
+      "file": "src/lib/reminders/recovery-worker.test.ts",
+      "sha256": "ea34304f39ccc0bbf9bbc4eabccb57136fbf47a9ef28873d71896b7bf63b5c4d"
+    },
+    {
+      "file": "src/lib/reminders/recovery-worker.ts",
+      "sha256": "16078a4fa732f15243697e572baefa82b059795bb477ffc337ebf6652886c0a8"
+    },
+    {
+      "file": "src/lib/reminders/recovery.test.ts",
+      "sha256": "72a6c8acb3f5164cc680bb07a0b631c3247ff58687b10d932096e9f33478e890"
+    },
+    {
+      "file": "src/lib/reminders/recovery.ts",
+      "sha256": "96f0029fb226bca8575e25e65bf2e367884f616e192831678b280395519f840a"
+    },
+    {
+      "file": "src/lib/reminders/repository.ts",
+      "sha256": "d9a510150aacee46a0a1b30b790bd7237b7595ef8ad6f61c2ff480dddc172491"
+    },
+    {
+      "file": "src/lib/reminders/schema.ts",
+      "sha256": "6d6860cb090fea4db4704e06909b0b286f43137946f6ab328af1b881b4f395ba"
+    },
+    {
+      "file": "src/lib/reminders/worker-heartbeat.test.ts",
+      "sha256": "9b7c1bd53faad92dc6469bfa13ad6fdc3860979269596bf61c128edd9934ae33"
+    },
+    {
+      "file": "src/lib/reminders/worker.test.ts",
+      "sha256": "7b1706c49c3193bb764a5464bcc424242a1e6a2a0a02b4f331e373dc795a9d35"
+    },
+    {
+      "file": "src/lib/reminders/worker.ts",
+      "sha256": "3adbb015453e7ee5fbdcf125a69a39f8af2378ead31b11a69134ada2f757ed45"
+    },
+    {
+      "file": "src/lib/renewals/history.test.ts",
+      "sha256": "c12f30a3c1c2438ec35c55fd15cb5f4c73348d320ebe974fe62628e9b81528b6"
+    },
+    {
+      "file": "src/lib/renewals/history.ts",
+      "sha256": "8a1c96234c93282ee50f804c17f43ce4152e3f4490dcb7162c548d56cf61386f"
+    },
+    {
+      "file": "src/lib/renewals/messages.ts",
+      "sha256": "fa7cf6522b2df0fc639ccb2a551ef51f09aacd0e6a29c82581cc2ff22fb28d7e"
+    },
+    {
+      "file": "src/lib/renewals/operations.test.ts",
+      "sha256": "7172168dbd9c13c169b1c3a0ee8b68d8b8be4bf2e44c5af23d47bb66a58ad2d2"
+    },
+    {
+      "file": "src/lib/renewals/operations.ts",
+      "sha256": "0788651e287e3186288225cd82334921ade7127d4b1d8faa817fc6ef8ce87919"
+    },
+    {
+      "file": "src/lib/renewals/properties.test.ts",
+      "sha256": "21a58938c8a92797d61d3b82b2f7db6b781ed0724fe48d6376302080ef72be23"
+    },
+    {
+      "file": "src/lib/renewals/repository.ts",
+      "sha256": "1a6285083d851e162f3f1749758375de0192071664dd0f434d4e0667d1a802cc"
+    },
+    {
+      "file": "src/lib/renewals/schema.ts",
+      "sha256": "11941151e233e70ec436d1603fd77badd3aac70d742a9a6049106ee5a2f1da68"
+    },
+    {
+      "file": "src/lib/renewals/state.ts",
+      "sha256": "a37e0bf46e0e13da1117f270642d764d98a58a32d02f6079b9bc99315b8f2d39"
+    },
+    {
+      "file": "src/lib/sms/config.ts",
+      "sha256": "34bf66bf363fd4c5fa0e6200b1b8a658240e6beb13fe3f7e48522cc9306d7669"
+    },
+    {
+      "file": "src/lib/sms/disclosures.ts",
+      "sha256": "1ea0737c1adc3e7eaf2f3ca96fc3f6b3c0f50403a40d0da7f2adec62722fa7ac"
+    },
+    {
+      "file": "src/lib/sms/messages.ts",
+      "sha256": "f10186a2ce42c78e1f3d9abc729a03fa5927a6df1a073751440904f9146beb7c"
+    },
+    {
+      "file": "src/lib/sms/operations.ts",
+      "sha256": "a269f12a1afaf96ddbaed3ba7c76e6c614336f4eccd063e2fdfc1fb89d4da042"
+    },
+    {
+      "file": "src/lib/sms/privileged-repository.ts",
+      "sha256": "84d853ccf2889e09dd08fc94cecaaf836a467b2aaef5d60aaeee698c649aef01"
+    },
+    {
+      "file": "src/lib/sms/properties.test.ts",
+      "sha256": "54482a58d70f4cc5f3e4efb04d8974bdff43e43b924cc3f11eab5253538da94a"
+    },
+    {
+      "file": "src/lib/sms/provider.ts",
+      "sha256": "f702b1b81239699a1e9051c18bba26a8505509a8685d75770fc343f9bb2ac0ad"
+    },
+    {
+      "file": "src/lib/sms/repository.ts",
+      "sha256": "534325a5368ea39facfdf366394cfa0fd9998a7504704a34a79cb9b576e9df66"
+    },
+    {
+      "file": "src/lib/sms/schema.test.ts",
+      "sha256": "6c45bf15a8cb43584b77e9d26ee70112445eeb81baef7336bb127a7c660971e7"
+    },
+    {
+      "file": "src/lib/sms/schema.ts",
+      "sha256": "e1dc5ae8a10759ee19ba8f63f9e824a4e4ea48763027edcc58e9e7fef21cb713"
+    },
+    {
+      "file": "src/lib/sms/webhook.ts",
+      "sha256": "bacb51c55cdec3c3816cddfcbf140c32c2a793c75756ad0564b5c06c48417f21"
+    },
+    {
+      "file": "src/lib/supabase/database.types.ts",
+      "sha256": "72d31ea19aa6ff291e9e00346e58c05252db1fa7f68af3ee5bb243e04a09e8c7"
+    },
+    {
+      "file": "src/lib/supabase/server.ts",
+      "sha256": "bb6182e31f38f89a36a131c6401ba72e967acf24648ffa9e180a0a5a10521092"
+    },
+    {
+      "file": "src/lib/supabase/session.ts",
+      "sha256": "ef57915e8da023785b9cd81084b8ea09c31c3cbfa569a5c0af703551cf5de26e"
+    },
+    {
+      "file": "src/lib/team/invitations.ts",
+      "sha256": "d6f67cddbc69c4b0be6b102a82235a965d83caea5812877db4e0407daf2dec00"
+    },
+    {
+      "file": "src/lib/team/messages.ts",
+      "sha256": "51d135c4326315577b5ecc1186a64ce2a7ebb97c2e609f6994a1404c8e1966e9"
+    },
+    {
+      "file": "src/lib/team/operations.ts",
+      "sha256": "f11f15fe7dfde3950a49a92a6ee4bcc54255adbdcd5313b638cb656630eea6be"
+    },
+    {
+      "file": "src/lib/team/properties.test.ts",
+      "sha256": "5a3940a6238c988f16f09a92a0ca3593d296216a96d392a175a5b52a0de0b2ce"
+    },
+    {
+      "file": "src/lib/team/repository.ts",
+      "sha256": "7b072c3743997512bf9249acbd012822b9182cfb7bd5b4f4ea926f2ea89a668a"
+    },
+    {
+      "file": "src/lib/team/schema.test.ts",
+      "sha256": "d8e1be6e7a503b670466f27bba30f46c26165f0d6d522a16d4a18cd3300a5de0"
+    },
+    {
+      "file": "src/lib/team/schema.ts",
+      "sha256": "940cca8760b8b37f157ab83f2890e30301052b28682ef9ffba6a8e9b943185f0"
+    },
+    {
+      "file": "src/proxy.ts",
+      "sha256": "09015f77b7d92edf1e5281726dfeb134c611b0f4faed20823d361fec24070e72"
+    },
+    {
+      "file": "stryker.config.mjs",
+      "sha256": "514d25b38931d6c418a062367f6edd1a990155ad4326ba35769e00e63f6cced1"
+    },
+    {
+      "file": "stryker.properties.config.mjs",
+      "sha256": "4155e9bdc3c3169c4615528ce4f212630bafdba93c31a2a6887ba1d00da251be"
+    },
+    {
+      "file": "stryker.reminders.config.mjs",
+      "sha256": "1d6669415683a16f2c554d1794194952dddf2c243e143e3dac22abcee336b283"
+    },
+    {
+      "file": "supabase/.gitignore",
+      "sha256": "507699eb91144818edf61d3a079212cacf31d8db520eae428e3b48fcf0d6919c"
+    },
+    {
+      "file": "supabase/config.toml",
+      "sha256": "a5bf707b5ee0bb8ac324bae1a6f05d1e01ca3f39728b1e6a6a11a93448050bdf"
+    },
+    {
+      "file": "supabase/migrations/20261003191334_practice_profiles.sql",
+      "sha256": "4b02c1ed24e6e679440d3e59bd460870a582f89e2e0f9e1e99aedf2b3e5bec97"
+    },
+    {
+      "file": "supabase/migrations/20261005211436_practice_membership_authority.sql",
+      "sha256": "6d8889101fcd5b478b68e168f39c8b2506ca0888e5d3485efd88d9bec066ad0e"
+    },
+    {
+      "file": "supabase/migrations/20261005212526_practice_invitations.sql",
+      "sha256": "095d1169dd80032499963453345d7dc7013b326ac4d9a39748d161e4aa945d00"
+    },
+    {
+      "file": "supabase/migrations/20261006003555_practice_reminder_recipient.sql",
+      "sha256": "c9631c38dd9c41c4c3820967a750eaded9b5ff4d35f7c16e493b6df3484480ce"
+    },
+    {
+      "file": "supabase/migrations/20261006180010_register_ownership.sql",
+      "sha256": "132243a1f495abfea6c6f92d3da318561a5b83581ff1b305594c381d96a3fc06"
+    },
+    {
+      "file": "supabase/migrations/20261006225257_credential_dates.sql",
+      "sha256": "f0b937f87480862c4e98bb7959a7a222258f61a71531fec7b2aacb5bc67440f8"
+    },
+    {
+      "file": "supabase/migrations/20261007004303_register_maintenance.sql",
+      "sha256": "0ce37edd752eb2eaa3ebe4ee45a16ce7cf5cffb311248fa33bc17b300ec2b798"
+    },
+    {
+      "file": "supabase/migrations/20261008184507_practice_sms_enrollment.sql",
+      "sha256": "03b344697610bd7454e804854ed7d500d5d579e487131f9d322f0dcd55002872"
+    },
+    {
+      "file": "supabase/migrations/20261009000855_practice_reminder_jobs.sql",
+      "sha256": "ddca160470eab9715d0879d8d0ee5f544b898198af44647fb699871c448a8e72"
+    },
+    {
+      "file": "supabase/migrations/20261009175711_email_reminder_catch_up.sql",
+      "sha256": "c674d24dfcda08aecd21b30cd502e56c1c3537c7005b049794db223b57effecb"
+    },
+    {
+      "file": "supabase/migrations/20261010002012_email_reminder_recovery.sql",
+      "sha256": "ba1b9d76366726875f62a041a42c8fb382401d2a62fb6aee0b9c1ff82d6eac31"
+    },
+    {
+      "file": "supabase/migrations/20261012221339_credential_renewal_workflow.sql",
+      "sha256": "a798d320303851d6493cba6b8003915646e32e361cdeaf0bb1e5bbfc8ae53c4e"
+    },
+    {
+      "file": "supabase/migrations/20261013172507_credential_renewal_completion.sql",
+      "sha256": "4c9d7173c0052643e33bbac1f1a127ab553456f10775784534bee8f7f35c3755"
+    },
+    {
+      "file": "supabase/migrations/20261014002159_renewal_evidence.sql",
+      "sha256": "cdfb006f04fa593a0251915b0370c74e0dc585ff181eca3510feaaee8b200c04"
+    },
+    {
+      "file": "supabase/migrations/20261015181333_gmail_reminders.sql",
+      "sha256": "071945e4b1d6b759e7183e6fef6a271497c150b16ac11d632b1fa49774278153"
+    },
+    {
+      "file": "supabase/migrations/20261016221310_credential_record_numbers.sql",
+      "sha256": "8203341fd2b654f0184748a59dbcf1bad3e2ec0502b5605718f3d862d6c98edc"
+    },
+    {
+      "file": "supabase/migrations/20261020210728_pci_compliance_certificate_records.sql",
+      "sha256": "e8861749e802cb780132ea781168c25955c18e956e67e2245d493d58c63a48cf"
+    },
+    {
+      "file": "supabase/migrations/20261021210414_insurance_payer_provider_directory_records.sql",
+      "sha256": "590da06b51e1045c5f18e16620f73e841081d07d4881a623d561d4e389d17b80"
+    },
+    {
+      "file": "supabase/operators/email-reminders-catch-up-preview.sql",
+      "sha256": "9377401110eaa788be6bd8974a91653eb4a0435d789e124f957fbaf3877c72d1"
+    },
+    {
+      "file": "supabase/operators/email-reminders-disable.sql",
+      "sha256": "c911c2a36d1135bd6622da7bc66e4dd2d89d4d48b421c88d867ca90a3d5fcaf7"
+    },
+    {
+      "file": "supabase/operators/email-reminders-enable.sql",
+      "sha256": "22d03d2e6a87ada54d0922231e552b63aab7f1f1ab8ebc3313580cef80ea9216"
+    },
+    {
+      "file": "supabase/operators/email-reminders-health.sql",
+      "sha256": "9e66b01d9ec375a51f085253f0124521081c82d21b98a0f9d48daa750908ff0f"
+    },
+    {
+      "file": "supabase/operators/email-reminders-recovery-health.sql",
+      "sha256": "c707b03fbcef7afeffdff827f07da0985f30b2d488b3e402dbd4e02ceeba9fed"
+    },
+    {
+      "file": "supabase/operators/renewal-evidence-cleanup-health.sql",
+      "sha256": "a430ae3ea9521999cb528065ed51f3fb54aa819b23cc5dc612a3f969511cb5c2"
+    },
+    {
+      "file": "supabase/templates/email-otp.html",
+      "sha256": "fbc37688f04e4f68680109d2b4ae40ab8e5891190e862e029b47870790316998"
+    },
+    {
+      "file": "supabase/tests/practice_access.test.sql",
+      "sha256": "c0a0acf53a1666a4f06a12bd8621486986393d5329f5a6ab8a7a0d8559aa0140"
+    },
+    {
+      "file": "supabase/tests/practice_credential_dates.test.sql",
+      "sha256": "434a6544213775357cc236fd78a2be6b0e642cb9391b3b0edf47e6f183106298"
+    },
+    {
+      "file": "supabase/tests/practice_credential_numbers.test.sql",
+      "sha256": "04cef3a2f367a6e618680817a6181576fb57539a2e96249acbe960ae079ac305"
+    },
+    {
+      "file": "supabase/tests/practice_gmail_reminders.test.sql",
+      "sha256": "f9dad7b28c178e5447a407e12488c63903368d8c4fbd0ed4a5dd65b21e05dc16"
+    },
+    {
+      "file": "supabase/tests/practice_invitations.test.sql",
+      "sha256": "9ffb27925d2892e450c76ee7be194fb25081aa5c5de2dcf80290b27101c3b64c"
+    },
+    {
+      "file": "supabase/tests/practice_payer_directories.test.sql",
+      "sha256": "09f61eb628713f061a9f037f5cfab942e0ea25444932f18bb31d73361751d7a8"
+    },
+    {
+      "file": "supabase/tests/practice_pci_certificates.test.sql",
+      "sha256": "751f05f0c15f1dea2fdba6b96e56bc1ec629c23f4d58d00caa57f5cc51894f27"
+    },
+    {
+      "file": "supabase/tests/practice_profiles.test.sql",
+      "sha256": "3e040c1d56b40dbae6a09cdba1452b611e004d6373c20df3e3ee409d73a78808"
+    },
+    {
+      "file": "supabase/tests/practice_recipients.test.sql",
+      "sha256": "45132d0f72bc927550e96680438e750a32022244b337a913cda8018df66051be"
+    },
+    {
+      "file": "supabase/tests/practice_register.test.sql",
+      "sha256": "534dcd1b7d0ba74892fd1f88598d26368f218bfc5139a5f0b30f49963f9506c8"
+    },
+    {
+      "file": "supabase/tests/practice_register_maintenance.test.sql",
+      "sha256": "cc5209b4e1e78e32c05e56b08b06c528cd694ad201d58c5397a295dc0eec5878"
+    },
+    {
+      "file": "supabase/tests/practice_reminder_jobs.test.sql",
+      "sha256": "badb4d093c53fa0015c7745f765af60cc4ce2da225ea3c5ce9171c72a46d23fb"
+    },
+    {
+      "file": "supabase/tests/practice_reminder_recovery.test.sql",
+      "sha256": "db0916a235b6148f012f527169d8c0abd5710c2d479cc11a24dafafb24632ecd"
+    },
+    {
+      "file": "supabase/tests/practice_renewal_completion.test.sql",
+      "sha256": "6026cf2ee1f11f85c1e9061c5a9af6d6a24d0bf45f7bb7e5ece343128d042a71"
+    },
+    {
+      "file": "supabase/tests/practice_renewal_evidence.test.sql",
+      "sha256": "bf72e1abbfedc9a95d0009c6d76fb6c041da4ccde87c8653c84b90a1dd60d82d"
+    },
+    {
+      "file": "supabase/tests/practice_renewal_workflow.test.sql",
+      "sha256": "dead540fb7f6842a8a1113d98a5ad2a8f9005d3ba9c9a3b56135b4b5f06568e7"
+    },
+    {
+      "file": "supabase/tests/practice_sms_enrollment.test.sql",
+      "sha256": "5be3d46d09c8891425a99151fc62daf4bb2fb04f4b67bf8b3c7a890d150b30c8"
+    },
+    {
+      "file": "tests/e2e/practice-access-adversarial.spec.ts",
+      "sha256": "371dd9639b766cab104ce9ef79fc4d237fbdf85cc93cefe20c070e9a4fb2c3c5"
+    },
+    {
+      "file": "tests/e2e/practice-calendar.spec.ts",
+      "sha256": "ed2adc9c44400e097ff7d096dd2079e6de7abf059c367ec7510d4d56a64d7576"
+    },
+    {
+      "file": "tests/e2e/practice-credential-dates.spec.ts",
+      "sha256": "f394da8c96a20826443a4b184ed1fabc79b56ed99d99f7435aa20aa6ae2ee984"
+    },
+    {
+      "file": "tests/e2e/practice-credential-numbers.spec.ts",
+      "sha256": "47382681d34f0e4cc7c438b11f8167b39a88860c266f4ff6770f744749b969f0"
+    },
+    {
+      "file": "tests/e2e/practice-dashboard.spec.ts",
+      "sha256": "0b5c5b688591567fb5477f9681c91bd5ae85372c3442785a85d1fddce8e6da98"
+    },
+    {
+      "file": "tests/e2e/practice-failures.spec.ts",
+      "sha256": "0f9f2605f376148101db979abb0daae95230a1858405fb4fa48325ec9b5ce7b4"
+    },
+    {
+      "file": "tests/e2e/practice-gmail-reminders.spec.ts",
+      "sha256": "523b58c937ad9d411b295517c74c7c3fa57bae77d45c00c528450db5ccebfe4e"
+    },
+    {
+      "file": "tests/e2e/practice-isolation.spec.ts",
+      "sha256": "1829c925031f8b2c27162e209f405fbf89acca1a4b58a777c9fdcb27fd697ff1"
+    },
+    {
+      "file": "tests/e2e/practice-join.spec.ts",
+      "sha256": "76efd65045314ab6272c66aece1ad1d18996d8c047982fe4dcb6a67431264d4a"
+    },
+    {
+      "file": "tests/e2e/practice-onboarding.spec.ts",
+      "sha256": "da0e5d2385b29b828dbaf79ba36b7b02097c36018d8881b6d3324311dbfd8bce"
+    },
+    {
+      "file": "tests/e2e/practice-payer-directories.spec.ts",
+      "sha256": "74111905a26318d84c6d5bf44c4a496689c7bdf1c8954628283955c97f39b0c1"
+    },
+    {
+      "file": "tests/e2e/practice-pci-certificates.spec.ts",
+      "sha256": "ce43279977e1b35a96ccacf018ded9bb1c13c71f71f503f76426bd5fedb4ddd4"
+    },
+    {
+      "file": "tests/e2e/practice-recipient.spec.ts",
+      "sha256": "76e737b57cdc962c1c29d81933f8dbacf272fecd3e71ebf5b5fc9f20c6f8abf1"
+    },
+    {
+      "file": "tests/e2e/practice-register-maintenance.spec.ts",
+      "sha256": "cb01e3fa795e99fbbd93887ddb411fabddeb7c4e06f0a3b59f6118938de09a4a"
+    },
+    {
+      "file": "tests/e2e/practice-register.spec.ts",
+      "sha256": "5a610abe295b66ed0831976977a7abf08003c66a9e0b04d7f95cb2479ee5e622"
+    },
+    {
+      "file": "tests/e2e/practice-reminder-recovery.spec.ts",
+      "sha256": "6223d585c086104cfa4f2dbcff97b3e052fae6282d7f513d87a61f7af4691d88"
+    },
+    {
+      "file": "tests/e2e/practice-reminders.spec.ts",
+      "sha256": "e6e99f9773cf5ce8f24239a3fd53fd62a61fe71f85ad1d81de7b0225ff676a0a"
+    },
+    {
+      "file": "tests/e2e/practice-renewal-completion.spec.ts",
+      "sha256": "29b27b961081f61b16597592f342122307e994173694cf4d9fbf8ea504466891"
+    },
+    {
+      "file": "tests/e2e/practice-renewal-evidence.spec.ts",
+      "sha256": "c49d60c8924ede1c7cd9ce9d88c9b21b96f88619644b4f3ff3da81ee06597aa7"
+    },
+    {
+      "file": "tests/e2e/practice-renewal-workflow.spec.ts",
+      "sha256": "834660656ada284d81735ce617b809d0eae57e14f0c69fc3236adc1a7f685fa9"
+    },
+    {
+      "file": "tests/e2e/practice-sms-enrollment.spec.ts",
+      "sha256": "6cf55d25962f83bdddc7a9afb6b20d5e1b8512f121f79208399f0c762b1d3a42"
+    },
+    {
+      "file": "tests/e2e/practice-team.spec.ts",
+      "sha256": "d384dbca1e297c7ae163edfc91000bb90879f8f8f5d1acfc21de304350390413"
+    },
+    {
+      "file": "tests/e2e/public-information.spec.ts",
+      "sha256": "13b37cbad6a3243558ab2eb4ac15b33c7601402f876eb7b1dcabb66467c88097"
+    },
+    {
+      "file": "tests/fixtures/credential-numbers.json",
+      "sha256": "556ad858b1f9897797ab1c19c9bda361e9e51c145347793370b19865f497ec74"
+    },
+    {
+      "file": "tests/fixtures/gauntlet-controls/controls.json",
+      "sha256": "caa85c2ac8b92ef50a5a6924ba89c44f655768ac8b9cfb5c03afdc1f447ff4ab"
+    },
+    {
+      "file": "tests/fixtures/gmail-public-copy.json",
+      "sha256": "180e6c77241c4b076ef3cdb7306df6f41d160a4254945d1934be712542009072"
+    },
+    {
+      "file": "tests/fixtures/renewal-urls.json",
+      "sha256": "58feba31c795d943076227832d90ce6f1d0b8e02cf63bf734d65c0c82ddbf606"
+    },
+    {
+      "file": "tests/helpers/access-fixtures.ts",
+      "sha256": "91b78e56af8931f8a3554a658416689b34b378c78a09784eec0e070eef9d1e12"
+    },
+    {
+      "file": "tests/helpers/browser.ts",
+      "sha256": "625229918e27211ada27b9b4c7904464b66d29489283855b35a613b2e2d74b8d"
+    },
+    {
+      "file": "tests/helpers/coverage.ts",
+      "sha256": "c991a88c646d334f6a5ec5047fc1a7a0ce627bb8d96e63a5ab722918e31b6877"
+    },
+    {
+      "file": "tests/helpers/dashboard-fixtures.ts",
+      "sha256": "e36e0327b4e902d57ab647ae8a2bf9c028bdad684ed7721eb79bef88b2b2e19b"
+    },
+    {
+      "file": "tests/helpers/email-fixtures.ts",
+      "sha256": "8b204be1d62255bc378604a985b0a19ecc1be9cac54df98f3a69444a2b130113"
+    },
+    {
+      "file": "tests/helpers/local-fixtures.ts",
+      "sha256": "f299490a8ee82b0970b379f7329728e1fc2925847e3f1897f23294830ab9c026"
+    },
+    {
+      "file": "tests/helpers/local-mail.ts",
+      "sha256": "0cc8c50cbd4210003c68bebe24d65f650ad09a094435eb5ce218ab4d436c97cc"
+    },
+    {
+      "file": "tests/helpers/private-browser.ts",
+      "sha256": "f99e179ebd5f32ecb1e75bf7fcd70c5e86912facfa1330d9e72920542d58f619"
+    },
+    {
+      "file": "tests/helpers/server-only.ts",
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "file": "tests/helpers/sms-fixtures.ts",
+      "sha256": "4f610ed303ddfc6451df9baaa16f992d29aa5da52cbed3d3eeee435d39228418"
+    },
+    {
+      "file": "tests/integration/practice-access-properties.test.ts",
+      "sha256": "8e4160842fa425f5f8094452916d994e93c1a519c5dd3a7d81d2c2a7c09877c3"
+    },
+    {
+      "file": "tests/integration/practice-access.test.ts",
+      "sha256": "ebfbd5722941384c56e436f7019022051bd990a5d37e25ae2783438b56ee03f7"
+    },
+    {
+      "file": "tests/integration/practice-calendar.test.ts",
+      "sha256": "4ce1c347735897e1427a4065e0657bc69cdcb1b44bfbd2e0d594491964873fd0"
+    },
+    {
+      "file": "tests/integration/practice-credential-dates.test.ts",
+      "sha256": "0a0d7f0529e02eb47fd310fd8bfe66ee2db232fae01a37bfa4698d8a0530c874"
+    },
+    {
+      "file": "tests/integration/practice-credential-numbers.test.ts",
+      "sha256": "83853608e505435b460ee2bfa0fc82eb7824259e624bc7565175c556ea990e07"
+    },
+    {
+      "file": "tests/integration/practice-dashboard.test.ts",
+      "sha256": "3f0a2ee2289f50760fa095a76fc40214231b979aa82d61d7769fce9739def300"
+    },
+    {
+      "file": "tests/integration/practice-gmail-reminders.test.ts",
+      "sha256": "89c7983a876f3cda7004d6d6cb49eda58244e18bbce2f4438e9fb991701711a1"
+    },
+    {
+      "file": "tests/integration/practice-invitations.test.ts",
+      "sha256": "f73768d9a3749c0fea64873463357a07345a7c8830c04602821648891aaa9d26"
+    },
+    {
+      "file": "tests/integration/practice-payer-directories.test.ts",
+      "sha256": "fc7f608ca3bb76a013d325cfa6cf221a45fe28a480991dd14869e0b3dcde53ab"
+    },
+    {
+      "file": "tests/integration/practice-pci-certificates.test.ts",
+      "sha256": "cf2025315e3ab5df5dbc5209f302a8c3d94f75c0b7628a86d5b58088b8676291"
+    },
+    {
+      "file": "tests/integration/practice-profile.test.ts",
+      "sha256": "8e81639d659b3216a65b8bf7d66c675ca7ac4f7bbcf38bf5e3b47bd49a660d82"
+    },
+    {
+      "file": "tests/integration/practice-properties.test.ts",
+      "sha256": "63b5fa866e723cdb28450a01fcb80cfa3c2edd032f31fd8be40c401caf9c6797"
+    },
+    {
+      "file": "tests/integration/practice-recipients.test.ts",
+      "sha256": "f685771daf172ee9677be57656337f074670876db74b761f1e85f5ea5889f56f"
+    },
+    {
+      "file": "tests/integration/practice-register-maintenance.test.ts",
+      "sha256": "66ea1faae7bd455daf6478354e19b002edfb876a55f7fae0845c1f8190a0da80"
+    },
+    {
+      "file": "tests/integration/practice-register.test.ts",
+      "sha256": "a55aad08d844c9bae5aecd402da29ef4d6a244b0afcf73a67ca8b2467cc39f71"
+    },
+    {
+      "file": "tests/integration/practice-reminder-catch-up.test.ts",
+      "sha256": "9f57a0ed1cb3642bf95c20f0f6412a68822f948fcd9c5efe8f3ebbe1c9f9af83"
+    },
+    {
+      "file": "tests/integration/practice-reminder-jobs.test.ts",
+      "sha256": "084393c735d7bde47ca3d2cbc37c9318323be5a4ad22ddc061473a14877d8262"
+    },
+    {
+      "file": "tests/integration/practice-reminder-recovery.test.ts",
+      "sha256": "0e63b329f417fe46aabd93b32e516e6e202c9b6b6ef3fd6ee601567760b1e1a7"
+    },
+    {
+      "file": "tests/integration/practice-renewal-completion.test.ts",
+      "sha256": "39ead7214629791136841f8d10014bbfe6cf0aa67ac75096774659d4656d74ed"
+    },
+    {
+      "file": "tests/integration/practice-renewal-evidence.test.ts",
+      "sha256": "444b4090d22883ec9fed2650ec6ec77f02f8a2ec628082b29ab4d13851240595"
+    },
+    {
+      "file": "tests/integration/practice-renewal-workflow.test.ts",
+      "sha256": "9e2b593f23fd522dd8781f14ed967aa15b69c027f7ba858a69a26c8c5fcf7282"
+    },
+    {
+      "file": "tests/integration/practice-sms-enrollment.test.ts",
+      "sha256": "49178bcf1d2c0584f0de7325fe41d20a22e6f133331095a6c9240de4a39908be"
+    },
+    {
+      "file": "tests/unit/auth-actions.test.ts",
+      "sha256": "de420b5fb4217392722ec1be45b2e04860663597c14265c7537448e03350bc06"
+    },
+    {
+      "file": "tests/unit/auth-guard.test.ts",
+      "sha256": "26047f76520704042eb13612a66da9b84426d849f0ea969a2a507d3cf5a63a26"
+    },
+    {
+      "file": "tests/unit/calendar-views.test.tsx",
+      "sha256": "8d865b4985dc2d1da638952d8951e5a13eabfa2aad172cd0240bdf7adfb90eee"
+    },
+    {
+      "file": "tests/unit/dashboard-views.test.tsx",
+      "sha256": "33c8a1fb2b8425786e9b67d0a96fa76eff8fe45a99ead65bdd284cd3519d6d92"
+    },
+    {
+      "file": "tests/unit/evidence-api-routes.test.ts",
+      "sha256": "6b4b379d76daf8a4048d8b981120d2cbac2cd650dba312465f1dfac1f89941ba"
+    },
+    {
+      "file": "tests/unit/evidence-cleanup-route.test.ts",
+      "sha256": "536523780c7ee18797d1a08efcf23b485d9fa11d5e26f2e79f348d6cedd086dc"
+    },
+    {
+      "file": "tests/unit/evidence-cleanup.test.ts",
+      "sha256": "72a898ed1287ef255ca55935477e5b5f02b0be3cb6ba8d991e45cb13f2a08030"
+    },
+    {
+      "file": "tests/unit/evidence-forms.test.tsx",
+      "sha256": "8e2bb2be48b684ca5d634f43def8cc3d5ece66785b3d0fe5fa5b5e288fda4699"
+    },
+    {
+      "file": "tests/unit/evidence-repository.test.ts",
+      "sha256": "815697147cc690dd50169c20843a2ff7ce7d2e7d847a83bc6c027c08572ac8e9"
+    },
+    {
+      "file": "tests/unit/evidence-routes.test.tsx",
+      "sha256": "eafeacc77ed16bf1c995babdeef1f2af0ab5a9b849fd090985b061c7b9499803"
+    },
+    {
+      "file": "tests/unit/evidence-storage.test.ts",
+      "sha256": "aef756b808c4c41b38cc434550fb9e9fd922a9aa5c47dd70c4d649c7b5ad1abc"
+    },
+    {
+      "file": "tests/unit/join-actions.test.ts",
+      "sha256": "421fc34ac5b501ee69a131c44b0fc84c04768445ed35da48d4d3cc49df2c8c94"
+    },
+    {
+      "file": "tests/unit/join-form.test.tsx",
+      "sha256": "470b037d372bac58ec8170f61af412b84c99f0da1807888d8236a8c93c3952a0"
+    },
+    {
+      "file": "tests/unit/payer-directory-forms.test.tsx",
+      "sha256": "a6d2a0090ba47f44531a97c58e04a287423c72da4aa608ee8c148f92c66f1e0e"
+    },
+    {
+      "file": "tests/unit/pci-record-forms.test.tsx",
+      "sha256": "fd1dcabdb1b10a110898c143103a2a3b7e68bbd83d04f25b5fc3a16ac11be47a"
+    },
+    {
+      "file": "tests/unit/practice-access.test.ts",
+      "sha256": "ca124d5fcb76cbec8c61de9ff8409415100ae43e1d6beccd8da30a1321c26274"
+    },
+    {
+      "file": "tests/unit/practice-actions.test.ts",
+      "sha256": "fcbe0e7ed15db12876edbf3a7eb99ac1317ff66419db691da16ffed82400aaf5"
+    },
+    {
+      "file": "tests/unit/practice-form.test.tsx",
+      "sha256": "d70ea47836d31d7612b38971bcebae760d43ecc56533012fc47507f35e32ac31"
+    },
+    {
+      "file": "tests/unit/public-information-routes.test.tsx",
+      "sha256": "f5ebd5786de7fd3b76da4cde937e92b7b46a7f6e93faec3ec369a0f983031912"
+    },
+    {
+      "file": "tests/unit/recipient-actions.test.ts",
+      "sha256": "1ae04bc7b3edf09e080c4b480e8257078c21ad1982427ba71c685fb9a8ff36b9"
+    },
+    {
+      "file": "tests/unit/recipient-operations.test.ts",
+      "sha256": "d71880c92b1d7d1de8bb4809e7d4a7271f8825258c1f83a4760e1522471b0908"
+    },
+    {
+      "file": "tests/unit/recipient-panel.test.tsx",
+      "sha256": "b811c0f4fab9c00870e0ea414b2da1fa2f96d6e51b14210f26cb4e81c2776c92"
+    },
+    {
+      "file": "tests/unit/record-dates.test.tsx",
+      "sha256": "24ec87efa57479288e417744b28a5d91b718499bc90b8074f4bbe84332125ea1"
+    },
+    {
+      "file": "tests/unit/register-actions.test.ts",
+      "sha256": "023fd4cc289a1a2210e59dcdf25054226b71fa238d2dc0a68609aa616a663a53"
+    },
+    {
+      "file": "tests/unit/register-forms.test.tsx",
+      "sha256": "81108f44c3df4214942dbdb03c39fb7c260a42c53fceb6bb537fdb31ca0d64e7"
+    },
+    {
+      "file": "tests/unit/register-maintenance-forms.test.tsx",
+      "sha256": "016581f25cc99c7b4a20bb1a8ac58680af05e3ac77f37a3bee404de5045ed703"
+    },
+    {
+      "file": "tests/unit/register-maintenance.test.ts",
+      "sha256": "fe79ff79fdb9cca75a8b5b6996e68deca05b2f2310962f03c8a22c07001d59f7"
+    },
+    {
+      "file": "tests/unit/register-number-forms.test.tsx",
+      "sha256": "1cd354552da3846c3b2a18db8d7864d2ac19fe2b4e9a5e1ddf2a2afc2a66417a"
+    },
+    {
+      "file": "tests/unit/register-number-routes.test.tsx",
+      "sha256": "f14a6e9a7e880945bf3c87466a0c9dda9148470a351c9777d621b5c936c0cca2"
+    },
+    {
+      "file": "tests/unit/register-operations.test.ts",
+      "sha256": "880e9eca37675e594c07f0893812d7547daf96738e3ef4055ca541a00872e08f"
+    },
+    {
+      "file": "tests/unit/reminder-actions.test.ts",
+      "sha256": "c6354dbc34b10e0c11d88fb0062b9fede56100641be26ca527df8f6cd3facf1e"
+    },
+    {
+      "file": "tests/unit/reminder-api-routes.test.ts",
+      "sha256": "9c2d57f6ff854f27d336e80abb3208951b0476ae1556ab1b383e98e4baec3cd5"
+    },
+    {
+      "file": "tests/unit/reminder-check-form.test.tsx",
+      "sha256": "435c7af92524653d61c573de1acb60b66b9a3a25df390f6f315bb44bfb6387cd"
+    },
+    {
+      "file": "tests/unit/reminder-heartbeat-route.test.ts",
+      "sha256": "3dd3a6bc5260438bb8097256b22f7f15d6780da1bc8df458bef6eacd24109b0a"
+    },
+    {
+      "file": "tests/unit/reminder-history-routes.test.tsx",
+      "sha256": "a0cff32121703f47313a84c3ae92fe8d677d1d19a5f13f2926ccc8a409b972fa"
+    },
+    {
+      "file": "tests/unit/reminder-privileged-repository.test.ts",
+      "sha256": "ef4e76776b804d86bec4907044b052735116da314b33443464f73db17f3ffbbb"
+    },
+    {
+      "file": "tests/unit/reminder-routes.test.tsx",
+      "sha256": "bbf9effcf80153cdf41019189572fc173fdcc39b320036d0b90c187e5b0ceead"
+    },
+    {
+      "file": "tests/unit/renewal-actions.test.ts",
+      "sha256": "9e524b06fe3e83446252667dd25e5d01150f17ab20fe788e4e93980e158d2c86"
+    },
+    {
+      "file": "tests/unit/renewal-forms.test.tsx",
+      "sha256": "2837c5b9b443b5f4749ce98bb2f4f3cd0f4a2c2d252db79f1dcc005b3235442e"
+    },
+    {
+      "file": "tests/unit/renewal-history-routes.test.tsx",
+      "sha256": "87f0753474f925711fb94da4e5816e09a1dcfc6c0b0b97c44a235e97c59553f0"
+    },
+    {
+      "file": "tests/unit/renewal-routes.test.tsx",
+      "sha256": "3109de908e7ed1754b402a1cc10682e2825128c7e79100ff10a030001dfe6a31"
+    },
+    {
+      "file": "tests/unit/routes.test.tsx",
+      "sha256": "8a4f270d126de5606373a1d4ed2ee74b09e2b0b965fc5c44617b9022648a0ca8"
+    },
+    {
+      "file": "tests/unit/save.test.ts",
+      "sha256": "eeb38810dec3689450a0a509b662ae487e9d3865b70a8aff4fb9ca6ddb714662"
+    },
+    {
+      "file": "tests/unit/server-actions.test.ts",
+      "sha256": "a1a0fcd8fbf1d2e5ba573ad2f28d7aa17a8f2a5e54799da55f2eb181d7e7b9a7"
+    },
+    {
+      "file": "tests/unit/session.test.ts",
+      "sha256": "6ab24bc841202695f4a0b42eac175b80ae364bc988ff3e18f493a2499f9d45cf"
+    },
+    {
+      "file": "tests/unit/sms-actions.test.ts",
+      "sha256": "ab22ef49acb77dddfcb72b1743b18f8e5b9f595fabafde2dd651ffceb97b2274"
+    },
+    {
+      "file": "tests/unit/sms-disclosures.test.ts",
+      "sha256": "92c034a29437b9adbd2425eb7141f8c75d842cd71846841ed383204e05ab13f6"
+    },
+    {
+      "file": "tests/unit/sms-operations.test.ts",
+      "sha256": "d0e73005d556744e0c9b8864b7ccb2f095903dddbef2dfb52d518d1dada02e42"
+    },
+    {
+      "file": "tests/unit/sms-panel.test.tsx",
+      "sha256": "450eefa8559ca909fd393c686da9615f639b1f643081cbd637c2ccb9d23a75d6"
+    },
+    {
+      "file": "tests/unit/sms-privileged-repository.test.ts",
+      "sha256": "3a15b36bde549d697d10ab614175da8dd2cf1e5bdfe4cbb27cfed1ccbf05435f"
+    },
+    {
+      "file": "tests/unit/sms-provider.test.ts",
+      "sha256": "37090212683f0f1580ece5fcc20c1df2ef44551e9933b28ff973bb872a7a557f"
+    },
+    {
+      "file": "tests/unit/sms-repository.test.ts",
+      "sha256": "ad06d8bcb7bf62f363af72a0fa4a026f86a89756abb6420f2f672beb8aecfc1d"
+    },
+    {
+      "file": "tests/unit/sms-routes.test.tsx",
+      "sha256": "7630057c3fcbd5f2a060e1afe932f291c21ba3d008dd8ae1e7970c37f2233683"
+    },
+    {
+      "file": "tests/unit/sms-webhook.test.ts",
+      "sha256": "1522264cd37ea1332c65936868c52b1d4686c663d9c525eb61cebe223e08b508"
+    },
+    {
+      "file": "tests/unit/team-actions.test.ts",
+      "sha256": "924668e6a3f89cfbbaae3e26a565157a227480bad57c3bf45ce1572171b1915b"
+    },
+    {
+      "file": "tests/unit/team-forms.test.tsx",
+      "sha256": "8d9c8805b60f2ba986b4d27d001ceb5ca4d12047340292e8e678b87b79c2847d"
+    },
+    {
+      "file": "tools/access-adversarial.mjs",
+      "sha256": "66a5557b24d73b913e9832ec1f62d4978032cd695ea4590948083b24eb4d0316"
+    },
+    {
+      "file": "tools/access-controls.test.mjs",
+      "sha256": "ff9e81c6685965e343f6736ae99ce150a01bb8cb33dddab3da560ba585c2a52f"
+    },
+    {
+      "file": "tools/access-red-sensitivity.mjs",
+      "sha256": "7947492f0347d754f21c7fadbfb3ad4fe2cce8ac70f080501435e5cb57e631d5"
+    },
+    {
+      "file": "tools/access-upgrade.mjs",
+      "sha256": "96bed0164fa1bb8eb8d61aba0f8ea24d239946c7dd453d9a82a7401bc6217196"
+    },
+    {
+      "file": "tools/check-capabilities.mjs",
+      "sha256": "363604ae6cb6735b8d9c4b07766d3ba991bc01ba7e8e9799498db1adbfc8ba15"
+    },
+    {
+      "file": "tools/check-coverage.mjs",
+      "sha256": "10fb6ef92b55e944f5a62382a748284844e6dddb952f698a243b073325e6759e"
+    },
+    {
+      "file": "tools/check-generated-types.mjs",
+      "sha256": "003a2f15f8fdbc26a300ab3e3670ee5d78bef6fd2cd0080268344dd5ff8d23f7"
+    },
+    {
+      "file": "tools/checker-sensitivity.mjs",
+      "sha256": "befa3dd3fba17fef498e2bd3be3158449215affd6a1da95a18e07190760fb2e8"
+    },
+    {
+      "file": "tools/completion-controls.mjs",
+      "sha256": "d9afa3d138c6b3bc6fef98b382505418e447cdf2299a7815eacf43bbe0f1e7d8"
+    },
+    {
+      "file": "tools/credential-dates-upgrade.mjs",
+      "sha256": "002e59c646d81f7d80c7c27f6d961c50b5e1310cb97a099dbd0a7ef9c6dc6a74"
+    },
+    {
+      "file": "tools/credential-numbers-upgrade.mjs",
+      "sha256": "f4af18cfc49f34f8a14fffa6bd94e31fb297d3db6a4698f0f4c452ccbe933cab"
+    },
+    {
+      "file": "tools/email-provider-fixture.mjs",
+      "sha256": "6abc8f30633d7170780bde7adc4d7f54f76fdcd2d18c65aaffb626728b2535d2"
+    },
+    {
+      "file": "tools/email-provider-fixture.test.mjs",
+      "sha256": "e12d24ddcf99c625be1ec66985fc00e10a3b389c31ed387c98393bb0c52a6c6e"
+    },
+    {
+      "file": "tools/evidence-controls.mjs",
+      "sha256": "0209a8c95c401532567e4e589e4140f7d15ebf1572a998ece961b695604517da"
+    },
+    {
+      "file": "tools/evidence-controls.test.mjs",
+      "sha256": "cbb03723dcc39b003866cc31e6ce704a8fcd393e95c7e2882f6c733eeb30dcb9"
+    },
+    {
+      "file": "tools/evidence-storage.mjs",
+      "sha256": "e5d983e3983b0c8281d9b1c55401345e6000b4afc3253a6ad14b5a24b801d5c5"
+    },
+    {
+      "file": "tools/foreign-key-controls.mjs",
+      "sha256": "ac0260b512e5b8f3310ddfb33bd7f7c992073ec8ba4456a56e088430294b95d1"
+    },
+    {
+      "file": "tools/gauntlet-contract.mjs",
+      "sha256": "10b82b6569d36986f4307426d5398419ec1731725dfd4e0348b35da5bce8545c"
+    },
+    {
+      "file": "tools/gauntlet-controls.test.mjs",
+      "sha256": "fc16ffadb1d6a5fbbd13fbe456917e596b4a30826bc7ecf1f28638912d155968"
+    },
+    {
+      "file": "tools/gauntlet.mjs",
+      "sha256": "d7685ec7e7cd9aead839d2d6ad0e1ad9f8df2cc66e12f89ee88d431e5babd6f4"
+    },
+    {
+      "file": "tools/gmail-controls.mjs",
+      "sha256": "2a347ad0d8a51755662b4363c1e1b084ce7b91c07edfcb1a91b0f4af98b35137"
+    },
+    {
+      "file": "tools/gmail-controls.test.mjs",
+      "sha256": "be39f732073aeb9db027f2a6eee43054c48ece369777f3a307525463ad1f2c8b"
+    },
+    {
+      "file": "tools/gmail-oauth-controls.mjs",
+      "sha256": "824c7ba8c6205c21bad85316e6becddb8a2d73c5253c0c6455904d8730ed005a"
+    },
+    {
+      "file": "tools/gmail-oauth-helper.mjs",
+      "sha256": "7b96c209f9a79687c644a7882593704beb7e85338ad25b8c3fe421571f4f9b56"
+    },
+    {
+      "file": "tools/gmail-oauth.mjs",
+      "sha256": "7dbaa49d7f3c11e644bf75a008ab90cca6646d9a74fe406f10a1e44ef9a0fbf8"
+    },
+    {
+      "file": "tools/gmail-oauth.test.mjs",
+      "sha256": "c35e532dea46b85581cd076b762d81d35e08868d8f9087bf22146edc05cfed5d"
+    },
+    {
+      "file": "tools/gmail-reminders-upgrade.mjs",
+      "sha256": "141844d60099507f7d2801a23319ba1af5d8b8b514bfb9a36ac7549a6c7d9c68"
+    },
+    {
+      "file": "tools/heartbeat-controls.mjs",
+      "sha256": "825948dac272e7a72d8c92f7e125c1d32ec1b313fd0e72e5100a2565c35aa858"
+    },
+    {
+      "file": "tools/heartbeat-controls.test.mjs",
+      "sha256": "9fa0b1fbd45ebf5cfdc3d68b571e7816a8bdafdd0ba439dd6bdd5b97839183aa"
+    },
+    {
+      "file": "tools/layers.json",
+      "sha256": "f25435305011a51fd1253d53e5744ccd8efe11ab4c6a8e7b88f7205920616dbb"
+    },
+    {
+      "file": "tools/local-environment.mjs",
+      "sha256": "d4259fef7772ee8d5551201b424e96dacb4517dae7d11e999dc069996f2c2848"
+    },
+    {
+      "file": "tools/number-controls.mjs",
+      "sha256": "7a5bd05448b252032f8a766887d8031afed1b58c32b1218a9c1b8436f96d8b4a"
+    },
+    {
+      "file": "tools/payer-directories-upgrade.mjs",
+      "sha256": "3d5694f3dac0ecfe6256fbd3d2d1d64189e867ab0cbb7b4302898efed9aee01f"
+    },
+    {
+      "file": "tools/payer-directory-controls.mjs",
+      "sha256": "7e1a11dc4883645b10b2d0c168dc50abd3f2443b433c11312d45f5c2e8bb92db"
+    },
+    {
+      "file": "tools/pci-certificates-upgrade.mjs",
+      "sha256": "100d36f2226a806f633d1f219eccba6d7837b0d7e2d07c31131797c924822def"
+    },
+    {
+      "file": "tools/pci-controls.mjs",
+      "sha256": "ec4537783b22929b5791539f3a20c4c9a0bb996821f8c3a30e7261ebea08d1d7"
+    },
+    {
+      "file": "tools/python-constraints.txt",
+      "sha256": "c2037998a717eb86d051a0ede2be3b59c7f00dfbec12522c798009b8feeb79a8"
+    },
+    {
+      "file": "tools/recipient-upgrade.mjs",
+      "sha256": "40f66c62bef8a7da0aaefae719ad75a307a742f92f58c362bac7cc86213d068d"
+    },
+    {
+      "file": "tools/recovery-controls.mjs",
+      "sha256": "fc2554bfd1bf573e2e2c57f881b5b092b2844e9efcaab1479a53d49606f2d5f4"
+    },
+    {
+      "file": "tools/red-history.json",
+      "sha256": "5cbf1e01a0c5370f79ef938369d54a1efbe03343e92e6779c088d1ccd92b3efa"
+    },
+    {
+      "file": "tools/register-maintenance-upgrade.mjs",
+      "sha256": "fdd46f7fe46547907881c29f8c7cc298285eb7f5cf9e8b8a70391d8efe364901"
+    },
+    {
+      "file": "tools/register-upgrade.mjs",
+      "sha256": "f788471e8ec3517774332baff4261066b219831e8895024146057e5eecf4da7f"
+    },
+    {
+      "file": "tools/reminder-catch-up-upgrade.mjs",
+      "sha256": "0a2b2abfcabd3c7fedc1bac2f2bb38ec9dfaa30acad4a1ef7f113ae976bf37af"
+    },
+    {
+      "file": "tools/reminder-jobs-upgrade.mjs",
+      "sha256": "e75276683d562a56987fc0dd1280147ce65c136401047e109cdc195ab69e4f7b"
+    },
+    {
+      "file": "tools/reminder-recovery-upgrade.mjs",
+      "sha256": "27566597cfa1814defa85b337ae63e030ca6ddc5bd2dcae8b757a02d3ea61e6d"
+    },
+    {
+      "file": "tools/renewal-completion-upgrade.mjs",
+      "sha256": "d86167aab6402df479245e907be51f53aa942af5a7ba59e748703f18460f6fd0"
+    },
+    {
+      "file": "tools/renewal-controls.mjs",
+      "sha256": "17953695a9794a1b6bf374720640b2f253803a063fd973f28b07e098b8d3a803"
+    },
+    {
+      "file": "tools/renewal-evidence-upgrade.mjs",
+      "sha256": "680e194c1621686e7af97016c660e462f31e4fc542289076a52621573907ea7a"
+    },
+    {
+      "file": "tools/renewal-workflow-upgrade.mjs",
+      "sha256": "ed7d890ad79115f324cd30444a72d7d5ca7fb1d9d3f436c14e0613e1d3b3eac9"
+    },
+    {
+      "file": "tools/schema-catalog.mjs",
+      "sha256": "fce4fbb8dc2ca7bf34acd4d4e74af6b73eb8acfc877b0c2f16333f084d030752"
+    },
+    {
+      "file": "tools/schema-contract.json",
+      "sha256": "1540157aa8caa3259a19c5a2c19c94d7198ccdc77a0588b521df70bab2df8c98"
+    },
+    {
+      "file": "tools/schema-fingerprint.mjs",
+      "sha256": "ffcbd27398cebdc49361c1857b066eff252265c8b22f1746b39dc200d9c72855"
+    },
+    {
+      "file": "tools/serve-covered.mjs",
+      "sha256": "d07adfaead4c9d1add0f34aabb0ef68776c62a5976c563919c395a08c17a97c4"
+    },
+    {
+      "file": "tools/shuffle-browser.mjs",
+      "sha256": "8f75f42598a04b6e67470b97b58219ae53a5773656cf6d813a3131be9689e4d5"
+    },
+    {
+      "file": "tools/sms-capabilities.mjs",
+      "sha256": "49c1b5dcba06d34501e8c6662eca1fd02dd00d8a4fec4ab8d0d6b7eb4893c499"
+    },
+    {
+      "file": "tools/sms-controls.test.mjs",
+      "sha256": "6652366c9d650472ed0b930c7578799b7f61d1b356142d45e6df5221e3c6cc6c"
+    },
+    {
+      "file": "tools/sms-enrollment-upgrade.mjs",
+      "sha256": "cf6f710f7327aa0be69b3723d418be9fc7c48f69f7bffba405d7c97824e8d720"
+    },
+    {
+      "file": "tools/sms-provider-fixture.mjs",
+      "sha256": "1b07b07f84f5716902ec4a4f187a44edeb7eafd4762131ac780485c9718ecaa4"
+    },
+    {
+      "file": "tools/source-state.mjs",
+      "sha256": "bbb6686468590681071b1ebfc45d79e8a4bab337ba21e6d8218a827ff8dabc7e"
+    },
+    {
+      "file": "tools/sql-mutants.mjs",
+      "sha256": "f9351664016998ef2ea1f931aad59c35a12a0ea300d8197a2f3eb803f34e5907"
+    },
+    {
+      "file": "tools/supply-chain-policy.json",
+      "sha256": "985af8ca5846f5dbc9505372bea1f3a4667ab9c3134d270c8cf5ffbf06325f34"
+    },
+    {
+      "file": "tools/supply-chain.mjs",
+      "sha256": "89cf4aad0531ce1ae4031c01d442051ffe451487302abd193f725c71984a6b8b"
+    },
+    {
+      "file": "tools/toolchain.json",
+      "sha256": "85dcccd20c171adafab1bafa38f53b891d86747dd0f6b955945a30ea5369ed85"
+    },
+    {
+      "file": "tools/ui-coverage-sensitivity.mjs",
+      "sha256": "e30a5ebcaada08c3baad81878a3166d2a491f50346877d0436e6f581bca97e3a"
+    },
+    {
+      "file": "tools/verify-workspace.mjs",
+      "sha256": "4ee8ab353bb804efc88136dca9425785ac271014d69fb9ad31b6a679c7ae14fc"
+    },
+    {
+      "file": "tsconfig.json",
+      "sha256": "48a51f438d48b0782e03897bb2075288d4c71e538201b567cdf27a5f7815a55d"
+    },
+    {
+      "file": "vitest.config.ts",
+      "sha256": "e6e237cbb145c64ad91fab5f62b9ce0018b83404048c5e675e4392af17ae5803"
+    },
+    {
+      "file": "vitest.mutation.config.ts",
+      "sha256": "84e0a24bb8ddcacc887efe14c64222ffe2106b00344ed0c27d1aceb2c5705172"
+    },
+    {
+      "file": "vitest.properties.config.ts",
+      "sha256": "ee7b84adb3a55299c16aea523cc50830b0779fd33df56432a8cb056ffb1cbf4b"
+    }
+  ],
+  "kind": "uncommitted-workspace"
+}

@@ -895,3 +895,96 @@ fieldset {
 .sms-information h2 {
   margin-top: 2rem;
 }
+
+.renewal-work {
+  border-top: 1px solid var(--line);
+  margin-top: 28px;
+  padding-top: 28px;
+}
+.renewal-work-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.renewal-work-heading > .eyebrow {
+  margin: 0;
+}
+.renewal-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-size: 13px;
+  color: var(--ink);
+}
+.renewal-status-in-progress {
+  background: #edf3df;
+}
+.renewal-status-awaiting-approval {
+  background: #f3eadb;
+}
+.renewal-summary {
+  margin-block: 12px;
+}
+.renewal-buttons,
+.renewal-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 18px;
+}
+.renewal-edit {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 16px;
+}
+.renewal-edit h3 {
+  font-size: 20px;
+  font-weight: 500;
+}
+.renewal-conflict {
+  background: var(--paper);
+  padding: 20px;
+  margin-top: 20px;
+  overflow-wrap: anywhere;
+}
+.renewal-conflict h4 {
+  margin-top: 0;
+}
+.renewal-site {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .renewal-buttons {
+    flex-direction: column;
+  }
+  .renewal-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+.evidence-filename {
+  overflow-wrap: anywhere;
+}
+.evidence-panel input[type="file"] {
+  max-width: 100%;
+}
+
+.public-information {
+  max-width: 52rem;
+  margin: 48px auto;
+  overflow-wrap: anywhere;
+}
+.public-information h2 {
+  margin-top: 40px;
+}
+.public-information .lede {
+  max-width: none;
+}
+@media (max-width: 900px) {
+  .public-information {
+    margin: 28px 20px;
+  }
+}

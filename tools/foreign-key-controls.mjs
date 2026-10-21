@@ -13,6 +13,12 @@ const files = [
   { path: "supabase/tests/practice_register_maintenance.test.sql", plan: 27 },
   { path: "supabase/tests/practice_sms_enrollment.test.sql", plan: 20 },
   { path: "supabase/tests/practice_reminder_jobs.test.sql", plan: 25 },
+  { path: "supabase/tests/practice_reminder_recovery.test.sql", plan: 14 },
+  { path: "supabase/tests/practice_renewal_workflow.test.sql", plan: 17 },
+  { path: "supabase/tests/practice_renewal_completion.test.sql", plan: 12 },
+  { path: "supabase/tests/practice_renewal_evidence.test.sql", plan: 12 },
+  { path: "supabase/tests/practice_gmail_reminders.test.sql", plan: 20 },
+  { path: "supabase/tests/practice_credential_numbers.test.sql", plan: 12 },
 ];
 const cases = files.map((file) => ({
   id: `baseline-${file.plan}-${file.path}`,
@@ -616,7 +622,218 @@ for (const [id, mutation, expected] of [
   ],
 ])
   cases.push({ id, file: files[8], mutation, expected });
+for (const [id, mutation, expected] of [
+  [
+    "recovery-rls",
+    "alter table private.reminder_email_checks disable row level security",
+    ["DR17 recovery RLS inventory"],
+  ],
+  [
+    "recovery-grant",
+    "grant select on private.reminder_email_submissions to authenticated",
+    ["DR17 recovery ledgers private"],
+  ],
+  [
+    "recovery-clock",
+    "grant execute on function private.begin_email_recovery_at(uuid,uuid,jsonb,text,timestamptz) to service_role",
+    ["DR17 no forged recovery clock"],
+  ],
+  [
+    "recovery-post-index",
+    "drop index private.reminder_submission_pending",
+    ["DR17 one pending POST"],
+  ],
+  [
+    "recovery-get-index",
+    "drop index private.reminder_check_pending",
+    ["DR17 one pending GET"],
+  ],
+  [
+    "recovery-post-expiry-index",
+    "drop index private.reminder_email_submissions_pending_expiry",
+    ["DR17 pending POST deadline index"],
+  ],
+  [
+    "recovery-get-expiry-index",
+    "drop index private.reminder_email_checks_pending_expiry",
+    ["DR17 pending GET deadline index"],
+  ],
+])
+  cases.push({ id, file: files[9], mutation, expected });
 const reports = [];
+for (const [id, mutation, expected] of [
+  [
+    "renewal-rls",
+    "alter table private.credential_renewal_links disable row level security",
+    ["RW10 renewal RLS inventory"],
+  ],
+  [
+    "renewal-storage-grant",
+    "grant select on private.renewal_change_requests to authenticated",
+    ["RW05 renewal storage private"],
+  ],
+  [
+    "renewal-cycle-fk",
+    "alter table private.renewal_change_requests drop constraint renewal_request_cycle_fkey",
+    [
+      "RW05 renewal restrictive foreign keys",
+      "RW05 renewal full cycle credential binding",
+    ],
+  ],
+  [
+    "renewal-request-uniqueness",
+    "alter table private.renewal_change_requests drop constraint renewal_change_requests_practice_id_actor_user_id_request_i_key",
+    ["RW06 renewal actor request uniqueness"],
+  ],
+  [
+    "renewal-review-shape",
+    "alter table private.credential_renewal_workflows drop constraint renewal_review_shape",
+    ["RW03 renewal paired review facts"],
+  ],
+  [
+    "renewal-url-constraint",
+    "alter table private.credential_renewal_links drop constraint credential_renewal_links_url_check",
+    ["RW09 renewal URL constraint"],
+  ],
+  [
+    "renewal-raw-helper",
+    "grant execute on function private.renewal_projection(public.credentials) to authenticated",
+    ["RW05 renewal raw helpers denied"],
+  ],
+  [
+    "renewal-anonymous-entry",
+    "grant execute on function public.list_practice_register_with_renewal(uuid,boolean) to anon",
+    ["RW05 renewal anonymous entry denied"],
+  ],
+])
+  cases.push({ id, mutation, expected, file: files[10] });
+for (const [id, mutation, expected] of [
+  [
+    "completion-storage-grant",
+    "grant select on private.credential_renewal_completions to authenticated",
+    ["RC07 completion private storage"],
+  ],
+  [
+    "completion-helper-grant",
+    "grant execute on function private.current_credential_cycle(uuid,uuid) to authenticated",
+    ["RC07 raw completion helpers denied"],
+  ],
+  [
+    "completion-anon-grant",
+    "grant execute on function public.get_credential_renewal_history(uuid,uuid,integer) to anon",
+    ["RC07 completion anonymous denial"],
+  ],
+  [
+    "completion-wrapper-definer",
+    "alter function public.get_credential_renewal_history(uuid,uuid,integer) security definer",
+    ["RC07 completion wrappers invoker"],
+  ],
+  [
+    "completion-receipt-fk",
+    "alter table private.renewal_completion_requests drop constraint renewal_completion_requests_actor_user_id_fkey",
+    ["RC07 completion restrictive foreign keys"],
+  ],
+  [
+    "completion-rls",
+    "alter table private.renewal_completion_requests disable row level security",
+    ["RC07 completion RLS inventory"],
+  ],
+  [
+    "completion-audit-operation",
+    "alter table private.renewal_audit_events drop constraint renewal_audit_events_operation_check",
+    ["RC09 completion audit operation"],
+  ],
+])
+  cases.push({ id, mutation, expected, file: files[11] });
+for (const [id, mutation, expected] of [
+  [
+    "evidence-raw-table",
+    "grant select on private.renewal_evidence to authenticated",
+    ["EV02 no direct evidence table access"],
+  ],
+  [
+    "evidence-direct-policy",
+    "drop policy renewal_evidence_gateway_only on storage.objects",
+    ["EV05 ordinary direct Storage access is restricted"],
+  ],
+  [
+    "evidence-service-grant",
+    "grant execute on function public.authorize_renewal_evidence_download(uuid,uuid,uuid,uuid,uuid) to authenticated",
+    ["EV02 service-only evidence entries denied"],
+  ],
+  [
+    "evidence-one-object",
+    "alter table private.renewal_evidence_objects drop constraint renewal_evidence_objects_evidence_id_key",
+    ["EV04 one immutable physical object per attachment"],
+  ],
+])
+  cases.push({ id, mutation, expected, file: files[12] });
+for (const [id, mutation, expected] of [
+  [
+    "gmail-service-table",
+    "grant select on private.gmail_reminder_authority to service_role",
+    ["GM06 service cannot read or change recipient authority directly"],
+  ],
+  [
+    "gmail-member-table",
+    "grant update on private.gmail_reminder_authority to authenticated",
+    ["GM06 members cannot read or change recipient authority directly"],
+  ],
+  [
+    "gmail-member-send",
+    "grant execute on function public.begin_gmail_reminder(uuid,uuid,jsonb,text,integer) to authenticated",
+    ["GM04 members cannot reserve a send"],
+  ],
+  [
+    "gmail-forged-clock",
+    "grant execute on function private.begin_gmail_reminder_at(uuid,uuid,jsonb,text,integer,timestamptz) to service_role",
+    ["GM04 service cannot forge begin clock"],
+  ],
+  [
+    "gmail-public-definer",
+    "alter function public.begin_gmail_reminder(uuid,uuid,jsonb,text,integer) security definer",
+    ["GM04 public Gmail boundary remains invoker"],
+  ],
+  [
+    "gmail-rls",
+    "alter table private.gmail_reminder_authority disable row level security",
+    ["GM06 Gmail authority RLS"],
+  ],
+  [
+    "gmail-anon-readiness",
+    "grant execute on function public.gmail_reminder_readiness(text,text,text,text,text) to anon",
+    ["GM06 anonymous readiness denied"],
+  ],
+])
+  cases.push({ id, mutation, expected, file: files[13] });
+for (const [id, mutation, expected] of [
+  [
+    "number-storage-check",
+    "alter table public.credentials drop constraint credentials_record_number_check",
+    ["RN02 number storage invariant"],
+  ],
+  [
+    "number-helper-grant",
+    "grant execute on function private.credential_record_number(text) to authenticated",
+    ["RN04 raw helper denied"],
+  ],
+  [
+    "number-table-write",
+    "grant update on public.credentials to authenticated",
+    ["RN04 direct writes denied"],
+  ],
+  [
+    "number-anonymous-entry",
+    "grant execute on function public.create_practice_credential_with_number(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text,text) to anon",
+    ["RN04 anonymous entries denied"],
+  ],
+  [
+    "number-definer-wrapper",
+    "alter function public.create_practice_credential_with_number(uuid,uuid,text,text,text,uuid,uuid[],text,text,text,text,text) security definer",
+    ["RN04 public wrappers invoker"],
+  ],
+])
+  cases.push({ id, mutation, expected, file: files.at(-1) });
 for (const item of cases) {
   const db = new Client({ connectionString: localConfig().DB_URL });
   await db.connect();

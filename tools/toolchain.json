@@ -73,6 +73,12 @@
       "digests": [
         "public.ecr.aws/supabase/kong@sha256:1b53405d8680a09d6f44494b7990bf7da2ea43f84a258c59717d4539abf09f6d"
       ]
+    },
+    {
+      "image": "public.ecr.aws/supabase/storage-api:v1.79.28",
+      "digests": [
+        "public.ecr.aws/supabase/storage-api@sha256:1f6c99d3952d78d57129802aa2ae8a80d75e327492cf24742fd0aeaf90967b96"
+      ]
     }
   ],
   "python": "3.12.14",

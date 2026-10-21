@@ -1,0 +1,84 @@
+{"target":"local","version":"20261020210728","message":"Reset local database."}
+
+> license-renewal-radar@0.1.0 test:integration
+> vitest run --project integration --exclude tests/integration/practice-payer-directories.test.ts
+
+
+ RUN  v5.0.3 /Users/macbookpro/Coding/license-radar
+      Running tests with seed "20261003"
+
+ ❯ |integration| tests/integration/practice-gmail-reminders.test.ts (20 tests | 1 failed) 125787ms
+   × GM04 wrong result token cannot attach a provider identity 123019ms
+ ❯ |integration| tests/integration/practice-invitations.test.ts (35 tests | 1 failed) 200568ms
+   × S23 invitation that expires while queued cannot join after lock release 192741ms
+
+ Test Files  2 failed | 19 passed (21)
+      Tests  2 failed | 284 passed (286)
+   Start at  14:42:35
+   Duration  413.81s (tests 100%)
+
+
+Resetting local database to version: 20261020210728
+Recreating database...
+Initialising schema...
+Seeding globals from roles.sql...
+Applying migration 20261003191334_practice_profiles.sql...
+Applying migration 20261005211436_practice_membership_authority.sql...
+Applying migration 20261005212526_practice_invitations.sql...
+Applying migration 20261006003555_practice_reminder_recipient.sql...
+Applying migration 20261006180010_register_ownership.sql...
+Applying migration 20261006225257_credential_dates.sql...
+Applying migration 20261007004303_register_maintenance.sql...
+Applying migration 20261008184507_practice_sms_enrollment.sql...
+Applying migration 20261009000855_practice_reminder_jobs.sql...
+Applying migration 20261009175711_email_reminder_catch_up.sql...
+Applying migration 20261010002012_email_reminder_recovery.sql...
+Applying migration 20261012221339_credential_renewal_workflow.sql...
+Applying migration 20261013172507_credential_renewal_completion.sql...
+Applying migration 20261014002159_renewal_evidence.sql...
+Applying migration 20261015181333_gmail_reminders.sql...
+Applying migration 20261016221310_credential_record_numbers.sql...
+Applying migration 20261020210728_pci_compliance_certificate_records.sql...
+Restarting containers...
+Finished supabase db reset on branch codex/renewal-record-numbers.
+A new version of Supabase CLI is available: v2.121.0 (currently installed v2.119.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |integration| tests/integration/practice-gmail-reminders.test.ts > GM04 wrong result token cannot attach a provider identity
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/practice-gmail-reminders.test.ts:345:1
+    343|   ).toHaveLength(1);
+    344| });
+    345| it("GM04 wrong result token cannot attach a provider identity", async …
+       | ^
+    346|   const a = await fixture(),
+    347|     s = await begin(a);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  |integration| tests/integration/practice-invitations.test.ts > S23 invitation that expires while queued cannot join after lock release
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/practice-invitations.test.ts:731:1
+    729|   expect.fail("RPC did not reach the coordinated lock wait");
+    730| }
+    731| it("S23 invitation that expires while queued cannot join after lock re…
+       | ^
+    732|   const a = await practice(),
+    733|     b = await account(),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+file:///Users/macbookpro/Coding/license-radar/tools/local-environment.mjs:48
+  if (r.status !== 0) throw new Error(`${command} failed: ${r.status}`);
+                            ^
+
+Error: npm failed: 1
+    at run (file:///Users/macbookpro/Coding/license-radar/tools/local-environment.mjs:48:29)
+    at file:///Users/macbookpro/Coding/license-radar/tools/payer-directories-upgrade.mjs:70:1
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.21.0

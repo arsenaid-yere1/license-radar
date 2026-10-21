@@ -4,6 +4,8 @@ import {
   preferenceInputSchema,
   preferenceSchema,
   scheduleSchema,
+  scheduleV3Schema,
+  scheduleV4Schema,
 } from "./schema";
 import {
   emailPayloadSchema,
@@ -350,4 +352,212 @@ it("CU13 frozen payloads accept exactly the ordinary and catch-up subjects", () 
     ),
     options,
   );
+});
+
+it("DR01 V3 history links and recovery remain bounded without widening V2", () => {
+  const row = {
+    id,
+    title: "Record",
+    cycleId: other,
+    dueDate: null,
+    datePurpose: "end-date",
+    timezone: "UTC",
+    target: null,
+    nextSendAt: null,
+    scheduleKind: null,
+    dispatchTarget: null,
+    state: "pending",
+    delivery: null,
+    reason: null,
+  };
+  const schedule = {
+    rows: [row],
+    nextCursor: null,
+    emailReadiness: "ready",
+    smsOptional: true,
+    lastSuccessAt: null,
+    oldestDueAt: null,
+    preference: { enabled: true, version: 1, canEnable: true },
+  };
+  const v3row = {
+    ...row,
+    historyAvailable: true,
+    activeLinkAvailable: false,
+    recovery: null,
+  };
+  const v3 = { ...schedule, rows: [v3row] };
+  expect(scheduleV3Schema.parse(v3)).toEqual(v3);
+  expect(scheduleSchema.safeParse(v3).success).toBe(false);
+  expect(scheduleV3Schema.safeParse(schedule).success).toBe(false);
+  for (const field of ["historyAvailable", "activeLinkAvailable", "recovery"]) {
+    const patch = { ...v3row };
+    delete patch[field as keyof typeof patch];
+    expect(scheduleV3Schema.safeParse({ ...v3, rows: [patch] }).success).toBe(
+      false,
+    );
+  }
+  fc.assert(
+    fc.property(fc.integer({ min: 0, max: 101 }), (length) => {
+      expect(
+        scheduleV3Schema.safeParse({
+          ...v3,
+          rows: Array.from({ length }, () => v3row),
+        }).success,
+      ).toBe(length <= 100);
+    }),
+    options,
+  );
+  for (const patch of [
+    { historyAvailable: false },
+    { activeLinkAvailable: "false" },
+    { providerId: id },
+    { recovery: { email: "private" } },
+  ])
+    expect(
+      scheduleV3Schema.safeParse({ ...v3, rows: [{ ...v3row, ...patch }] })
+        .success,
+    ).toBe(false);
+});
+it("GM07 V4 capabilities and pilot readiness are exact, bounded and preserve prior read schemas", () => {
+  const row = {
+    id,
+    title: "Record",
+    cycleId: other,
+    dueDate: null,
+    datePurpose: "end-date",
+    timezone: "UTC",
+    target: null,
+    nextSendAt: null,
+    scheduleKind: null,
+    dispatchTarget: null,
+    state: "pending",
+    delivery: null,
+    reason: null,
+    historyAvailable: true,
+    activeLinkAvailable: true,
+    recovery: null,
+    provider: null,
+  };
+  const schedule = {
+    rows: [row],
+    nextCursor: null,
+    emailReadiness: "ready",
+    smsOptional: true,
+    lastSuccessAt: null,
+    oldestDueAt: null,
+    preference: { enabled: true, version: 1, canEnable: true },
+  };
+  for (const provider of [
+    null,
+    {
+      kind: "gmail",
+      maxPosts: 1,
+      deliveryChecks: false,
+      automaticResend: false,
+    },
+    {
+      kind: "resend",
+      maxPosts: 3,
+      deliveryChecks: true,
+      automaticResend: true,
+    },
+  ]) {
+    const data = { ...schedule, rows: [{ ...row, provider }] };
+    expect(scheduleV4Schema.parse(data)).toEqual(data);
+    expect(scheduleV3Schema.safeParse(data).success).toBe(false);
+  }
+  for (const emailReadiness of [
+    "ready",
+    "no-recipient",
+    "member-unavailable",
+    "email-unconfirmed",
+    "email-disabled",
+    "email-suppressed",
+    "gmail-unavailable",
+    "gmail-recipient-blocked",
+  ])
+    expect(
+      scheduleV4Schema.safeParse({ ...schedule, emailReadiness }).success,
+    ).toBe(true);
+  for (const patch of [
+    { emailReadiness: "" },
+    { emailReadiness: "other" },
+    {
+      rows: [
+        {
+          ...row,
+          provider: {
+            kind: "gmail",
+            maxPosts: 3,
+            deliveryChecks: false,
+            automaticResend: false,
+          },
+        },
+      ],
+    },
+    {
+      rows: [
+        {
+          ...row,
+          provider: {
+            kind: "gmail",
+            maxPosts: 1,
+            deliveryChecks: true,
+            automaticResend: false,
+          },
+        },
+      ],
+    },
+    {
+      rows: [
+        {
+          ...row,
+          provider: {
+            kind: "gmail",
+            maxPosts: 1,
+            deliveryChecks: false,
+            automaticResend: true,
+          },
+        },
+      ],
+    },
+    {
+      rows: [
+        {
+          ...row,
+          provider: {
+            kind: "resend",
+            maxPosts: 1,
+            deliveryChecks: true,
+            automaticResend: true,
+          },
+        },
+      ],
+    },
+  ])
+    expect(scheduleV4Schema.safeParse({ ...schedule, ...patch }).success).toBe(
+      false,
+    );
+  fc.assert(
+    fc.property(fc.integer({ min: 0, max: 101 }), (length) => {
+      expect(
+        scheduleV4Schema.safeParse({
+          ...schedule,
+          rows: Array.from({ length }, () => row),
+        }).success,
+      ).toBe(length <= 100);
+    }),
+    options,
+  );
+  for (const key of ["email", "payload", "token", "providerId"]) {
+    expect(
+      scheduleV4Schema.safeParse({ ...schedule, [key]: "private" }).success,
+    ).toBe(false);
+    expect(
+      scheduleV4Schema.safeParse({
+        ...schedule,
+        rows: [{ ...row, [key]: "private" }],
+      }).success,
+    ).toBe(false);
+  }
 });

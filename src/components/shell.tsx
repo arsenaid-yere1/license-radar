@@ -3,27 +3,28 @@ import type { ReactNode } from "react";
 export function Shell({
   children,
   action,
+  navigationLocked = false,
 }: {
   children: ReactNode;
   action?: ReactNode;
+  navigationLocked?: boolean;
 }) {
   return (
     <>
       <header className="site-header">
-        <Link
-          className="brand"
-          href="/"
-          aria-label="License Renewal Radar home"
-        >
-          <span className="radar-mark" aria-hidden="true">
-            ◉
+        {navigationLocked ? (
+          <span className="brand">
+            <BrandContent />
           </span>
-          <span>
-            License Renewal
-            <br />
-            <strong>Radar</strong>
-          </span>
-        </Link>
+        ) : (
+          <Link
+            className="brand"
+            href="/"
+            aria-label="License Renewal Radar home"
+          >
+            <BrandContent />
+          </Link>
+        )}
         {action ?? (
           <span className="header-note">
             A little clarity. A lot less chasing.
@@ -35,6 +36,20 @@ export function Shell({
         <span>License Renewal Radar</span>
         <span>Your practice, in good time.</span>
       </footer>
+    </>
+  );
+}
+function BrandContent() {
+  return (
+    <>
+      <span className="radar-mark" aria-hidden="true">
+        ◉
+      </span>
+      <span>
+        License Renewal
+        <br />
+        <strong>Radar</strong>
+      </span>
     </>
   );
 }

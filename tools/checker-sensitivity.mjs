@@ -1,7 +1,59 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { uiCoverageSensitivity } from "./ui-coverage-sensitivity.mjs";
+import {
+  focusSensitivity,
+  renewalBrowserSensitivity,
+} from "./renewal-controls.mjs";
 const mutants = [
+  {
+    file: "tools/completion-controls.mjs",
+    from: "export function assertCompletionLayer(layers) {",
+    to: "export function assertCompletionLayer(layers) { return;",
+    test: "completion upgrade rejects missing duplicate and changed execution",
+  },
+  {
+    file: "tools/renewal-controls.mjs",
+    from: "export function restoreControlCoverage(snapshots) {",
+    to: "export function restoreControlCoverage(snapshots) { return;",
+    test: "browser controls discard their recordings preserve original coverage and reject tampering even on failure",
+  },
+  {
+    file: "tools/verify-workspace.mjs",
+    from: "export function assertWorkspaceUnchanged(expected, actual) {",
+    to: "export function assertWorkspaceUnchanged(expected, actual) { return;",
+    test: "uncommitted verification refuses source drift missing layers duplicates and failed evidence",
+  },
+  {
+    file: "tools/verify-workspace.mjs",
+    from: "export function assertWorkspaceLayers(layers) {",
+    to: "export function assertWorkspaceLayers(layers) { return;",
+    test: "uncommitted verification refuses source drift missing layers duplicates and failed evidence",
+  },
+  {
+    file: "tools/renewal-controls.mjs",
+    from: "export function assertRenewalMutationTargets(production, properties) {",
+    to: "export function assertRenewalMutationTargets(production, properties) { return;",
+    test: "renewal upgrade and mutation inventories reject every omitted target",
+  },
+  {
+    file: "tools/check-coverage.mjs",
+    from: "decodeURIComponent(new URL(url).pathname)",
+    to: "new URL(url).pathname",
+    test: "browser coverage resolves encoded dynamic routes and refuses escaped bundle paths",
+  },
+  {
+    file: "tools/check-coverage.mjs",
+    from: "if (!pathname.startsWith(prefix))",
+    to: "if (false)",
+    test: "browser coverage resolves encoded dynamic routes and refuses escaped bundle paths",
+  },
+  {
+    file: "tools/check-coverage.mjs",
+    from: "if (!compiled.startsWith(`${root}/`))",
+    to: "if (false)",
+    test: "browser coverage resolves encoded dynamic routes and refuses escaped bundle paths",
+  },
   {
     file: "tools/sms-capabilities.mjs",
     from: "export function assertSmsCapabilities(files) {",
@@ -206,3 +258,5 @@ console.log(
   `${results.length} checker controls failed with their defenses removed; restored.`,
 );
 uiCoverageSensitivity();
+await focusSensitivity();
+await renewalBrowserSensitivity();

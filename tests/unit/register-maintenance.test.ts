@@ -434,3 +434,14 @@ it("M11 default reads stay active and default success feedback describes an edit
   if (!invalid.success)
     expect(invalid.error.issues[0].path).toEqual(["intent"]);
 });
+it("RC04 completed current cycle is a terminal maintenance outcome with safe feedback", async () => {
+  expect(
+    await operations.changeRegisterRecord(
+      client({ status: "completed", private: "SQL" }),
+      raw,
+    ),
+  ).toEqual({ status: "completed" });
+  expect(messages.maintenanceMessage("completed")).toBe(
+    "This renewal cycle is completed. Reload the record.",
+  );
+});

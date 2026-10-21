@@ -10,6 +10,7 @@ import type {
   MaintenanceState,
 } from "@/lib/register/schema";
 import { RecordDates } from "./record-dates";
+import { RecordNumber } from "./record-number";
 export type RecordFormProps = {
   record: MaintenanceCredential;
   clinicians: Clinician[];
@@ -86,6 +87,7 @@ function ChangeForm({
     "conflict",
     "request-conflict",
     "archived",
+    "completed",
     "not-found",
     "forbidden",
   ].includes(state.status);
@@ -172,6 +174,7 @@ function ConflictReview({
               .join(", ") || "None"}
           </p>
           <RecordDates record={state.credential} />
+          <RecordNumber record={state.credential} />
           <p>
             Reloading saved values discards your draft. Review them and reenter
             your intended changes.

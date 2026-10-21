@@ -18,6 +18,9 @@ vi.mock("@/lib/sms/repository", () => ({
 vi.mock("@/lib/register/repository", () => ({
   getMaintenanceRegister: boundary.getMaintenanceRegister,
 }));
+vi.mock("@/lib/renewals/repository", () => ({
+  getRenewalRegister: boundary.getMaintenanceRegister,
+}));
 vi.mock("@/lib/team/repository", () => ({ getTeam: boundary.getTeam }));
 vi.mock("@/lib/recipients/repository", () => ({
   getRecipient: boundary.getRecipient,
@@ -354,6 +357,15 @@ it("M14 archived view is explicit and malformed query selects active", async () 
 const calendarId = "aaaaaaaa-0000-4000-8000-000000000001";
 const calendarRecord = {
   id: calendarId,
+  renewal: {
+    link: { url: null, version: 1 },
+    workflow: {
+      cycleId: calendarId,
+      status: "not-started",
+      version: 1,
+      acknowledgedAt: null,
+    },
+  },
   title: "Shared policy",
   type: "malpractice_policy",
   owner_kind: "practice",

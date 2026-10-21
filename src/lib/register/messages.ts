@@ -49,6 +49,8 @@ export function maintenanceMessage(
       return "This record changed. Compare your draft with the saved values.";
     case "archived":
       return "This record is archived. Reload the register to review its history.";
+    case "completed":
+      return "This renewal cycle is completed. Reload the record.";
     case "not-found":
       return "This record is unavailable. Reload the register.";
     case "forbidden":

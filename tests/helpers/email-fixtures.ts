@@ -1,7 +1,12 @@
 import { Webhook } from "svix";
 export async function emailFixture(
-  path: "state" | "mode",
-  input: { to: string; mode?: string },
+  path: "state" | "mode" | "calls" | "resources",
+  input: {
+    to: string;
+    mode?: string | string[];
+    lastEvent?: string;
+    lookup?: string;
+  },
 ) {
   const response = await fetch(`http://127.0.0.1:55326/test/${path}`, {
     method: "POST",

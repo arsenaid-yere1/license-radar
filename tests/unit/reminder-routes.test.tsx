@@ -19,7 +19,8 @@ vi.mock("@/lib/practice/access", () => ({
   getPracticeAccess: boundary.access,
 }));
 vi.mock("@/lib/reminders/repository", () => ({
-  getReminderSchedule: boundary.read,
+  getReminderScheduleV3: boundary.read,
+  getReminderScheduleV4: boundary.read,
 }));
 vi.mock("@/lib/reminders/config", () => ({
   emailConfig: boundary.config,
@@ -39,6 +40,9 @@ import { EmailPreferenceForm } from "@/components/reminders/preference-form";
 const id = "10000000-0000-4000-8000-000000000001",
   preference = { enabled: true, version: 1, canEnable: true };
 const row = {
+  historyAvailable: true,
+  activeLinkAvailable: true,
+  recovery: null,
   id,
   cycleId: id,
   title: "Renewal record",
@@ -75,7 +79,49 @@ beforeEach(() => {
   boundary.config.mockReturnValue(null);
   boundary.webhook.mockReturnValue(null);
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
+it("GM05 Gmail setup and connection failures explain the reconnection step without exposing credentials", async () => {
+  vi.stubEnv("EMAIL_PROVIDER", "gmail");
+  render(await page());
+  expect(
+    screen.getByText(
+      "Gmail sending is off or its Google connection needs review. Ask your administrator to reconnect the sending account.",
+    ),
+  ).toBeTruthy();
+});
+it("GM07 Gmail schedule distinguishes acceptance and explains blocked pilot recipients", async () => {
+  boundary.read.mockResolvedValue({
+    status: "success",
+    schedule: {
+      ...schedule,
+      emailReadiness: "gmail-recipient-blocked",
+      rows: [
+        {
+          ...row,
+          state: "accepted",
+          provider: {
+            kind: "gmail",
+            maxPosts: 1,
+            automaticResend: false,
+            deliveryChecks: false,
+          },
+        },
+      ],
+    },
+  });
+  render(await page());
+  expect(
+    screen.getByText("Accepted by Gmail; delivery is not confirmed"),
+  ).toBeTruthy();
+  expect(
+    screen.getByText(
+      /This Gmail pilot can send only to its authorized account/,
+    ),
+  ).toBeTruthy();
+});
 it("RU01 identity, current access, cursor and storage failures stop status disclosure", async () => {
   boundary.user.mockRejectedValueOnce(new Error("REDIRECT:/login"));
   await expect(page()).rejects.toThrow("REDIRECT:/login");
@@ -128,7 +174,7 @@ it("RU02 dates, catch-up, channel readiness, cursor and stale health are truthfu
   });
   render(await page());
   expect(screen.getByText(/worker has not reported success/)).toBeTruthy();
-  expect(screen.getByText("Current end date")).toBeTruthy();
+  expect(screen.getByText("Current due date")).toBeTruthy();
   expect(screen.getByText("No date entered")).toBeTruthy();
   expect(screen.getByText(/uncertain/)).toBeTruthy();
   expect(screen.queryByRole("link", { name: "Next records" })).toBeNull();

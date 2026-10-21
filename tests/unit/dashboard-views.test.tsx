@@ -29,12 +29,12 @@ it("Q03 Q12 complete urgent/missing lists agree with cards, semantic purposes, e
   const past = screen.getByRole("region", { name: "Past due" }),
     due = screen.getByRole("region", { name: "Due within 60 days" }),
     missing = screen.getByRole("region", {
-      name: "Missing expiration / coverage end",
+      name: "Missing renewal date",
     });
   for (const [name, count] of [
     ["Past due", 1],
     ["Due within 60 days", 3],
-    ["Missing expiration / coverage end", 2],
+    ["Missing renewal date", 2],
   ] as const) {
     expect(screen.getByRole("link", { name: `${count} ${name}` })).toBeTruthy();
     expect(
@@ -82,7 +82,7 @@ it("Q14 empty and later-only states are honest and retain full-register links", 
     screen.getByText("No tracking dates due within 60 days."),
   ).toBeTruthy();
   expect(
-    screen.getByText("No records with missing expiration or coverage end."),
+    screen.getByText("No records with a missing renewal date."),
   ).toBeTruthy();
   view.rerender(
     <DashboardPanel
@@ -110,4 +110,28 @@ it("Q14 empty and later-only states are honest and retain full-register links", 
       .getAttribute("href"),
   ).toBe("/practice/calendar");
   expect(screen.queryByText(/all clear/i)).toBeNull();
+});
+
+it("DIR04 action-only directory stays in due and missing groups with directory wording", () => {
+  render(
+    <DashboardPanel
+      summary={projectDashboard(
+        {
+          clinicians: [],
+          credentials: [
+            record(1, null, today, {
+              type: "insurance_payer_provider_directory",
+            }),
+          ],
+        },
+        today,
+      )}
+    />,
+  );
+  const due = screen.getByRole("region", { name: "Due within 60 days" }),
+    missing = screen.getByRole("region", { name: "Missing renewal date" });
+  expect(due.textContent).toContain("earlier action deadline");
+  expect(missing.textContent).toContain(
+    "Next directory update due date unknown",
+  );
 });

@@ -1,4 +1,5 @@
 import { EmailCodeForm } from "@/components/auth/email-code-form";
+import Link from "next/link";
 import { Shell } from "@/components/shell";
 export const dynamic = "force-dynamic";
 export default function Login() {
@@ -25,6 +26,9 @@ export default function Login() {
           <h2>Make yourself at home.</h2>
           <p>Sign in with your email. We’ll send a one-time code.</p>
           <EmailCodeForm />
+          <Link className="text-link" href="/privacy">
+            Privacy
+          </Link>
         </section>
       </div>
     </Shell>

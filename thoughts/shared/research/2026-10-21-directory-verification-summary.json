@@ -1,0 +1,30 @@
+{
+  "runId": "8cd3784f-eebf-4b6b-b9aa-a812341574c0",
+  "sourceHash": "380eaebe0e632e9152ae0a8ba31f91fd55900168c9872b82643710d3023487a9",
+  "layers": 48,
+  "unitTests": 691,
+  "integrationTests": 301,
+  "browserTests": 79,
+  "shuffledBrowserTests": 79,
+  "productionMutation": {
+    "score": 100,
+    "statuses": {
+      "CompileError": 2314,
+      "Killed": 3450,
+      "Timeout": 11
+    }
+  },
+  "propertyMutation": {
+    "score": 100,
+    "statuses": {
+      "CompileError": 764,
+      "Killed": 1656,
+      "Timeout": 7
+    }
+  },
+  "sqlFaults": 147,
+  "completionSqlFaults": 5,
+  "started": "2026-10-21T21:15:34.416Z",
+  "finished": "2026-10-21T22:45:22.559Z",
+  "continuedAfterHostSleep": true
+}
