@@ -108,6 +108,7 @@ export type Database = {
           owner_clinician_id: string | null;
           owner_kind: string;
           practice_id: string;
+          record_number: string | null;
           title: string;
           type: string;
           updated_at: string;
@@ -122,6 +123,7 @@ export type Database = {
           owner_clinician_id?: string | null;
           owner_kind: string;
           practice_id: string;
+          record_number?: string | null;
           title: string;
           type: string;
           updated_at?: string;
@@ -136,6 +138,7 @@ export type Database = {
           owner_clinician_id?: string | null;
           owner_kind?: string;
           practice_id?: string;
+          record_number?: string | null;
           title?: string;
           type?: string;
           updated_at?: string;
@@ -287,6 +290,18 @@ export type Database = {
         Args: { p_token_digest: string };
         Returns: Json;
       };
+      acknowledge_credential_renewal: {
+        Args: {
+          p_credential_id: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_renewal_version: number;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
       apply_email_reminder_event: {
         Args: {
           p_attempt_id: string;
@@ -320,8 +335,37 @@ export type Database = {
         };
         Returns: Json;
       };
+      authorize_renewal_evidence_download: {
+        Args: {
+          p_actor_id: string;
+          p_credential_id: string;
+          p_cycle_id: string;
+          p_evidence_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
+      begin_email_recovery: {
+        Args: {
+          p_config: Json;
+          p_job_id: string;
+          p_kind: string;
+          p_token: string;
+        };
+        Returns: Json;
+      };
       begin_email_reminder: {
         Args: { p_claim_token: string; p_config: Json; p_job_id: string };
+        Returns: Json;
+      };
+      begin_gmail_reminder: {
+        Args: {
+          p_authority_version: number;
+          p_claim_token: string;
+          p_config: Json;
+          p_job_id: string;
+          p_subject: string;
+        };
         Returns: Json;
       };
       cancel_practice_invitation: {
@@ -336,7 +380,23 @@ export type Database = {
         };
         Returns: Json;
       };
+      claim_email_recovery: {
+        Args: { p_namespace: string; p_sending: boolean };
+        Returns: Json;
+      };
       claim_email_reminder: { Args: Record<PropertyKey, never>; Returns: Json };
+      claim_renewal_evidence_cleanup: {
+        Args: { p_evidence_id?: string };
+        Returns: Json;
+      };
+      claim_renewal_evidence_upload: {
+        Args: {
+          p_actor_id: string;
+          p_evidence_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
       claim_sms_verification_check: {
         Args: {
           p_actor_id: string;
@@ -350,6 +410,21 @@ export type Database = {
       claim_sms_verification_send: {
         Args: {
           p_actor_id: string;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      complete_credential_renewal: {
+        Args: {
+          p_action_deadline: string;
+          p_confirmed: boolean;
+          p_credential_id: string;
+          p_end_date: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_renewal_version: number;
+          p_expected_version: number;
           p_practice_id: string;
           p_request_id: string;
         };
@@ -414,6 +489,23 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_practice_credential_with_number: {
+        Args: {
+          p_action_deadline: string;
+          p_covered_clinician_ids: string[];
+          p_end_date: string;
+          p_issuer: string;
+          p_jurisdiction: string;
+          p_owner_clinician_id: string;
+          p_owner_kind: string;
+          p_practice_id: string;
+          p_record_number: string;
+          p_request_id: string;
+          p_title: string;
+          p_type: string;
+        };
+        Returns: Json;
+      };
       create_practice_invitation: {
         Args: {
           p_email: string;
@@ -435,13 +527,56 @@ export type Database = {
         };
         Returns: Json;
       };
+      expire_email_recovery: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
       expire_email_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: number;
       };
+      expire_gmail_reminders: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      finalize_renewal_evidence_upload: {
+        Args: {
+          p_actor_id: string;
+          p_byte_count: number;
+          p_digest: string;
+          p_evidence_id: string;
+          p_practice_id: string;
+          p_token: string;
+        };
+        Returns: Json;
+      };
       finish_email_reminder_run: {
         Args: { p_counts: Json; p_run_id: string; p_success: boolean };
         Returns: boolean;
+      };
+      get_credential_renewal_history: {
+        Args: {
+          p_before_cycle_number: number;
+          p_credential_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
+      get_email_reminder_history: {
+        Args: {
+          p_after?: string;
+          p_credential_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
+      get_email_reminder_history_v2: {
+        Args: {
+          p_after?: string;
+          p_credential_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
       };
       get_email_reminder_schedule: {
         Args: { p_after?: string; p_namespace: string; p_practice_id: string };
@@ -449,6 +584,32 @@ export type Database = {
       };
       get_email_reminder_schedule_v2: {
         Args: { p_after?: string; p_namespace: string; p_practice_id: string };
+        Returns: Json;
+      };
+      get_email_reminder_schedule_v3: {
+        Args: { p_after?: string; p_namespace: string; p_practice_id: string };
+        Returns: Json;
+      };
+      get_email_reminder_schedule_v4: {
+        Args: { p_after?: string; p_namespace: string; p_practice_id: string };
+        Returns: Json;
+      };
+      get_email_reminder_timeline: {
+        Args: {
+          p_after?: Json;
+          p_attempt_id: string;
+          p_credential_id?: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
+      get_email_reminder_timeline_v2: {
+        Args: {
+          p_after?: Json;
+          p_attempt_id: string;
+          p_credential_id?: string;
+          p_practice_id: string;
+        };
         Returns: Json;
       };
       get_my_email_reminder_preference: {
@@ -467,11 +628,33 @@ export type Database = {
         Args: { p_practice_id: string };
         Returns: Json;
       };
+      get_renewal_evidence: {
+        Args: {
+          p_credential_id: string;
+          p_cycle_id: string;
+          p_practice_id: string;
+        };
+        Returns: Json;
+      };
+      gmail_reminder_readiness: {
+        Args: {
+          p_allowed_recipient: string;
+          p_app_origin: string;
+          p_namespace: string;
+          p_sender: string;
+          p_subject: string;
+        };
+        Returns: number;
+      };
       list_practice_register: {
         Args: { p_practice_id: string };
         Returns: Json;
       };
       list_practice_register_with_maintenance: {
+        Args: { p_include_archived: boolean; p_practice_id: string };
+        Returns: Json;
+      };
+      list_practice_register_with_renewal: {
         Args: { p_include_archived: boolean; p_practice_id: string };
         Returns: Json;
       };
@@ -498,6 +681,10 @@ export type Database = {
         Args: { p_namespace: string };
         Returns: Json;
       };
+      record_email_check: {
+        Args: { p_check_id: string; p_result: Json; p_token: string };
+        Returns: Json;
+      };
       record_email_reminder: {
         Args: {
           p_attempt_id: string;
@@ -507,6 +694,28 @@ export type Database = {
           p_token: string;
         };
         Returns: Json;
+      };
+      record_email_submission: {
+        Args: { p_result: Json; p_submission_id: string; p_token: string };
+        Returns: Json;
+      };
+      record_gmail_reminder: {
+        Args: {
+          p_attempt_id: string;
+          p_error: string;
+          p_message_id: string;
+          p_outcome: string;
+          p_token: string;
+        };
+        Returns: Json;
+      };
+      record_renewal_evidence_cleanup: {
+        Args: { p_object_id: string; p_purged: boolean; p_token: string };
+        Returns: boolean;
+      };
+      record_renewal_evidence_download: {
+        Args: { p_access_id: string };
+        Returns: boolean;
       };
       record_sms_verification_check: {
         Args: {
@@ -536,8 +745,68 @@ export type Database = {
         };
         Returns: Json;
       };
+      remove_renewal_evidence: {
+        Args: {
+          p_confirmed: boolean;
+          p_credential_id: string;
+          p_cycle_id: string;
+          p_evidence_id: string;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      request_email_reminder_check: {
+        Args: {
+          p_attempt_id: string;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
+      reserve_renewal_evidence: {
+        Args: {
+          p_byte_count: number;
+          p_credential_id: string;
+          p_cycle_id: string;
+          p_digest: string;
+          p_filename: string;
+          p_mime: string;
+          p_practice_id: string;
+          p_request_id: string;
+        };
+        Returns: Json;
+      };
       revoke_practice_member: {
         Args: { p_expected_version: number; p_membership_id: string };
+        Returns: Json;
+      };
+      set_credential_renewal_link: {
+        Args: {
+          p_credential_id: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_renewal_version: number;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+          p_url: string;
+        };
+        Returns: Json;
+      };
+      set_credential_renewal_progress: {
+        Args: {
+          p_credential_id: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_renewal_version: number;
+          p_expected_version: number;
+          p_practice_id: string;
+          p_request_id: string;
+          p_status: string;
+        };
         Returns: Json;
       };
       set_my_email_reminder_preference: {
@@ -598,6 +867,27 @@ export type Database = {
           p_owner_clinician_id: string;
           p_owner_kind: string;
           p_practice_id: string;
+          p_request_id: string;
+          p_title: string;
+          p_type: string;
+        };
+        Returns: Json;
+      };
+      update_practice_credential_with_number: {
+        Args: {
+          p_action_deadline: string;
+          p_covered_clinician_ids: string[];
+          p_credential_id: string;
+          p_end_date: string;
+          p_expected_cycle_id: string;
+          p_expected_date_revision: number;
+          p_expected_version: number;
+          p_issuer: string;
+          p_jurisdiction: string;
+          p_owner_clinician_id: string;
+          p_owner_kind: string;
+          p_practice_id: string;
+          p_record_number: string;
           p_request_id: string;
           p_title: string;
           p_type: string;

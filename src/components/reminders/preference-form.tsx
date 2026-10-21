@@ -74,6 +74,8 @@ export function EmailPreferenceForm({
           {state.message}
         </p>
       )}
+      {/* A full reload resets the blocked form after an uncertain save. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a className="text-link" href="/practice/reminders">
         Reload reminders
       </a>

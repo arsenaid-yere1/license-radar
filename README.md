@@ -64,8 +64,9 @@ From the project root:
 
 ```sh
 npm ci
-npx supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+npx supabase start -x realtime,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 node tools/local-environment.mjs prepare
+node tools/evidence-storage.mjs
 npm run dev
 ```
 
@@ -83,6 +84,12 @@ npm start
 ```
 
 ## Development checks
+
+Renewal evidence is available on each current or historical cycle. Active members can download; managers and administrators can upload or explicitly remove files. Archived records retain downloads and removal, but accept no new uploads. Evidence does not change dates, progress, completion or successor cycles. Supported files are PDF, JPEG and PNG, up to 3 MiB each, with 20 reserved/live attachments per cycle and 100 MiB accounted bytes per practice. Signature checks do not establish document truth or scan for malware.
+
+Local preparation enables evidence in the dedicated fixture. Hosted configuration defaults to `RENEWAL_EVIDENCE_ENABLED=false`. Activation requires a private `renewal-evidence` bucket with the exact size/type restrictions, the evidence migration and isolated server credentials. Downloads use the authenticated application; browser signing and direct Storage access are denied. Failed removal remains pending until physical absence is confirmed. Minimal tombstones remain for late-write cleanup.
+
+An independently scheduled caller must invoke `POST /api/renewal-evidence/cleanup` with `Authorization: Bearer <EVIDENCE_CLEANUP_SECRET>` (at least 32 characters). The endpoint processes bounded, leased batches; inspect `supabase/operators/renewal-evidence-cleanup-health.sql` for aggregate health. Cleanup remains operable when the evidence feature flag is disabled. No hosted scheduler is created by this implementation. File-byte backup and restore must be established before hosted activation; database backups alone do not preserve Storage bytes.
 
 Run the everyday checks with:
 
@@ -114,7 +121,7 @@ npm run test:e2e
 
 ### Complete verification
 
-`npm run gauntlet` runs the 35-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, SMS, 21-dataset email and 33-table catch-up upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans.
+`npm run gauntlet` runs the 46-layer verification pipeline, including practice, recipient, register, populated date-entry and maintenance, credential numbers, SMS, email/catch-up/recovery, renewal/evidence and Gmail upgrade/rollback rehearsals and explicit adversarial attacks: types, lint, formatting, migration replay, database and API tests, properties, mutation testing, production browser tests, coverage, shuffled test order, dependency review, and secret scans. `node tools/verify-workspace.mjs` runs the same registered layers against an identified uncommitted workspace.
 
 It requires a clean committed source tree, the local Supabase stack, Chromium, Python 3.12 with SQLFluff, and Gitleaks. Install the Python tools with:
 
@@ -231,3 +238,98 @@ The applied migration `20261009175711_email_reminder_catch_up.sql` adds scheduli
 - [Catch-up activation addendum](thoughts/shared/handoffs/2026-10-09-e4-s3-catch-up-activation.md).
 - [Catch-up implementation evidence](thoughts/shared/research/2026-10-09-e4-s3-implementation-evidence.md).
 - [Catch-up production release](thoughts/shared/handoffs/2026-10-09-e4-s3-production-release.md).
+
+## E4-S4 delivery history and recovery
+
+Delivery history retains original dates, timezones, former recipients, invalidated jobs and archived records. All active members can read practice-scoped history; managers and administrators can request a delivery status check. Acceptance, receiving-server delivery and renewal completion remain separate.
+
+New attempts have at most three total provider submissions, all using the same frozen payload and idempotency key. Only a validated rate-limit rejection can permit a retry: one minute then five minutes minimum, within local 09:00–17:00 windows and a fixed 23-hour lifetime. Authority/configuration changes and changed due-day wording cancel recovery. Unknown results are never replayed. Known IDs can receive at most six lifetime delivery checks, including manual checks and expired reservations; terminal delivery or suppression ends checking. Legacy attempts remain consumed and do not gain automatic recovery permission.
+
+The recovery migration and UI were deployed on October 10; see the [production release record](thoughts/shared/handoffs/2026-10-10-e4-s4-production-release.md). The pilot keeps sending disabled. Real-inbox acceptance remains pending. Read-only aggregate health is available in `supabase/operators/email-reminders-recovery-health.sql`.
+
+E5-S1 renewal links and progress tracking is deployed; its behavior is described below. Sender/scheduler activation, received-mail acceptance and external operational alerts remain separately scoped.
+
+- [Delivery recovery implementation plan](thoughts/shared/plans/2026-10-09-e4-s4-delivery-history-and-recovery.md).
+- [Executable specification](thoughts/shared/plans/2026-10-09-e4-s4-old-coder-spec.md).
+- [Activation and rollback guidance](thoughts/shared/handoffs/2026-10-09-e4-s4-delivery-recovery-activation.md).
+- [Local implementation evidence](thoughts/shared/research/2026-10-09-e4-s4-implementation-evidence.md).
+
+## E5-S1 renewal links and progress
+
+Active record detail lets administrators and managers save or clear an HTTPS renewal link, choose **Not started**, **In progress** or **Awaiting approval**, and explicitly acknowledge the team's first review. All active members can read progress and review time; viewers have no write controls. The register and dashboard show progress alongside the entered dates. Archived register entries retain their read-only summary.
+
+Progress and review do not change dates, dashboard/calendar urgency, completion or reminder eligibility. Opening a renewal site uses a native new-tab link with no application referrer or server fetch. Save requests enforce current membership, practice isolation, independent versions and exact retry receipts. An uncertain save retains its original payload; stale edits require explicit comparison and reload. The additive migration creates no historical workflow backfill or reminders.
+
+E5-S1 was deployed on October 13; see the [production release record](thoughts/shared/handoffs/2026-10-13-e5-s1-production-release.md). E5-S2 confirmed completion and successor dates was deployed on October 13; see the [production release record](thoughts/shared/handoffs/2026-10-13-e5-s2-production-release.md). The standard clean-commit gauntlet remains unchanged; `node tools/verify-workspace.mjs` runs its 38 registered layers against identified uncommitted source without claiming a clean-commit result.
+
+- [Implementation plan](thoughts/shared/plans/2026-10-12-e5-s1-renewal-links-and-progress.md).
+- [Executable specification](thoughts/shared/plans/2026-10-12-e5-s1-old-coder-spec.md).
+- [Implementation evidence](thoughts/shared/research/2026-10-12-e5-s1-implementation-evidence.md).
+- [Release handoff](thoughts/shared/handoffs/2026-10-12-e5-s1-renewal-links-and-progress.md).
+
+## E5-S2 confirmed renewal and successor dates (hosted pilot)
+
+**Record confirmed renewal** lets an active administrator or manager explicitly confirm an item and enter its new expiration or coverage end date. The end date must be after today in the practice timezone. A new earlier action deadline is optional, must also be future and precede the end date; blank clears the previous deadline. The app does not infer a renewal period or independently verify an issuer's decision.
+
+Confirmation preserves the previous cycle's dates, progress, first review, delivery evidence and consumed reminder permissions, then opens exactly one successor with Not started/unreviewed defaults. The record's renewal link, owner and policy coverage persist. Record editing and every workload view use the latest cycle. Ordinary date corrections remain separate from recording a confirmed renewal. Concurrent/stale requests cannot fork a successor, and an uncertain request must retry its exact original payload before another action.
+
+**Renewal history** displays 20 retained cycles per page and supports older pages. All active members can read it, including archived records; viewers cannot confirm renewal. Historical dates/progress are read-only. Completion time is recorded by the server and shown in practice time. No actor Auth IDs or saved renewal URLs are exported into this history view.
+
+Completion atomically cancels old unsent/claimed reminder work and persists an outbox obligation. The existing enabled worker subsequently creates the successor's normal sixty-day or catch-up job. A blocked recipient retains its explanation and eligibility changes enqueue reconciliation. Sending disabled can leave this work pending; recording renewal does not activate sending. An already-begun provider operation may still finish after confirmation, and its history remains visible.
+
+This story was deployed on October 13; see the [production release record](thoughts/shared/handoffs/2026-10-13-e5-s2-production-release.md). Email sending and optional texts remain inactive in the hosted pilot. E5-S3 renewal evidence is the next product story. After successors exist, rollback must keep latest-cycle SQL and parsers: reverting blindly to E5-S1 can show the wrong dates or reject cycle 2. Preserve all additive history/receipt tables and disable completion writes instead.
+
+- [E5-S2 implementation plan](thoughts/shared/plans/2026-10-13-e5-s2-confirmed-renewal-and-successor-cycles.md).
+- [E5-S2 executable specification](thoughts/shared/plans/2026-10-13-e5-s2-old-coder-spec.md).
+
+## Gmail reminder pilot (activation pending)
+
+`EMAIL_PROVIDER=gmail` selects a send-only Gmail integration without a custom sending domain. Unset or `resend` retains Resend. Unsupported selectors and incomplete Gmail configuration fail closed. The first live pilot is restricted to `arsen.yere1@gmail.com` as both sender and recipient. Ordinary practice eligibility, preferences, local sending windows and the same consumed cycle/user/email guard still apply across provider changes.
+
+Gmail requires a dedicated Google web OAuth client with Gmail API enabled and the exact redirect `http://127.0.0.1:53682/oauth/callback`. Its only scopes are `openid`, `https://www.googleapis.com/auth/userinfo.email` and `https://www.googleapis.com/auth/gmail.send`. There is no inbox access or Gmail password collection. Keep the downloaded web-client JSON outside the repository in a private directory (0700), with file permissions 0600. Register only that redirect. Run with the pinned Node version:
+
+```sh
+node tools/gmail-oauth.mjs --input /private/tmp/license-radar-gmail/client.json --output /private/tmp/license-radar-gmail/authorized --sender arsen.yere1@gmail.com --publishing testing
+```
+
+Create the output directory privately first. The helper prints an authorization URL, accepts one state/PKCE-bound loopback callback, verifies the exact grant/account and exclusively saves `gmail-credentials.json` with mode 0600. It never prints tokens or authorization codes. The user completes Google consent themselves. Testing-mode refresh credentials expire after seven days; use the recorded reconnect deadline and do not represent a time-limited test as ongoing activation. Use `--publishing production` only after verifying that publishing status in Google Cloud.
+
+The server-only settings are listed in `.env.example`; the binding contains verified metadata and a refresh-token digest, not the token. Gmail configuration is independent of Resend callback credentials and Auth SMTP. The operator must separately configure the private database authority with the same namespace, verified sender/subject, allowed recipient and app origin. Application users and the service role cannot change that authority. Disabling it prevents new Gmail permissions. An already-consumed namespace cannot be rebound to a different mailbox.
+
+Provider transition requires sending and scheduling off, expiration/inspection of in-flight reservations and invalidation/reconciliation of only unconsumed jobs under existing practice locks. Never clear attempts to change providers. Use one sending worker and retain the original Resend namespace for observation-only recovery. Gmail credentials belong in encrypted server hosting settings; Cron/Vault holds only the authenticated worker URL/token. Keep `RENEWAL_EVIDENCE_ENABLED=false` for a Gmail-only hosted release unless evidence activation is separately authorized.
+
+Each Gmail permission can make one send POST. Accepted messages store Google's real text ID separately from Resend UUIDs. History says **Accepted by Gmail; delivery is not confirmed**. Automatic resend and delivery checks are unavailable. Timeouts, crashes and uncertain results keep their consumed permission. Disabling sends/unscheduling retains all history and permits late result recording. Do not roll back to readers that mislabel Gmail history or ignore successor cycles.
+
+Local SQL, transport and browser fixtures do not establish actual inbox receipt. Live activation remains pending until Google consent, matched schema/application release, scheduler checks and one app-generated reminder received at the approved inbox are recorded.
+
+- [Approved Gmail specification](thoughts/shared/plans/2026-10-15-gmail-reminders-spec.md).
+- [Gmail implementation and activation plan](thoughts/shared/plans/2026-10-15-gmail-reminders.md).
+
+## Automatic scheduler alerts
+
+The optional independent Healthchecks.io monitor receives one empty POST after an enabled production reminder worker finishes successfully and its saved finish acknowledgment is exactly true. Successful idle/nighttime checks also signal; a recorded failed or uncertain individual email can still be a completed check. These alerts monitor missing completions, not inbox delivery or backlog age.
+
+Use the free account's **License Radar reminder worker** check: Simple Period 600 seconds, Grace 300 seconds, POST only, content filtering off, outage/recovery email on for the approved operator, repeated outage reminders off. Protect the private ping URL in server hosting Secret `REMINDER_HEALTHCHECK_URL`, and explicitly set `REMINDER_HEALTHCHECK_ENABLED=true`. The app requires Vercel production context and refuses provider fixtures. Development, preview, disabled sending and failed/incomplete runs cannot refresh production health. Monitoring transport failure never changes committed reminders or permits replay; the one attempt has a three-second header/body deadline and accepts only exact `OK`.
+
+For maintenance, pause the external check first and select **Ignore the ping, stay in the paused state**. Resume monitoring before restoring normal work and require an actual successful worker check-in to return Up. To withdraw monitoring, pause its check and disable/remove the optional heartbeat settings in a new deployment; retain the reminder scheduler, grants and consumed history. Rotate a leaked ping URL through protected hosting settings. Never put its UUID in logs, tickets, screenshots or public assets.
+
+Test alerts using a separate labeled 60-second Period / 60-second Grace drill, then pause it. Keep live reminders running. Activation requires actual scheduled production pings, production 600/300 settings readback and separately confirmed Down/Up inbox receipt; a local test is not that evidence. See the [approved scheduler-alert contract](thoughts/shared/plans/2026-10-16-reminder-scheduler-alerts-spec.md) and [implementation plan](thoughts/shared/plans/2026-10-16-reminder-scheduler-alerts.md).
+
+## E2-S5 renewal record numbers (local implementation)
+
+Add/edit supports an optional **License number**, **DEA registration number**, or **Policy number**. Numbers are text: leading zeros, case, punctuation and internal spaces persist. Surrounding whitespace is trimmed; up to 120 Unicode code points are accepted, excluding embedded control characters. No issuing-authority lookup or format validation is claimed. The internal UUID remains the app identity and is labeled **App reference** in the register.
+
+Active practice members can read full numbers in the register and record detail; administrators/managers can correct or clear them. Confirmed type changes clear the draft number for review. Numbers persist across renewal cycles and archive. If a new policy or registration gets a different number, correct it through Edit record. Number-only edits leave dates, progress and reminder scheduling unchanged.
+
+The additive migration must precede the matching app. Legacy forms that omit the field preserve numbers on same-type edits; an explicitly blank new field clears the current value. Private audit/receipt snapshots can retain previous values after clearing. Numbers are omitted from reminder messages, URLs and app diagnostics. This feature adds no masking, field encryption, registry verification or public number lookup. Hosted deployment has not been performed for this story.
+
+- [Executable specification](thoughts/shared/plans/2026-10-16-e2-s5-spec.md).
+- [Implementation plan](thoughts/shared/plans/2026-10-16-e2-s5-renewal-record-numbers.md).
+
+## Practice-owned PCI compliance certificates (local implementation)
+
+The renewal register supports **PCI compliance certificate** records owned by the practice. Add an optional **Certificate number**, **Certificate issuer**, **Jurisdiction**, and **Expiration date**, plus an optional earlier action deadline. Leave unknown dates blank; the practice supplies the dates. PCI records have no clinician owner or covered-clinician list. Other record types retain their existing ownership options.
+
+PCI records use the existing calendar, dashboard, renewal link/progress, confirmed renewal and retained history. The earlier action deadline drives tracking when present; otherwise expiration does. Certificate files can be attached to a cycle through existing evidence when configured. Uploading a file does not confirm renewal or establish compliance; no annual interval is inferred.
+
+Apply the additive PCI migration before the matching application. Existing rows and immutable receipts are retained. Once PCI records exist, rollback must retain PCI-capable register/history/evidence readers; archiving does not make old readers compatible. Keep the ownership constraint and validators, and use a compatible forward fix. This local feature does not activate hosted uploads or notification providers and has not been deployed by this task.

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { recoverySummarySchema, providerCapabilitySchema } from "./history";
 export const preferenceSchema = z
   .object({
     enabled: z.boolean(),
@@ -77,3 +78,33 @@ export type PreferenceState = {
   preference?: Preference;
   message?: string;
 };
+
+export const scheduleV3Schema = scheduleSchema
+  .extend({
+    rows: z
+      .array(
+        scheduleSchema.shape.rows.element.extend({
+          historyAvailable: z.literal(true),
+          activeLinkAvailable: z.boolean(),
+          recovery: recoverySummarySchema.nullable(),
+        }),
+      )
+      .max(100),
+  })
+  .strict();
+export type ScheduleV3 = z.infer<typeof scheduleV3Schema>;
+export const scheduleV4Schema = scheduleV3Schema.extend({
+  rows: z
+    .array(
+      scheduleV3Schema.shape.rows.element.extend({
+        provider: providerCapabilitySchema.nullable(),
+      }),
+    )
+    .max(100),
+  emailReadiness: z.enum([
+    ...scheduleSchema.shape.emailReadiness.options,
+    "gmail-unavailable",
+    "gmail-recipient-blocked",
+  ]),
+});
+export type ScheduleV4 = z.infer<typeof scheduleV4Schema>;

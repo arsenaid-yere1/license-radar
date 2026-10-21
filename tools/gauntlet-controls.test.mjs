@@ -1,6 +1,15 @@
-import { readFileSync } from "node:fs";
+import {
+  readFileSync,
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { assertCoverage } from "./check-coverage.mjs";
 import { assertLocal } from "./local-environment.mjs";
 import {
@@ -13,6 +22,197 @@ const fixtures = JSON.parse(
   readFileSync("tests/fixtures/gauntlet-controls/controls.json", "utf8"),
 );
 const covered = fixtures.covered;
+test("number verification rejects missing/duplicate/changed execution and omitted mutation targets", async () => {
+  const { assertNumberVerification } = await import("./number-controls.mjs");
+  const { default: production } = await import("../stryker.config.mjs");
+  const { default: properties } =
+    await import("../stryker.properties.config.mjs");
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  const id = "credential-numbers-upgrade",
+    layer = layers.find((l) => l.id === id);
+  assert.doesNotThrow(() =>
+    assertNumberVerification(layers, production, properties),
+  );
+  for (const bad of [
+    layers.filter((l) => l.id !== id),
+    [...layers, layer],
+    layers.map((l) => (l.id === id ? { ...l, args: [] } : l)),
+  ])
+    assert.throws(() => assertNumberVerification(bad, production, properties));
+  for (const propertyOnly of [false, true]) {
+    const original = propertyOnly ? properties : production;
+    const changed = {
+      ...original,
+      mutate: original.mutate.filter(
+        (p) => p !== "src/lib/register/numbers.ts",
+      ),
+    };
+    assert.throws(
+      () =>
+        assertNumberVerification(
+          layers,
+          propertyOnly ? production : changed,
+          propertyOnly ? changed : properties,
+        ),
+      /Missing number validator/,
+    );
+  }
+});
+test("browser controls discard their recordings preserve original coverage and reject tampering even on failure", async () => {
+  const { withIsolatedCoverage } = await import("./renewal-controls.mjs"),
+    root = mkdtempSync(`${tmpdir()}/renewal-coverage-control-`),
+    directories = [`${root}/browser`, `${root}/node`];
+  try {
+    for (const d of directories) {
+      mkdirSync(d);
+      writeFileSync(`${d}/original.json`, "original");
+    }
+    const make = () => {
+      for (const d of directories) writeFileSync(`${d}/fault.json`, "fault");
+    };
+    assert.equal(
+      await withIsolatedCoverage(() => {
+        make();
+        return "proved";
+      }, directories),
+      "proved",
+    );
+    for (const d of directories) {
+      assert.deepEqual(readdirSync(d), ["original.json"]);
+      assert.equal(readFileSync(`${d}/original.json`, "utf8"), "original");
+    }
+    await assert.rejects(
+      withIsolatedCoverage(() => {
+        make();
+        throw new Error("fixture failure");
+      }, directories),
+      /fixture failure/,
+    );
+    for (const d of directories)
+      assert.deepEqual(readdirSync(d), ["original.json"]);
+    await assert.rejects(
+      withIsolatedCoverage(() => {
+        writeFileSync(`${directories[0]}/original.json`, "tampered");
+      }, directories),
+      /Control changed existing coverage/,
+    );
+    assert.equal(
+      readFileSync(`${directories[0]}/original.json`, "utf8"),
+      "original",
+    );
+    await assert.rejects(
+      withIsolatedCoverage(() => {}, [`${directories[0]}/original.json`]),
+      /ENOTDIR/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+test("uncommitted verification refuses source drift missing layers duplicates and failed evidence", async () => {
+  const {
+    assertWorkspaceUnchanged,
+    assertWorkspaceLayers,
+    requiredWorkspaceLayers,
+  } = await import("./verify-workspace.mjs");
+  assert.doesNotThrow(() =>
+    assertWorkspaceUnchanged(
+      { sourceHash: "a".repeat(64) },
+      { sourceHash: "a".repeat(64) },
+    ),
+  );
+  assert.throws(
+    () =>
+      assertWorkspaceUnchanged(
+        { sourceHash: "a".repeat(64) },
+        { sourceHash: "b".repeat(64) },
+      ),
+    /Workspace source changed/,
+  );
+  const layers = requiredWorkspaceLayers.map((id) => ({ id }));
+  assert.throws(
+    () => assertWorkspaceUnchanged({}, {}),
+    /Missing identified source/,
+  );
+  assert.equal(layers.length, 47);
+  assert.doesNotThrow(() => assertWorkspaceLayers(layers));
+  for (const id of requiredWorkspaceLayers)
+    assert.throws(
+      () => assertWorkspaceLayers(layers.filter((l) => l.id !== id)),
+      /Missing layer/,
+    );
+  assert.throws(
+    () => assertWorkspaceLayers([...layers, layers[0]]),
+    /Duplicate layer/,
+  );
+});
+test("renewal upgrade and mutation inventories reject every omitted target", async () => {
+  const { assertRenewalMutationTargets } =
+    await import("./renewal-controls.mjs");
+  const { default: production } = await import("../stryker.config.mjs");
+  const { default: properties } =
+    await import("../stryker.properties.config.mjs");
+  assert.doesNotThrow(() =>
+    assertRenewalMutationTargets(production, properties),
+  );
+  for (const target of [
+    "src/lib/renewals/history.ts",
+    "src/lib/renewals/state.ts",
+    "src/lib/renewals/schema.ts",
+    "src/lib/renewals/repository.ts",
+    "src/lib/renewals/operations.ts",
+    "src/lib/renewals/messages.ts",
+    "src/app/practice/register/[[]credentialId]/actions.ts",
+  ]) {
+    assert.throws(
+      () =>
+        assertRenewalMutationTargets(
+          {
+            ...production,
+            mutate: production.mutate.filter((t) => t !== target),
+          },
+          properties,
+        ),
+      /Missing renewal mutation target/,
+    );
+  }
+  for (const target of [
+    "src/lib/renewals/history.ts",
+    "src/lib/renewals/state.ts",
+    "src/lib/renewals/schema.ts",
+  ])
+    assert.throws(
+      () =>
+        assertRenewalMutationTargets(production, {
+          ...properties,
+          mutate: properties.mutate.filter((t) => t !== target),
+        }),
+      /Missing renewal mutation target/,
+    );
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  assert(
+    readFileSync("tools/gauntlet.mjs", "utf8").includes(
+      '"renewal-workflow-upgrade"',
+    ),
+  );
+  assert.deepEqual(
+    layers.find((l) => l.id === "renewal-workflow-upgrade"),
+    {
+      id: "renewal-workflow-upgrade",
+      command: "node",
+      args: ["tools/renewal-workflow-upgrade.mjs"],
+    },
+  );
+  assert.throws(
+    () =>
+      assertLayers(
+        layers.map((l) => l.id),
+        layers
+          .filter((l) => l.id !== "renewal-workflow-upgrade")
+          .map((l) => ({ id: l.id, exitCode: 0 })),
+      ),
+    /Missing layer/,
+  );
+});
 test("UI fault evidence retains assertion classification without invitation-bearing diagnostics", async () => {
   const { mutationFailureEvidence } =
     await import("./ui-coverage-sensitivity.mjs");
@@ -29,6 +229,36 @@ test("UI fault evidence retains assertion classification without invitation-bear
 });
 test("coverage accepts executed source", () =>
   assert.doesNotThrow(() => assertCoverage(covered, ["src/example.ts"])));
+test("browser coverage resolves encoded dynamic routes and refuses escaped bundle paths", async () => {
+  const { browserCompiledPath } = await import("./check-coverage.mjs");
+  assert.equal(
+    browserCompiledPath(
+      "http://127.0.0.1:3000/_next/static/chunks/app/practice/reminders/%5BcredentialId%5D/page.js",
+    ),
+    resolve(
+      ".next/static/chunks/app/practice/reminders/[credentialId]/page.js",
+    ),
+  );
+  assert.equal(
+    browserCompiledPath("http://127.0.0.1:3000/_next/static/chunks/main.js"),
+    resolve(".next/static/chunks/main.js"),
+  );
+  assert.throws(
+    () =>
+      browserCompiledPath(
+        "http://127.0.0.1:3000/_next/static/%2e%2e%2f%2e%2e%2fsecret.js",
+      ),
+    /Escaped browser bundle path/,
+  );
+  assert.throws(
+    () => browserCompiledPath("http://127.0.0.1:3000/other/main.js"),
+    /Unexpected browser bundle path/,
+  );
+  assert.throws(
+    () => browserCompiledPath("http://127.0.0.1:3000/_next/static/%ZZ.js"),
+    URIError,
+  );
+});
 test("missing coverage hard failure", () =>
   assert.throws(
     () => assertCoverage({}, ["src/example.ts"]),
@@ -411,4 +641,97 @@ test("catch-up upgrade is mandatory in both gauntlet inventories", () => {
       ),
     /Missing layer/,
   );
+});
+
+test("recovery upgrade is mandatory and omission fails even when every other layer passes", () => {
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  const gauntlet = readFileSync("tools/gauntlet.mjs", "utf8");
+  const upgrade = layers.find(
+    (layer) => layer.id === "reminder-recovery-upgrade",
+  );
+  assert(upgrade, "Missing recovery upgrade in executable layer inventory");
+  assert(
+    gauntlet.includes('"reminder-recovery-upgrade"'),
+    "Missing recovery upgrade in required inventory",
+  );
+  assert.equal(upgrade.command, "node");
+  assert.deepEqual(upgrade.args, ["tools/reminder-recovery-upgrade.mjs"]);
+  assert.throws(
+    () =>
+      assertLayers(
+        layers.map((layer) => layer.id),
+        layers
+          .filter((layer) => layer.id !== "reminder-recovery-upgrade")
+          .map((layer) => ({ id: layer.id, exitCode: 0 })),
+      ),
+    /Missing layer: reminder-recovery-upgrade/,
+  );
+  assert.doesNotThrow(() =>
+    assertLayers(
+      layers.map((layer) => layer.id),
+      layers.map((layer) => ({ id: layer.id, exitCode: 0 })),
+    ),
+  );
+});
+
+test("completion upgrade rejects missing duplicate and changed execution", async () => {
+  const { assertCompletionLayer } = await import("./completion-controls.mjs"),
+    layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  assert.doesNotThrow(() => assertCompletionLayer(layers));
+  assert.throws(() =>
+    assertCompletionLayer(
+      layers.filter((l) => l.id !== "renewal-completion-upgrade"),
+    ),
+  );
+  assert.throws(() =>
+    assertCompletionLayer([
+      ...layers,
+      layers.find((l) => l.id === "renewal-completion-upgrade"),
+    ]),
+  );
+  assert.throws(() =>
+    assertCompletionLayer(
+      layers.map((l) =>
+        l.id === "renewal-completion-upgrade" ? { ...l, args: [] } : l,
+      ),
+    ),
+  );
+});
+
+test("PCI verification rejects omitted duplicate changed layer and missing shared mutation target", async () => {
+  const { assertPciVerification } = await import("./pci-controls.mjs");
+  const { default: production } = await import("../stryker.config.mjs"),
+    { default: properties } = await import("../stryker.properties.config.mjs");
+  const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+  const layer = {
+    id: "pci-certificates-upgrade",
+    command: "node",
+    args: ["tools/pci-certificates-upgrade.mjs"],
+  };
+  const valid = [...layers.filter((l) => l.id !== layer.id), layer];
+  const prod = {
+    ...production,
+    mutate: [...production.mutate, "src/lib/register/types.ts"],
+  };
+  const props = {
+    ...properties,
+    mutate: [...properties.mutate, "src/lib/register/types.ts"],
+  };
+  assert.doesNotThrow(() => assertPciVerification(valid, prod, props));
+  for (const bad of [
+    valid.filter((l) => l.id !== layer.id),
+    [...valid, layer],
+    valid.map((l) => (l.id === layer.id ? { ...l, args: [] } : l)),
+  ])
+    assert.throws(() => assertPciVerification(bad, prod, props));
+  for (const which of [0, 1]) {
+    const configs = [prod, props].map((c) => ({ ...c, mutate: [...c.mutate] }));
+    configs[which].mutate = configs[which].mutate.filter(
+      (t) => t !== "src/lib/register/types.ts",
+    );
+    assert.throws(
+      () => assertPciVerification(valid, ...configs),
+      /Missing PCI/,
+    );
+  }
 });

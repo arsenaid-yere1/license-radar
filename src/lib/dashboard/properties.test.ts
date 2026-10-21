@@ -54,6 +54,7 @@ it("QP01 exact independent partitions, overlap, order, immutability and progress
             "state_license",
             "dea_registration",
             "malpractice_policy",
+            "pci_compliance_certificate",
           ),
           owner: fc.boolean(),
         }),

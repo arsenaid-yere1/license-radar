@@ -75,9 +75,34 @@
     "args": ["tools/reminder-catch-up-upgrade.mjs"]
   },
   {
+    "id": "reminder-recovery-upgrade",
+    "command": "node",
+    "args": ["tools/reminder-recovery-upgrade.mjs"]
+  },
+  {
     "id": "replay",
     "command": "npm",
     "args": ["run", "db:reset"]
+  },
+  {
+    "id": "renewal-workflow-upgrade",
+    "command": "node",
+    "args": ["tools/renewal-workflow-upgrade.mjs"]
+  },
+  {
+    "id": "renewal-completion-upgrade",
+    "command": "node",
+    "args": ["tools/renewal-completion-upgrade.mjs"]
+  },
+  {
+    "id": "renewal-evidence-upgrade",
+    "command": "node",
+    "args": ["tools/renewal-evidence-upgrade.mjs"]
+  },
+  {
+    "id": "evidence-storage",
+    "command": "node",
+    "args": ["tools/evidence-storage.mjs"]
   },
   {
     "id": "schema",
@@ -93,6 +118,41 @@
     "id": "integration",
     "command": "npm",
     "args": ["run", "test:integration"]
+  },
+  {
+    "id": "evidence-controls",
+    "command": "node",
+    "args": ["tools/evidence-controls.mjs"]
+  },
+  {
+    "id": "gmail-reminders-upgrade",
+    "command": "node",
+    "args": ["tools/gmail-reminders-upgrade.mjs"]
+  },
+  {
+    "id": "credential-numbers-upgrade",
+    "command": "node",
+    "args": ["tools/credential-numbers-upgrade.mjs"]
+  },
+  {
+    "id": "pci-certificates-upgrade",
+    "command": "node",
+    "args": ["tools/pci-certificates-upgrade.mjs"]
+  },
+  {
+    "id": "gmail-controls",
+    "command": "node",
+    "args": ["tools/gmail-controls.mjs"]
+  },
+  {
+    "id": "gmail-oauth-controls",
+    "command": "node",
+    "args": ["tools/gmail-oauth-controls.mjs"]
+  },
+  {
+    "id": "heartbeat-controls",
+    "command": "node",
+    "args": ["tools/heartbeat-controls.mjs"]
   },
   {
     "id": "unit-coverage",

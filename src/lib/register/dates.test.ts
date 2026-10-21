@@ -167,7 +167,7 @@ it("D06 projections require coherent cycle data and preserve date purposes", () 
     { issuer: undefined },
     { jurisdiction: undefined },
     { current_cycle: { ...record.current_cycle, id: "bad" } },
-    { current_cycle: { ...record.current_cycle, cycle_number: 2 } },
+    { current_cycle: { ...record.current_cycle, cycle_number: 0 } },
     { current_cycle: { ...record.current_cycle, date_revision: 0 } },
     { current_cycle: { ...record.current_cycle, end_date: "2026-02-29" } },
     {
@@ -181,11 +181,26 @@ it("D06 projections require coherent cycle data and preserve date purposes", () 
     expect(credentialSchema.safeParse({ ...record, ...patch }).success).toBe(
       false,
     );
+  for (const cycle_number of [1, 2, 2147483647])
+    expect(
+      credentialSchema.parse({
+        ...record,
+        current_cycle: { ...record.current_cycle, cycle_number },
+      }).current_cycle.cycle_number,
+    ).toBe(cycle_number);
+  for (const cycle_number of [-1, 1.5, 2147483648])
+    expect(
+      credentialSchema.safeParse({
+        ...record,
+        current_cycle: { ...record.current_cycle, cycle_number },
+      }).success,
+    ).toBe(false);
   expect(trackingDate(null, null, "state_license")).toBeNull();
   for (const type of [
     "state_license",
     "dea_registration",
     "malpractice_policy",
+    "pci_compliance_certificate",
   ]) {
     expect(trackingDate("2026-12-02", null, type)).toEqual({
       date: "2026-12-02",
@@ -250,6 +265,11 @@ it("P03 independent UTC calendar oracle preserves dates and adjacent invalid bou
 
 it("D11 type-specific field purposes are exact", () => {
   expect(detailLabels).toEqual({
+    pci_compliance_certificate: {
+      issuer: "Certificate issuer",
+      jurisdiction: "Jurisdiction",
+      end: "Expiration date",
+    },
     state_license: {
       issuer: "Licensing board",
       jurisdiction: "State or territory",
@@ -280,6 +300,7 @@ it("P04 ordered pairs, explicit unknowns, metadata boundaries and tracking purpo
         "state_license",
         "dea_registration",
         "malpractice_policy",
+        "pci_compliance_certificate",
       ),
       (year, hasEnd, hasAction, length, char, type) => {
         const yearText = String(year).padStart(4, "0"),

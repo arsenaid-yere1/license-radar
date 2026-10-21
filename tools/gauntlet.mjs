@@ -1,12 +1,42 @@
+import { assertPciVerification } from "./pci-controls.mjs";
+import {
+  assertHeartbeatLayers,
+  assertHeartbeatMutationTargets,
+} from "./heartbeat-controls.mjs";
+import {
+  assertGmailLayers,
+  assertGmailMutationTargets,
+} from "./gmail-controls.mjs";
+import {
+  assertEvidenceLayers,
+  assertEvidenceMutationTargets,
+} from "./evidence-controls.mjs";
+import { assertCompletionLayer } from "./completion-controls.mjs";
+import { assertNumberVerification } from "./number-controls.mjs";
+import { assertRecoveryMutationTargets } from "./recovery-controls.mjs";
+import { assertRenewalMutationTargets } from "./renewal-controls.mjs";
+import mutationConfig from "../stryker.config.mjs";
+import propertiesConfig from "../stryker.properties.config.mjs";
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { sourceState } from "./source-state.mjs";
 import { assertLayers } from "./gauntlet-contract.mjs";
+assertRecoveryMutationTargets(mutationConfig, propertiesConfig);
+assertRenewalMutationTargets(mutationConfig, propertiesConfig);
 const source = sourceState();
 if (!process.version.startsWith("v24."))
   throw new Error("Gauntlet requires recorded Node 24 LTS");
 const layers = JSON.parse(readFileSync("tools/layers.json", "utf8"));
+assertNumberVerification(layers, mutationConfig, propertiesConfig);
+assertPciVerification(layers, mutationConfig, propertiesConfig);
+assertCompletionLayer(layers);
+assertEvidenceLayers(layers);
+assertGmailLayers(layers);
+assertHeartbeatLayers(layers);
+assertHeartbeatMutationTargets(mutationConfig, propertiesConfig);
+assertGmailMutationTargets(mutationConfig, propertiesConfig);
+assertEvidenceMutationTargets(mutationConfig, propertiesConfig);
 const requiredLayers = [
   "checker-controls",
   "checker-sensitivity",
@@ -22,6 +52,18 @@ const requiredLayers = [
   "sms-enrollment-upgrade",
   "reminder-jobs-upgrade",
   "reminder-catch-up-upgrade",
+  "reminder-recovery-upgrade",
+  "renewal-workflow-upgrade",
+  "renewal-completion-upgrade",
+  "renewal-evidence-upgrade",
+  "evidence-storage",
+  "evidence-controls",
+  "gmail-reminders-upgrade",
+  "credential-numbers-upgrade",
+  "pci-certificates-upgrade",
+  "gmail-controls",
+  "gmail-oauth-controls",
+  "heartbeat-controls",
   "replay",
   "schema",
   "database",

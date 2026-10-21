@@ -95,6 +95,7 @@ it("P02 ownership and canonical coverage accept precisely eligible combinations"
           "state_license",
           "dea_registration",
           "malpractice_policy",
+          "pci_compliance_certificate",
         ])
           for (const ownerKind of ["practice", "clinician"])
             for (const ownerClinicianId of [undefined, id]) {
@@ -106,6 +107,8 @@ it("P02 ownership and canonical coverage accept precisely eligible combinations"
                 coveredClinicianIds: coverage,
               };
               const allowed =
+                (type !== "pci_compliance_certificate" ||
+                  ownerKind === "practice") &&
                 (ownerKind === "clinician"
                   ? ownerClinicianId === id
                   : ownerClinicianId === undefined) &&
@@ -266,6 +269,7 @@ it("P01 adversarial Unicode and P02 public type labels remain truthful", () => {
     state_license: "State license",
     dea_registration: "DEA registration",
     malpractice_policy: "Malpractice policy",
+    pci_compliance_certificate: "PCI compliance certificate",
   });
   fc.assert(
     fc.property(
@@ -349,6 +353,7 @@ it("P05 maintenance tokens and full authored combinations have canonical round t
           "state_license",
           "dea_registration",
           "malpractice_policy",
+          "pci_compliance_certificate",
         ])
           for (const ownerKind of ["practice", "clinician"]) {
             const raw = {
@@ -362,8 +367,10 @@ it("P05 maintenance tokens and full authored combinations have canonical round t
             };
             const parsed = maintenanceInputSchema.safeParse(raw);
             expect(parsed.success).toBe(
-              !coverage.length ||
-                (type === "malpractice_policy" && ownerKind === "practice"),
+              (type !== "pci_compliance_certificate" ||
+                ownerKind === "practice") &&
+                (!coverage.length ||
+                  (type === "malpractice_policy" && ownerKind === "practice")),
             );
             if (parsed.success) {
               expect(parsed.data).toEqual({

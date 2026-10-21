@@ -20,7 +20,8 @@ port = 55324
 [realtime]
 enabled = false
 [storage]
-enabled = false
+enabled = true
+file_size_limit = "3MiB"
 [edge_runtime]
 enabled = false
 [analytics]

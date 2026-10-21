@@ -16,6 +16,7 @@ const types = [
   "state_license",
   "dea_registration",
   "malpractice_policy",
+  "pci_compliance_certificate",
 ] as const;
 const options = { seed: 20261007, numRuns: 1500 };
 it("CP01 exact independent event sets preserve cardinality, archive/filter boundaries, dates and identity", () => {

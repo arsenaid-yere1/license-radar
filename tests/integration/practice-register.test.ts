@@ -180,11 +180,18 @@ it("G05 G06 shared policy identity zero coverage and unsupported coverage", asyn
       .sort((x, y) => x.id.localeCompare(y.id)),
   );
   const listed = (await list(a, a.practice.id)).data.credentials;
+  // Upgrade rehearsals also execute this contract against pre-number schemas.
+  const supportsNumbers = (
+    await pool.query(
+      "select exists (select 1 from information_schema.columns where table_schema='public' and table_name='credentials' and column_name='record_number') supported",
+    )
+  ).rows[0].supported;
   expect(listed).toEqual([
     {
       ...r.data.credential,
       issuer: null,
       jurisdiction: null,
+      ...(supportsNumbers ? { record_number: null } : {}),
       current_cycle: {
         id: expect.any(String),
         cycle_number: 1,

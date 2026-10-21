@@ -1,8 +1,31 @@
+import { assertPciVerification } from "./pci-controls.mjs";
+import {
+  assertHeartbeatCapabilities,
+  assertHeartbeatMutationTargets,
+} from "./heartbeat-controls.mjs";
+import { assertRecoveryMutationTargets } from "./recovery-controls.mjs";
+import {
+  assertGmailCapabilities,
+  assertGmailMutationTargets,
+} from "./gmail-controls.mjs";
+import {
+  assertEvidenceCapabilities,
+  assertEvidenceMutationTargets,
+  evidenceSecretModules,
+} from "./evidence-controls.mjs";
+import { assertRenewalMutationTargets } from "./renewal-controls.mjs";
+import mutationConfig from "../stryker.config.mjs";
+import propertiesConfig from "../stryker.properties.config.mjs";
 import {
   assertSmsCapabilities,
   applicationSources,
 } from "./sms-capabilities.mjs";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+assertPciVerification(
+  JSON.parse(readFileSync("tools/layers.json", "utf8")),
+  mutationConfig,
+  propertiesConfig,
+);
 const result = [];
 function walk(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -13,7 +36,8 @@ function walk(dir) {
       if (
         /user_metadata/.test(source) ||
         (/SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY/.test(source) &&
-          file !== "src/lib/sms/privileged-repository.ts")
+          file !== "src/lib/sms/privileged-repository.ts" &&
+          !evidenceSecretModules.has(file))
       )
         throw new Error(`Unauthorized app authorization capability: ${file}`);
       for (const [kind, pattern] of Object.entries({
@@ -34,12 +58,20 @@ function walk(dir) {
     }
   }
 }
+assertRecoveryMutationTargets(mutationConfig, propertiesConfig);
+assertRenewalMutationTargets(mutationConfig, propertiesConfig);
 assertSmsCapabilities(applicationSources());
+assertEvidenceCapabilities(applicationSources());
+assertEvidenceMutationTargets(mutationConfig, propertiesConfig);
+assertGmailCapabilities(applicationSources());
+assertGmailMutationTargets(mutationConfig, propertiesConfig);
+assertHeartbeatCapabilities(applicationSources());
+assertHeartbeatMutationTargets(mutationConfig, propertiesConfig);
 walk("src");
 const report = {
   capabilities: result,
   scope:
-    "Application source uses configured Supabase Auth/Data API and authenticated RPCs, cryptography, tab-scoped session storage, clipboard copying and cookies. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem and verification subprocesses. SMS verification/STOP and email reminder dispatch/events share one constrained server-only privileged client. Email sends use one fixed Resend origin or an explicit loopback fixture; callbacks verify official Svix signatures. Live email is opt-in and independent of optional SMS. No hosting or renewal portal actions.",
+    "Application source uses configured Supabase Auth/Data API and authenticated RPCs, cryptography, tab-scoped session storage, clipboard copying and cookies. Test/tool scripts additionally use loopback HTTP, dedicated local Postgres, Docker, filesystem and verification subprocesses. SMS verification/STOP and email reminder dispatch/events share one constrained server-only privileged client. Evidence has a separate server-only gateway with named checked RPCs and immutable paths in one private bucket; no signing or raw client exports. Email sends use one fixed Resend origin or an explicit loopback fixture; callbacks verify official Svix signatures. Live email and evidence are opt-in, independently of SMS. An optional server-only production heartbeat sends an empty POST to fixed hc-ping.com after persisted worker completion. No hosting or renewal portal actions.",
   limits:
     "Text inspection detects listed spellings; it is not a complete transitive capability proof. Schema fingerprint and dependency inventory provide separate evidence.",
 };

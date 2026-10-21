@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { handleReminderRun, type ReminderServices } from "./worker";
 import type { EmailConfig } from "./config";
+import type { RecoveryWorkerServices } from "./recovery-worker";
 const id = "f9cbb616-4856-4787-b4f2-734e731059cb",
   token = "10000000-0000-4000-8000-000000000002";
 const config: EmailConfig = {
@@ -346,4 +347,96 @@ it("EW14 storage, count and heartbeat faults return unavailable, including the d
     status: "complete",
     counts: { expired: 0, accounts: 999999, scanned: 0 },
   });
+});
+
+it("EW15 parent response and heartbeat preserve counted recovery outcomes across four real dispatch slots", async () => {
+  const { s, send } = services();
+  const wall = Date.parse("2030-01-01T10:00:00Z");
+  const outcomes = [
+    {
+      kind: "accepted",
+      providerId: id,
+      errorCode: null,
+      retryAfterSeconds: null,
+    },
+    {
+      kind: "permanent",
+      providerId: null,
+      errorCode: "validation_error",
+      retryAfterSeconds: null,
+    },
+    {
+      kind: "uncertain",
+      providerId: null,
+      errorCode: "provider-unavailable",
+      retryAfterSeconds: null,
+    },
+    {
+      kind: "rate-limited",
+      providerId: null,
+      errorCode: "rate_limit_exceeded",
+      retryAfterSeconds: 60,
+    },
+  ];
+  const sendRecovery = vi.fn();
+  const recovery = {
+    sendingEnabled: true,
+    provider: vi.fn(() => ({ sendRecovery, retrieve: vi.fn() })),
+    claim: vi.fn().mockResolvedValue({ status: "idle" }),
+    begin: vi.fn(),
+    record: vi.fn().mockResolvedValue({ status: "recorded" }),
+    recordCheck: vi.fn(),
+    now: () => 0,
+    wallNow: () => wall,
+  } satisfies RecoveryWorkerServices;
+  for (const [index, outcome] of outcomes.entries()) {
+    const attemptId = `10000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`;
+    const submissionId = `10000000-0000-4000-8000-${String(index + 20).padStart(12, "0")}`;
+    recovery.claim.mockResolvedValueOnce({
+      kind: "fresh",
+      jobId: attemptId,
+      token,
+    });
+    recovery.begin.mockResolvedValueOnce({
+      ...submission,
+      attemptId,
+      key: `reminder-email/${attemptId}`,
+      submissionId,
+      ordinal: 1,
+      payload: {
+        ...submission.payload,
+        tags: [{ name: "reminder_attempt", value: attemptId }],
+      },
+      deadline: new Date(wall + 30000).toISOString(),
+      expiresAt: new Date(wall + 23 * 3600000).toISOString(),
+    });
+    sendRecovery.mockResolvedValueOnce(outcome);
+  }
+  const response = await handleReminderRun(request(), {
+    ...s,
+    recovery,
+    recoveryConfig: () => config,
+  });
+  const counts = {
+    scanned: 3,
+    accounts: 2,
+    expired: 1,
+    submitted: 4,
+    accepted: 1,
+    failed: 2,
+    uncertain: 1,
+  };
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ status: "complete", counts });
+  expect(s.finish).toHaveBeenCalledExactlyOnceWith(id, true, counts);
+  expect(sendRecovery).toHaveBeenCalledTimes(4);
+  expect(recovery.claim).toHaveBeenCalledTimes(4);
+  expect(recovery.begin).toHaveBeenCalledTimes(4);
+  expect(recovery.record).toHaveBeenCalledTimes(4);
+  expect(recovery.recordCheck).not.toHaveBeenCalled();
+  expect(s.provider).not.toHaveBeenCalled();
+  expect(s.claim).not.toHaveBeenCalled();
+  expect(s.begin).not.toHaveBeenCalled();
+  expect(s.record).not.toHaveBeenCalled();
+  expect(send).not.toHaveBeenCalled();
 });

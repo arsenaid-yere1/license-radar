@@ -1,3 +1,4 @@
+import type { CredentialType } from "./types";
 /** A calendar day, kept as text so a timezone cannot change it. */
 export function isCredentialDate(value: string): boolean {
   // The final lookahead requires absolute end, including after line terminators.
@@ -39,6 +40,11 @@ export function trackingDate(
   return null;
 }
 export const detailLabels = {
+  pci_compliance_certificate: {
+    issuer: "Certificate issuer",
+    jurisdiction: "Jurisdiction",
+    end: "Expiration date",
+  },
   state_license: {
     issuer: "Licensing board",
     jurisdiction: "State or territory",
@@ -54,4 +60,7 @@ export const detailLabels = {
     jurisdiction: "Coverage jurisdiction",
     end: "Coverage end date",
   },
-} as const;
+} as const satisfies Record<
+  CredentialType,
+  { issuer: string; jurisdiction: string; end: string }
+>;

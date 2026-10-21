@@ -63,7 +63,9 @@ it("S09 S15 invalid response retains input and focuses associated error", async 
   expect(
     screen.getByLabelText("Practice name").getAttribute("aria-describedby"),
   ).toContain("name-error");
-  expect(document.activeElement).toBe(screen.getByRole("status"));
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole("status")),
+  );
 });
 it("S15 pending save disables submission", async () => {
   let finish: (v: { status: string }) => void = () => {};

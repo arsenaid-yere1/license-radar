@@ -30,7 +30,71 @@ it("PR01 every named email operation binds its inputs and installs a five-second
     providerId: "provider",
     error: null,
   };
+  const recovery = {
+    kind: "accepted" as const,
+    providerId: "provider",
+    errorCode: null,
+    retryAfterSeconds: null,
+  };
+  const observation = {
+    status: "delivered" as const,
+    bounced: false,
+    matched: true,
+  };
   const cases = [
+    [
+      () => repository.beginGmailReminder("job", "token", config, "subject", 2),
+      "begin_gmail_reminder",
+      {
+        p_job_id: "job",
+        p_claim_token: "token",
+        p_config: config,
+        p_subject: "subject",
+        p_authority_version: 2,
+      },
+    ],
+    [
+      () => repository.recordGmailReminder("attempt", "token", outcome),
+      "record_gmail_reminder",
+      {
+        p_attempt_id: "attempt",
+        p_token: "token",
+        p_outcome: "accepted",
+        p_message_id: "provider",
+        p_error: null,
+      },
+    ],
+    [() => repository.expireGmailReminders(), "expire_gmail_reminders", {}],
+    [
+      () =>
+        repository.gmailReminderReadiness({
+          ...config,
+          kind: "gmail",
+          allowedRecipient: "pilot@gmail.com",
+          clientId: "fixture",
+          clientSecret: "fixture",
+          refreshToken: "fixture",
+          binding: {
+            version: 1,
+            email: "pilot@gmail.com",
+            subject: "subject",
+            clientId: "fixture",
+            scopes: [],
+            authorizedAt: "fixture",
+            publishingStatus: "production",
+            testingExpiresAt: null,
+            refreshTokenSha256: "fixture",
+          },
+        }),
+      "gmail_reminder_readiness",
+      {
+        p_namespace: "fixture",
+        p_subject: "subject",
+        p_sender: config.from,
+        p_allowed_recipient: "pilot@gmail.com",
+        p_app_origin: config.appUrl,
+      },
+    ],
     [
       () => repository.drainReminderAccounts(),
       "drain_email_reminder_accounts",
@@ -96,6 +160,37 @@ it("PR01 every named email operation binds its inputs and installs a five-second
       "finish_email_reminder_run",
       { p_run_id: "run", p_success: true, p_counts: { submitted: 1 } },
     ],
+    [
+      () => repository.claimReminderRecovery("fixture", true),
+      "claim_email_recovery",
+      { p_namespace: "fixture", p_sending: true },
+    ],
+    [
+      () => repository.claimReminderRecovery("fixture", false),
+      "claim_email_recovery",
+      { p_namespace: "fixture", p_sending: false },
+    ],
+    [
+      () => repository.beginReminderRecovery("job", "token", config, "fresh"),
+      "begin_email_recovery",
+      { p_job_id: "job", p_token: "token", p_config: config, p_kind: "fresh" },
+    ],
+    [
+      () => repository.beginReminderRecovery("job", "token", config, "retry"),
+      "begin_email_recovery",
+      { p_job_id: "job", p_token: "token", p_config: config, p_kind: "retry" },
+    ],
+    [
+      () => repository.recordReminderRecovery("reservation", "token", recovery),
+      "record_email_submission",
+      { p_submission_id: "reservation", p_token: "token", p_result: recovery },
+    ],
+    [
+      () => repository.recordReminderCheck("check", "token", observation),
+      "record_email_check",
+      { p_check_id: "check", p_token: "token", p_result: observation },
+    ],
+    [() => repository.expireReminderRecovery(), "expire_email_recovery", {}],
   ] as const;
   const timer = vi.spyOn(AbortSignal, "timeout");
   try {
@@ -106,14 +201,14 @@ it("PR01 every named email operation binds its inputs and installs a five-second
       expect(boundary.abort).toHaveBeenLastCalledWith(expect.any(AbortSignal));
       expect(timer).toHaveBeenLastCalledWith(5000);
     }
-    expect(timer).toHaveBeenCalledTimes(10);
+    expect(timer).toHaveBeenCalledTimes(21);
     boundary.abort.mockResolvedValue({
       data: null,
       error: { message: "private" },
     });
-    expect(await repository.claimReminderJob()).toBeNull();
+    for (const [call] of cases) expect(await call()).toBeNull();
     boundary.abort.mockRejectedValue(new Error("private"));
-    expect(await repository.claimReminderJob()).toBeNull();
+    for (const [call] of cases) expect(await call()).toBeNull();
   } finally {
     timer.mockRestore();
   }
@@ -123,5 +218,35 @@ it("PR02 missing storage never constructs a privileged client", async () => {
   vi.stubEnv("SUPABASE_SECRET_KEY", "");
   expect(repository.reminderStorageConfigured()).toBe(false);
   expect(await repository.claimReminderJob()).toBeNull();
+  expect(await repository.claimReminderRecovery("fixture", false)).toBeNull();
+  expect(await repository.expireReminderRecovery()).toBeNull();
+  expect(
+    await repository.beginReminderRecovery(
+      "job",
+      "token",
+      {
+        namespace: "fixture",
+        from: "from",
+        replyTo: "reply",
+        appUrl: "origin",
+      },
+      "fresh",
+    ),
+  ).toBeNull();
+  expect(
+    await repository.recordReminderRecovery("reservation", "token", {
+      kind: "uncertain",
+      providerId: null,
+      errorCode: null,
+      retryAfterSeconds: null,
+    }),
+  ).toBeNull();
+  expect(
+    await repository.recordReminderCheck("check", "token", {
+      status: null,
+      bounced: false,
+      matched: false,
+    }),
+  ).toBeNull();
   expect(boundary.create).not.toHaveBeenCalled();
 });

@@ -1,5 +1,7 @@
 "use client";
 import { RecordDates } from "./record-dates";
+import { RecordNumber } from "./record-number";
+import { RenewalSummary } from "@/components/renewals/summary";
 import type { Credential } from "@/lib/register/schema";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -26,6 +28,7 @@ export function RegisterPanel({
   maintenanceAction,
   readKey,
   archivedView = false,
+  timezone,
 }: {
   register: Register;
   canEdit: boolean;
@@ -35,6 +38,7 @@ export function RegisterPanel({
   maintenanceAction?: MaintenanceAction;
   readKey?: string;
   archivedView?: boolean;
+  timezone?: string;
 }) {
   const router = useRouter();
   const [locked, setLocked] = useState(false),
@@ -64,6 +68,9 @@ export function RegisterPanel({
       archived_at?: string | null;
       suspected_duplicate_ids?: string[];
     })[],
+    renewalById = new Map(
+      register.credentials.map((record) => [record.id, record.renewal]),
+    ),
     credentials = allCredentials.filter(
       (record) => Boolean(record.archived_at) === archivedView,
     );
@@ -164,6 +171,8 @@ export function RegisterPanel({
                   }}
                   active={allCredentials}
                   archivedView={archivedView}
+                  timezone={timezone}
+                  renewal={renewalById.get(record.id)}
                 />
               ))}
             </ul>
@@ -324,17 +333,21 @@ function RecordItem({
   open,
   active,
   archivedView,
+  timezone,
+  renewal,
 }: Omit<ControlsProps, "action"> & {
   maintenanceAction?: MaintenanceAction;
   active: DisplayRecord[];
   archivedView: boolean;
+  timezone?: string;
+  renewal: Credential["renewal"];
 }) {
   return (
     <li key={record.id} id={`record-${record.id}`}>
       <article>
         <h3>{record.title}</h3>
         <p>
-          {typeLabels[record.type]} · {record.id.slice(-6)}
+          {typeLabels[record.type]} · App reference: {record.id.slice(-6)}
         </p>
         <p>
           Owner: {record.owner_name} (
@@ -349,6 +362,13 @@ function RecordItem({
             </p>
           )}
         <RecordDates record={record} />
+        <RecordNumber record={record} />
+        <RecordRenewal
+          record={record}
+          renewal={renewal}
+          timezone={timezone}
+          disabled={locked || refreshing || editing !== null}
+        />
         {record.archived_at && (
           <p>
             Archived on{" "}
@@ -380,6 +400,36 @@ function RecordItem({
         />
       </article>
     </li>
+  );
+}
+function RecordRenewal({
+  record,
+  renewal,
+  timezone,
+  disabled,
+}: {
+  record: DisplayRecord;
+  renewal: Credential["renewal"];
+  timezone?: string;
+  disabled: boolean;
+}) {
+  return (
+    <>
+      <RenewalSummary renewal={renewal} timezone={timezone} />
+      {!disabled && (
+        <a
+          className="text-link"
+          href={`/practice/register/${record.id}/history`}
+        >
+          Renewal history
+        </a>
+      )}
+      {!record.archived_at && !disabled && (
+        <a className="text-link" href={`/practice/register/${record.id}`}>
+          Review renewal
+        </a>
+      )}
+    </>
   );
 }
 function controlsDisabled({

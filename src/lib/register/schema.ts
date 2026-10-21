@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { isCredentialDate } from "./dates";
 import { versionSchema } from "@/lib/team/schema";
+import { renewalStateSchema } from "@/lib/renewals/state";
+import { recordNumberInputSchema, recordNumberSchema } from "./numbers";
+import { credentialTypeSchema } from "./types";
 const uuid = z.uuid().transform((value) => value.toLowerCase());
 const name = z
   .string()
@@ -29,30 +32,32 @@ const optionalDate = z
   .transform((value) => value || null);
 const orderedDates = (end: string | null, action: string | null) =>
   !end || !action || action < end;
-const type = z.enum([
-  "state_license",
-  "dea_registration",
-  "malpractice_policy",
-]);
+
 const owner = z.enum(["clinician", "practice"]);
-export const typeLabels = {
-  state_license: "State license",
-  dea_registration: "DEA registration",
-  malpractice_policy: "Malpractice policy",
-} as const;
+export { typeLabels } from "./types";
 const credentialInput = z
   .strictObject({
     requestId: uuid,
     title: name,
+    recordNumber: recordNumberInputSchema.optional(),
     issuer: optionalName,
     jurisdiction: optionalName,
     endDate: optionalDate,
     actionDeadline: optionalDate,
-    type,
+    type: credentialTypeSchema,
     ownerKind: owner,
     ownerClinicianId: uuid.optional(),
     coveredClinicianIds: z.array(uuid).default([]),
   })
+  .refine(
+    (value) =>
+      value.type !== "pci_compliance_certificate" ||
+      value.ownerKind === "practice",
+    {
+      path: ["ownerKind"],
+      message: "PCI compliance certificates must be owned by the practice.",
+    },
+  )
   .refine(
     (value) =>
       (value.ownerKind === "clinician") === Boolean(value.ownerClinicianId),
@@ -102,7 +107,8 @@ export const credentialSchema = z
   .object({
     id: uuid,
     title: name,
-    type,
+    record_number: recordNumberSchema.optional(),
+    type: credentialTypeSchema,
     owner_kind: owner,
     owner_clinician_id: uuid.nullable(),
     owner_name: name,
@@ -110,16 +116,22 @@ export const credentialSchema = z
     covered_clinicians: z.array(person),
     issuer: name.nullable(),
     jurisdiction: name.nullable(),
+    renewal: renewalStateSchema.optional(),
     current_cycle: z
       .object({
         id: uuid,
-        cycle_number: z.literal(1),
+        cycle_number: versionSchema,
         date_revision: versionSchema,
         end_date: date.nullable(),
         action_deadline: date.nullable(),
       })
       .refine((value) => orderedDates(value.end_date, value.action_deadline)),
   })
+  .refine(
+    (value) =>
+      value.type !== "pci_compliance_certificate" ||
+      value.owner_kind === "practice",
+  )
   .refine(
     (value) =>
       (value.owner_kind === "clinician") ===
@@ -129,6 +141,11 @@ export const credentialSchema = z
     (value) =>
       !value.covered_clinicians.length ||
       (value.type === "malpractice_policy" && value.owner_kind === "practice"),
+  )
+  .refine(
+    (value) =>
+      !value.renewal ||
+      value.renewal.workflow.cycleId === value.current_cycle.id,
   );
 export const registerSchema = z.object({
   clinicians: z.array(clinicianSchema),
@@ -195,7 +212,7 @@ export const maintenanceInputSchema = z.lazy(() =>
 export const maintenanceCredentialSchema = credentialSchema.safeExtend({
   archived_at: z.iso.datetime({ offset: true }).nullable(),
 });
-const listedCredential = maintenanceCredentialSchema
+export const listedCredentialSchema = maintenanceCredentialSchema
   .safeExtend({ suspected_duplicate_ids: z.array(uuid) })
   .refine(
     (value) =>
@@ -206,7 +223,7 @@ const listedCredential = maintenanceCredentialSchema
   );
 export const maintenanceRegisterSchema = z.object({
   clinicians: z.array(clinicianSchema),
-  credentials: z.array(listedCredential),
+  credentials: z.array(listedCredentialSchema),
 });
 export type MaintenanceInput = z.infer<typeof maintenanceInputSchema>;
 export type MaintenanceCredential = z.infer<typeof maintenanceCredentialSchema>;
@@ -220,6 +237,7 @@ export type MaintenanceResult =
         | "invalid-reference"
         | "request-conflict"
         | "archived"
+        | "completed"
         | "not-found"
         | "forbidden"
         | "unavailable"

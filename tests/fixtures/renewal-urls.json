@@ -1,0 +1,79 @@
+[
+  { "input": null, "valid": true, "normalized": null },
+  { "input": "", "valid": true, "normalized": null },
+  { "input": " \t\n", "valid": true, "normalized": null },
+  {
+    "input": " HTTPS://Board.example.test/renew?type=state#start ",
+    "valid": true,
+    "normalized": "https://Board.example.test/renew?type=state#start"
+  },
+  {
+    "input": "https://board.example.test",
+    "valid": true,
+    "normalized": "https://board.example.test"
+  },
+  {
+    "input": "https://xn--bcher-kva.example.test/a%20b?q=%3Cvalue%3E#step",
+    "valid": true,
+    "normalized": "https://xn--bcher-kva.example.test/a%20b?q=%3Cvalue%3E#step"
+  },
+  {
+    "input": "https://1-board.example.test/-._~!$&()*+,;=:@/?#",
+    "valid": true,
+    "normalized": "https://1-board.example.test/-._~!$&()*+,;=:@/?#"
+  },
+  {
+    "input": "https://board.example.test?renew=1",
+    "valid": true,
+    "normalized": "https://board.example.test?renew=1"
+  },
+  {
+    "input": "https://board.example.test#renew",
+    "valid": true,
+    "normalized": "https://board.example.test#renew"
+  },
+  { "input": "http://board.example.test", "valid": false },
+  { "input": "javascript:alert(1)", "valid": false },
+  { "input": "data:text/html,test", "valid": false },
+  { "input": "//board.example.test", "valid": false },
+  { "input": "https:board.example.test", "valid": false },
+  { "input": "https:///board.example.test", "valid": false },
+  { "input": "https://name:secret@board.example.test", "valid": false },
+  { "input": "https://board.example.test:443/renew", "valid": false },
+  { "input": "https://127.0.0.1/renew", "valid": false },
+  { "input": "https://0x7f.0.0.1/renew", "valid": false },
+  { "input": "https://127.1/renew", "valid": false },
+  { "input": "https://board.123/renew", "valid": false },
+  { "input": "https://board.0x10/renew", "valid": false },
+  { "input": "https://board.0XAF/renew", "valid": false },
+  { "input": "prefixhttps://board.example.test/renew", "valid": false },
+  {
+    "input": "https://board.123abc.test/renew",
+    "valid": true,
+    "normalized": "https://board.123abc.test/renew"
+  },
+  { "input": "https://[::1]/renew", "valid": false },
+  { "input": "https://localhost/renew", "valid": false },
+  { "input": "https://board.example.test./renew", "valid": false },
+  { "input": "https://.example.test", "valid": false },
+  { "input": "https://board..example.test", "valid": false },
+  { "input": "https://-board.example.test", "valid": false },
+  { "input": "https://board-.example.test", "valid": false },
+  { "input": "https://bo_ard.example.test", "valid": false },
+  { "input": "https://board%2Eexample.test", "valid": false },
+  { "input": "https://bücher.example.test", "valid": false },
+  { "input": "https://board.example.test/a b", "valid": false },
+  { "input": "https://board.example.test/a\nb", "valid": false },
+  { "input": "https://board.example.test/a\u0000b", "valid": false },
+  { "input": "https://board.example.test\\evil", "valid": false },
+  { "input": "https://board.example.test/<script>", "valid": false },
+  { "input": "https://board.example.test/\"onclick\"", "valid": false },
+  { "input": "https://board.example.test/'onclick'", "valid": false },
+  { "input": "https://board.example.test/[id]", "valid": false },
+  { "input": "https://board.example.test/{id}", "valid": false },
+  { "input": "https://board.example.test/`id`", "valid": false },
+  { "input": "https://board.example.test/%", "valid": false },
+  { "input": "https://board.example.test/%0", "valid": false },
+  { "input": "https://board.example.test/%GG", "valid": false },
+  { "input": "https://board.example.test/#one#two", "valid": false }
+]

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/require-user";
 import { getPracticeAccess } from "@/lib/practice/access";
-import { getMaintenanceRegister } from "@/lib/register/repository";
+import { getRenewalRegister } from "@/lib/renewals/repository";
 import { RegisterPanel } from "@/components/register/register-panel";
 import { Shell } from "@/components/shell";
 import { SignOutForm } from "@/components/auth/sign-out-form";
@@ -20,7 +20,7 @@ export default async function PracticeRegister({
   if (access.status !== "success")
     throw new Error("We could not complete this request. Try again.");
   if (!access.access) redirect("/onboarding/practice");
-  const result = await getMaintenanceRegister(
+  const result = await getRenewalRegister(
     client,
     access.access.practice.id,
     archivedView,
@@ -43,6 +43,7 @@ export default async function PracticeRegister({
         <RegisterPanel
           register={result.register}
           canEdit={access.access.role !== "viewer"}
+          timezone={access.access.practice.timezone}
           action={registerAction}
           maintenanceAction={maintenanceAction}
           readKey={randomUUID()}

@@ -155,7 +155,7 @@ it("G20 validation keeps draft and associates field error; acknowledged success 
         .elements.namedItem("requestId") as HTMLInputElement
     ).value,
   ).not.toBe("clin-key");
-  expect(refresh).toHaveBeenCalled();
+  await waitFor(() => expect(refresh).toHaveBeenCalled());
   view.rerender(panel(action));
   expect(
     screen.getByRole("list", { name: "Saved clinicians" }).textContent,
@@ -335,13 +335,20 @@ it("G21 coverage field errors stay linked to retained choices", async () => {
 });
 
 it("D11 type switches reset dates and metadata; owner changes preserve the draft", async () => {
-  const action = vi.fn().mockResolvedValue({
+  const validation = {
     status: "invalid",
     message: "Review dates",
     errors: {
       actionDeadline: "The action deadline must be earlier than the end date.",
     },
-  });
+  };
+  let finish!: () => void;
+  const action = vi.fn().mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = () => resolve(validation);
+      }),
+  );
   render(panel(action));
   for (const [label, value] of [
     ["Licensing board (optional)", "Board"],
@@ -358,6 +365,10 @@ it("D11 type switches reset dates and metadata; owner changes preserve the draft
   ).toBe("2028-02-29");
   submit("Add record");
   await waitFor(() => expect(action).toHaveBeenCalledOnce());
+  finish();
+  await waitFor(() =>
+    expect(screen.getByRole("alert").textContent).toBe("Review dates"),
+  );
   expect(action.mock.calls[0][1].get("issuer")).toBe("Board");
   const field = screen.getByLabelText("Earlier action deadline");
   expect(field.getAttribute("aria-invalid")).toBe("true");

@@ -1,6 +1,8 @@
 import ts from "typescript";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { evidenceSecretModules } from "./evidence-controls.mjs";
+import { gmailSecretModules } from "./gmail-controls.mjs";
 const privileged = "src/lib/sms/privileged-repository.ts";
 const allowed = new Set([
   "claimSend",
@@ -20,6 +22,15 @@ const allowed = new Set([
   "applyReminderEvent",
   "startReminderRun",
   "finishReminderRun",
+  "claimReminderRecovery",
+  "beginReminderRecovery",
+  "recordReminderRecovery",
+  "recordReminderCheck",
+  "expireReminderRecovery",
+  "gmailReminderReadiness",
+  "beginGmailReminder",
+  "recordGmailReminder",
+  "expireGmailReminders",
 ]);
 export function assertSmsCapabilities(files) {
   const parsed = new Map(
@@ -39,7 +50,8 @@ export function assertSmsCapabilities(files) {
       throw new Error(`SMS public secret/authority: ${name}`);
     if (
       /SUPABASE_(?:SECRET_KEY|SERVICE_ROLE_KEY)/.test(source) &&
-      name !== privileged
+      name !== privileged &&
+      !evidenceSecretModules.has(name)
     )
       throw new Error(`SMS secret outside privileged boundary: ${name}`);
     const imports = [];
@@ -95,6 +107,8 @@ export function assertSmsCapabilities(files) {
   function visit(name, seen) {
     if (seen.has(name)) return;
     seen.add(name);
+    if (gmailSecretModules.has(name))
+      throw new Error(`Gmail client reaches server capability: ${name}`);
     const source = files.get(name);
     if (/^["']use server["'];/m.test(source)) return;
     for (const reference of edges.get(name)) {
